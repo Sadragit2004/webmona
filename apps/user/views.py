@@ -11,7 +11,7 @@ from .forms import MobileForm, VerificationCodeForm
 from .models import CustomUser, UserSecurity
 
 # ✅ ایمپورت توابع از validators (utils)
-from .validators.model import generate_activation_code, generate_expiration_time, validate_activation_code
+from .validators.model import generate_activation_code, validate_activation_code
 
 
 # ======================
@@ -34,7 +34,7 @@ def send_mobile(request):
 
             # تولید کد فعال‌سازی و زمان انقضا
             code = generate_activation_code(5)
-            expire_time = generate_expiration_time(2)
+            expire_time = timezone.now() + timedelta(minutes=2)  # استفاده از timezone.now()
 
             # ذخیره در مدل امنیتی
             security = user.security
@@ -56,7 +56,7 @@ def send_mobile(request):
     else:
         form = MobileForm()
 
-    return render(request, "user_app/register.html", {"form": form, "next": next_url})
+    return render(request, "user_app/login.html", {"form": form, "next": next_url})
 
 
 # ======================
@@ -87,7 +87,7 @@ def verify_code(request):
         # ======================
         if "resend" in request.POST and request.POST["resend"] == "true":
             code = generate_activation_code(5)
-            expire_time = generate_expiration_time(2)
+            expire_time = timezone.now() + timedelta(minutes=2)  # استفاده از timezone.now()
 
             security.activeCode = code
             security.expireCode = expire_time
@@ -109,10 +109,17 @@ def verify_code(request):
         if form.is_valid():
             code = form.cleaned_data['activeCode']
 
-            # بررسی زمان انقضا
-            if security.expireCode and security.expireCode < timezone.now():
-                messages.error(request, "⏳ کد منقضی شده است، دوباره تلاش کنید.")
-                return redirect("account:send_mobile")
+            # بررسی زمان انقضا - با تبدیل به aware datetime
+            if security.expireCode:
+                # اگر expireCode از قبل aware نیست، آن را aware کنید
+                if timezone.is_naive(security.expireCode):
+                    expire_time = timezone.make_aware(security.expireCode)
+                else:
+                    expire_time = security.expireCode
+
+                if expire_time < timezone.now():
+                    messages.error(request, "⏳ کد منقضی شده است، دوباره تلاش کنید.")
+                    return redirect("account:send_mobile")
 
             # بررسی صحت کد با تابع validate_activation_code
             try:
@@ -140,7 +147,7 @@ def verify_code(request):
     else:
         form = VerificationCodeForm()
 
-    return render(request, "user_app/verify_otp.html", {"form": form, "mobile": mobile})
+    return render(request, "user_app/code.html", {"form": form, "mobile": mobile})
 
 
 # ======================
