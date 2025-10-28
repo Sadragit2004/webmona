@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+{% load static %}
+{% load humanize %}
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منوی دیجیتال - {{ restaurant.title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            padding-bottom: 80px;
+        }
+
+        body.dark-mode {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .food-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f1f5f9;
+        }
+
+        .dark-mode .food-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .category-sidebar-item {
+            background-color: white;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 16px 8px;
+        }
+
+        .dark-mode .category-sidebar-item {
+            background-color: #1e293b;
+            border-bottom: 1px solid #334155;
+        }
+
+        .category-active {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border-right: 3px solid #1e40af !important;
+        }
+
+        .dark-mode .category-active {
+            background-color: #1e40af !important;
+            border-right: 3px solid #3b82f6 !important;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .categories-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 100px;
+            overflow-y: auto;
+            z-index: 20;
+            padding-top: 130px;
+            background-color: white;
+        }
+
+        .dark-mode .categories-sidebar {
+            background-color: #1e293b;
+        }
+
+        .main-content {
+            margin-right: 100px;
+            width: calc(100% - 100px);
+        }
+
+        .cooking-time {
+            display: flex;
+            align-items: center;
+            color: #6b7280;
+            font-size: 0.75rem;
+            gap: 4px;
+        }
+
+        .dark-mode .cooking-time {
+            color: #9ca3af;
+        }
+
+        /* استایل‌های جدید برای رفع ایرادات */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .restaurant-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .restaurant-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            line-height: 1.2;
+            color: #1e293b;
+        }
+
+        .dark-mode .restaurant-name {
+            color: #f8fafc;
+        }
+
+        .restaurant-subtitle {
+            font-size: 0.75rem;
+            color: #64748b;
+            line-height: 1.2;
+        }
+
+        .dark-mode .restaurant-subtitle {
+            color: #94a3b8;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-icon {
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-icon:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .dark-mode .header-icon:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .hamburger-icon {
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hamburger-icon:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .dark-mode .hamburger-icon:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* بهبود دسته‌بندی‌ها */
+        .category-sidebar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-sidebar-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .dark-mode .category-sidebar-item:hover {
+            background-color: #334155;
+        }
+
+        .category-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .category-name {
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.2;
+            max-width: 80px;
+        }
+
+        /* بهبود منوی همبرگر */
+        .hamburger-menu {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            backdrop-filter: blur(20px);
+        }
+
+        .dark-mode .hamburger-menu {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .menu-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* بهبود فوتر */
+        .bottom-nav {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95);
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .dark-mode .bottom-nav {
+            background: rgba(30, 41, 59, 0.95);
+            border-top: 1px solid #334155;
+        }
+
+        .nav-btn {
+            padding: 12px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background-color: #f1f5f9;
+        }
+
+        .dark-mode .nav-btn:hover {
+            background-color: #334155;
+        }
+
+        /* بهبود نمایش غذاها */
+        .food-image {
+            border-radius: 12px 0 0 12px;
+        }
+
+        .food-content {
+            padding: 16px;
+        }
+
+        .food-title {
+            font-weight: 700;
+            font-size: 1rem;
+            line-height: 1.3;
+            color: #1e293b;
+        }
+
+        .dark-mode .food-title {
+            color: #f8fafc;
+        }
+
+        .food-price {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #3b82f6;
+            white-space: nowrap;
+        }
+
+        .food-description {
+            color: #64748b;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .dark-mode .food-description {
+            color: #94a3b8;
+        }
+
+        /* نوتیفیکیشن */
+        .notification {
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -20px);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        /* استایل‌های جدید برای آیکون صدا */
+        .sound-btn {
+            transition: all 0.2s ease;
+        }
+
+        .sound-btn.playing {
+            color: #3b82f6 !important;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* بهبود نمایش زمان در حالت تاریک */
+        .dark-mode .cooking-time {
+            background-color: #334155 !important;
+            color: #cbd5e1 !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- نوار بالایی اصلی -->
+    <header class="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm dark:bg-gray-800">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="hamburger-icon cursor-pointer text-gray-600 dark:text-gray-300">
+                        <i class="fas fa-bars text-lg"></i>
+                    </div>
+                    <div class="logo-container">
+                        {% if restaurant.logo %}
+                        <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.title }}"
+                             class="w-10 h-10 rounded-xl object-cover border border-gray-200 dark:border-gray-600">
+                        {% else %}
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                            {{ restaurant.title|first }}
+                        </div>
+                        {% endif %}
+                        <div class="restaurant-info">
+                            <div class="restaurant-name">{{ restaurant.title }}</div>
+                            <div class="restaurant-subtitle">منوی دیجیتال</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                   <a href="{% url 'menu:change_language' restaurant.slug %}?lang=en" class="lang-btn text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 no-underline">
+    <span class="lang-text">EN</span>
+</a>
+                    <button id="theme-toggle" class="header-icon bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-yellow-300">
+                        <i class="fas fa-moon text-base"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- نوار جستجو -->
+        <div class="search-container bg-white dark:bg-gray-800 py-3 border-t border-gray-100 dark:border-gray-700">
+            <div class="container mx-auto px-4">
+                <div class="search-box bg-gray-50 dark:bg-gray-700 rounded-xl px-4 py-2 flex items-center gap-3 border border-gray-200 dark:border-gray-600">
+                    <i class="fas fa-search text-gray-400 dark:text-gray-400 text-sm"></i>
+                    <input type="text" placeholder="جستجوی غذا..."
+                           class="w-full bg-transparent border-none outline-none text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 text-sm">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- منوی هامبورگر -->
+    <div class="hamburger-menu fixed inset-0 z-50 hidden flex-col justify-center items-center p-6">
+        <div class="close-icon absolute top-4 left-4 text-white text-xl cursor-pointer p-2 hover:bg-white/10 rounded-full">
+            <i class="fas fa-times"></i>
+        </div>
+
+        <div class="hamburger-header absolute top-4 right-4 flex items-center gap-3 text-white">
+            {% if restaurant.logo %}
+            <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.title }}"
+                 class="w-12 h-12 rounded-xl object-cover border-2 border-white/30">
+            {% else %}
+            <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white font-bold text-lg border-2 border-white/30">
+                {{ restaurant.title|first }}
+            </div>
+            {% endif %}
+            <div class="restaurant-info">
+                <div class="restaurant-name font-bold text-white">{{ restaurant.title }}</div>
+                <div class="restaurant-subtitle text-blue-100">منوی دیجیتال</div>
+            </div>
+        </div>
+
+        <div class="menu-items flex flex-col gap-3 w-full max-w-xs">
+            {% if restaurant.phone %}
+            <a href="tel:{{ restaurant.phone }}" class="menu-item text-white flex items-center gap-3">
+                <i class="fas fa-phone w-5 text-center text-blue-200"></i>
+                <span class="flex-1">{{ restaurant.phone }}</span>
+            </a>
+            {% endif %}
+
+            {% if restaurant.address %}
+            <a href="#" class="menu-item text-white flex items-center gap-3">
+                <i class="fas fa-map-marker-alt w-5 text-center text-blue-200"></i>
+                <span class="flex-1">آدرس رستوران</span>
+            </a>
+            {% endif %}
+
+            <div class="menu-item text-white flex items-center gap-3">
+                <i class="fas fa-clock w-5 text-center text-blue-200"></i>
+                <span class="flex-1">
+                    {% if restaurant.openingTime and restaurant.closingTime %}
+                    {{ restaurant.openingTime|time:"H:i" }} - {{ restaurant.closingTime|time:"H:i" }}
+                    {% else %}
+                    ساعات کاری
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- دسته‌بندی‌های ثابت در سمت راست -->
+    <div class="categories-sidebar scrollbar-hide">
+        <div class="category-sidebar-item category-sidebar-btn category-active" data-category="all">
+            <div class="category-icon bg-gradient-to-br from-blue-400 to-blue-500 text-white shadow-md">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <span class="category-name">همه موارد</span>
+        </div>
+
+        {% for menu_category in menu_categories %}
+        <div class="category-sidebar-item category-sidebar-btn" data-category="{{ menu_category.id }}">
+            {% if menu_category.displayImage %}
+            <img src="{{ menu_category.displayImage.url }}" alt="{{ menu_category.category.title }}"
+                 class="category-icon object-cover shadow-md">
+            {% else %}
+            <div class="category-icon bg-gradient-to-br from-gray-300 to-gray-400 text-gray-600 shadow-md">
+                <i class="fas fa-utensils"></i>
+            </div>
+            {% endif %}
+            <span class="category-name">{{ menu_category.category.title }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- محتوای اصلی -->
+    <div class="main-content pt-32">
+        <div class="container mx-auto px-4 py-4">
+            <div class="food-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for food in foods %}
+                <div class="food-item food-card" data-category="{{ food.menuCategory.id|default:'all' }}">
+                    <div class="flex h-36">
+                        <div class="w-2/5 flex-shrink-0">
+                            {% if food.image %}
+                            <img src="{{ food.image.url }}" alt="{{ food.title }}"
+                                 class="w-full h-full object-cover food-image">
+                            {% else %}
+                            <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-400 dark:text-gray-500 food-image">
+                                <i class="fas fa-utensils text-xl"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="food-content w-3/5 flex flex-col justify-between">
+                            <div class="flex flex-col gap-2">
+                                <div class="flex justify-between items-start gap-2">
+                                    <h3 class="food-title flex-1">{{ food.title }}</h3>
+                                    <span class="food-price">
+                                        {{ food.price|intcomma }} تومان
+                                    </span>
+                                </div>
+                                <p class="food-description">
+                                    {{ food.description|default:"توضیحات موجود نیست" }}
+                                </p>
+                            </div>
+                            <div class="flex justify-between items-center gap-2 mt-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="cooking-time bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-lg">
+                                        <i class="fas fa-clock text-xs"></i>
+                                        <span class="text-xs font-medium">{{ food.preparationTime|default:"-" }} دقیقه</span>
+                                    </div>
+                                    <!-- آیکون صدا برای همه غذاها -->
+                                    <button class="sound-btn text-gray-400 hover:text-blue-500 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 {% if food.sound %}cursor-pointer{% else %}cursor-not-allowed opacity-50{% endif %}"
+                                            {% if food.sound %}data-sound="{{ food.sound.url }}"{% endif %}
+                                            title="{% if food.sound %}پخش توضیحات صوتی{% else %}توضیحات صوتی موجود نیست{% endif %}">
+                                        <i class="fas fa-volume-up text-xs"></i>
+                                    </button>
+                                </div>
+                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md order-btn whitespace-nowrap"
+                                        data-food-id="{{ food.id }}">
+                                    سفارش
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-2 text-center py-12 text-gray-400 dark:text-gray-500">
+                    <i class="fas fa-utensils text-4xl mb-3 opacity-50"></i>
+                    <p class="text-base">هیچ غذایی در منو موجود نیست</p>
+                    <p class="text-sm mt-1 opacity-75">لطفاً بعداً مراجعه کنید</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- نوار پایینی -->
+
+
+    <script>
+        const restaurantSlug = "{{ restaurant.slug }}";
+        let currentAudio = null;
+
+        // تغییر حالت روز/شب
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const icon = themeToggle.querySelector('i');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // بارگذاری تم ذخیره شده
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.querySelector('i').classList.remove('fa-moon');
+            themeToggle.querySelector('i').classList.add('fa-sun');
+        }
+
+        // فیلتر دسته‌بندی‌ها
+        const categoryButtons = document.querySelectorAll('.category-sidebar-btn');
+        const foodItems = document.querySelectorAll('.food-item');
+
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const categoryId = this.getAttribute('data-category');
+
+                // به‌روزرسانی UI
+                categoryButtons.forEach(btn => btn.classList.remove('category-active'));
+                this.classList.add('category-active');
+
+                // فیلتر غذاها
+                foodItems.forEach(item => {
+                    const itemCategory = item.getAttribute('data-category');
+                    if (categoryId === 'all' || itemCategory === categoryId) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // جستجو
+        const searchInput = document.querySelector('.search-box input');
+        let searchTimeout;
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            clearTimeout(searchTimeout);
+
+            searchTimeout = setTimeout(() => {
+                foodItems.forEach(item => {
+                    const title = item.querySelector('.food-title').textContent.toLowerCase();
+                    const description = item.querySelector('.food-description').textContent.toLowerCase();
+
+                    if (title.includes(query) || description.includes(query)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                // اگر جستجو خالی شد، دسته‌بندی فعال را نشان بده
+                if (query === '') {
+                    const activeCategory = document.querySelector('.category-sidebar-btn.category-active');
+                    if (activeCategory) {
+                        activeCategory.click();
+                    }
+                }
+            }, 300);
+        });
+
+        // منوی هامبورگر
+        const hamburgerIcon = document.querySelector('.hamburger-icon');
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const closeIcon = document.querySelector('.close-icon');
+
+        hamburgerIcon.addEventListener('click', () => {
+            hamburgerMenu.classList.remove('hidden');
+        });
+
+        closeIcon.addEventListener('click', () => {
+            hamburgerMenu.classList.add('hidden');
+        });
+
+        // پخش صدا - نسخه بهبود یافته
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.sound-btn')) {
+                const soundBtn = e.target.closest('.sound-btn');
+                const soundUrl = soundBtn.getAttribute('data-sound');
+
+                if (!soundUrl) {
+                    showNotification('توضیحات صوتی برای این غذا موجود نیست');
+                    return;
+                }
+
+                // اگر صدا در حال پخش است، متوقف کن
+                if (currentAudio && !currentAudio.paused) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                    document.querySelectorAll('.sound-btn').forEach(btn => {
+                        btn.classList.remove('playing');
+                    });
+                }
+
+                // پخش صدا
+                currentAudio = new Audio(soundUrl);
+                currentAudio.play().then(() => {
+                    soundBtn.classList.add('playing');
+                    showNotification('در حال پخش توضیحات صوتی...');
+                }).catch(error => {
+                    console.error('Error playing sound:', error);
+                    showNotification('خطا در پخش صدا');
+                });
+
+                // وقتی صدا تمام شد
+                currentAudio.addEventListener('ended', () => {
+                    soundBtn.classList.remove('playing');
+                    showNotification('پخش توضیحات صوتی به پایان رسید');
+                });
+
+                // اگر خطایی در پخش صدا رخ داد
+                currentAudio.addEventListener('error', () => {
+                    soundBtn.classList.remove('playing');
+                    showNotification('خطا در پخش فایل صوتی');
+                });
+            }
+        });
+
+        // سفارش غذا
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.order-btn')) {
+                const foodId = e.target.closest('.order-btn').getAttribute('data-food-id');
+                const foodTitle = e.target.closest('.food-item').querySelector('.food-title').textContent;
+
+                // به‌روزرسانی سبد خرید
+                const cartCount = document.querySelector('footer .bg-red-500');
+                let count = parseInt(cartCount.textContent) || 0;
+                cartCount.textContent = count + 1;
+
+                // نمایش نوتیفیکیشن
+                showNotification(`"${foodTitle}" به سبد خرید اضافه شد`);
+            }
+        });
+
+        // نمایش نوتیفیکیشن
+        function showNotification(message) {
+            // حذف نوتیفیکیشن قبلی اگر وجود دارد
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            const notification = document.createElement('div');
+            notification.className = 'notification fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // بارگذاری اولیه - نمایش همه غذاها
+        window.addEventListener('load', () => {
+            const allCategoryBtn = document.querySelector('[data-category="all"]');
+            if (allCategoryBtn) {
+                allCategoryBtn.click();
+            }
+        });
+
+        // توقف پخش صدا وقتی صفحه بسته می‌شود
+        window.addEventListener('beforeunload', () => {
+            if (currentAudio && !currentAudio.paused) {
+                currentAudio.pause();
+            }
+        });
+    </script>
+</body>
+</html>

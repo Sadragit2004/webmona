@@ -39,7 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apps.user.apps.UserConfig',
+    'apps.menu.apps.MenuConfig',
+    'apps.panel.apps.PanelConfig',
+     'django.contrib.humanize',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -65,6 +69,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.main.views.media_admin',
+                'apps.panel.views.viewsfree.restaurant_context',
             ],
         },
     },

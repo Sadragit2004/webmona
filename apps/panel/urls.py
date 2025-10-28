@@ -1,0 +1,26 @@
+# urls.py
+from django.urls import path
+from .views import viewsfree
+
+app_name = 'panel'
+
+urlpatterns = [
+    path('', viewsfree.panel, name='panel'),
+    path('create/', viewsfree.create_restaurant, name='create_restaurant'),
+    path('create-modal/', viewsfree.create_restaurant_modal, name='create_restaurant_modal'),
+    path('check-english-name/', viewsfree.check_english_name, name='check_english_name'),
+    path('<str:slug>/admin/', viewsfree.restaurant_admin, name='restaurant_admin'),
+    path('<str:slug>/foods/add/', viewsfree.add_food, name='add_food'),
+    path('<str:slug>/foods/<int:food_id>/update/', viewsfree.update_food, name='update_food'),
+    path('<str:slug>/foods/<int:food_id>/delete/', viewsfree.delete_food, name='delete_food'),
+    path('<str:slug>/foods/<int:food_id>/toggle/', viewsfree.toggle_food_status, name='toggle_food_status'),
+    path('<str:slug>/menu-categories/add/', viewsfree.add_menu_category, name='add_menu_category'),
+    path('<str:slug>/menu-categories/<int:menu_category_id>/toggle/', viewsfree.toggle_menu_category_status, name='toggle_menu_category_status'),
+    path('<str:slug>/menu-categories/<int:menu_category_id>/delete/', viewsfree.delete_menu_category, name='delete_menu_category'),
+    path('<str:slug>/settings/update/', viewsfree.update_restaurant_settings, name='update_restaurant_settings'),
+    path('<str:slug>/foods/category/<str:category_id>/', viewsfree.get_foods_by_category, name='get_foods_by_category'),
+    path('<str:slug>/foods/update-order/', viewsfree.update_food_order, name='update_food_order'),
+    path('<slug:slug>/categories/tree/', viewsfree.get_category_tree, name='category-tree'),
+    path('<slug:slug>/categories/quick-add/', viewsfree.quick_add_menu_category, name='quick-add-category'),
+
+]

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.db import IntegrityError
 
 from datetime import timedelta
 
@@ -24,35 +25,61 @@ def send_mobile(request):
         if form.is_valid():
             mobile = form.cleaned_data['mobileNumber']
 
-            # بررسی یا ساخت کاربر جدید
-            user, created = CustomUser.objects.get_or_create(mobileNumber=mobile)
+            try:
+                # بررسی یا ساخت کاربر جدید
+                user, created = CustomUser.objects.get_or_create(mobileNumber=mobile)
 
-            if created:
-                user.is_active = False
-                user.save()
-                UserSecurity.objects.create(user=user)
+                if created:
+                    user.is_active = False
+                    user.save()
 
-            # تولید کد فعال‌سازی و زمان انقضا
-            code = generate_activation_code(5)
-            expire_time = timezone.now() + timedelta(minutes=2)  # استفاده از timezone.now()
+                # مدیریت UserSecurity با کنترل خطا
+                try:
+                    security = UserSecurity.objects.get(user=user)
+                except UserSecurity.DoesNotExist:
+                    security = UserSecurity.objects.create(user=user)
 
-            # ذخیره در مدل امنیتی
-            security = user.security
-            security.activeCode = code
-            security.expireCode = expire_time
-            security.isBan = False
-            security.save()
+                # تولید کد فعال‌سازی و زمان انقضا
+                code = generate_activation_code(5)
+                expire_time = timezone.now() + timedelta(minutes=2)
 
-            # TODO: ارسال پیامک (در حال حاضر در کنسول)
-            print(f"کد تأیید برای {mobile}: {code}")
+                # ذخیره در مدل امنیتی
+                security.activeCode = code
+                security.expireCode = expire_time
+                security.isBan = False
+                security.save()
 
-            # ذخیره شماره موبایل و آدرس بعدی در session
-            request.session["mobileNumber"] = mobile
-            if next_url:
-                request.session["next_url"] = next_url
+                # TODO: ارسال پیامک (در حال حاضر در کنسول)
+                print(f"کد تأیید برای {mobile}: {code}")
 
-            # هدایت به صفحه وارد کردن کد
-            return redirect("account:verify_code")
+                # ذخیره شماره موبایل و آدرس بعدی در session
+                request.session["mobileNumber"] = mobile
+                if next_url:
+                    request.session["next_url"] = next_url
+
+                # هدایت به صفحه وارد کردن کد
+                return redirect("account:verify_code")
+
+            except IntegrityError:
+                # اگر خطای تکراری بود، دوباره امتحان کن
+                security = UserSecurity.objects.get(user=user)
+                # تولید کد فعال‌سازی و زمان انقضا
+                code = generate_activation_code(5)
+                expire_time = timezone.now() + timedelta(minutes=2)
+
+                # ذخیره در مدل امنیتی
+                security.activeCode = code
+                security.expireCode = expire_time
+                security.isBan = False
+                security.save()
+
+                # ذخیره شماره موبایل و آدرس بعدی در session
+                request.session["mobileNumber"] = mobile
+                if next_url:
+                    request.session["next_url"] = next_url
+
+                return redirect("account:verify_code")
+
     else:
         form = MobileForm()
 
@@ -73,12 +100,15 @@ def verify_code(request):
 
     try:
         user = CustomUser.objects.get(mobileNumber=mobile)
-        security = user.security
+        security = UserSecurity.objects.get(user=user)
     except CustomUser.DoesNotExist:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'message': 'کاربری با این شماره موبایل یافت نشد'})
         messages.error(request, "کاربری با این شماره موبایل یافت نشد.")
         return redirect("account:send_mobile")
+    except UserSecurity.DoesNotExist:
+        # اگر UserSecurity وجود نداشت، ایجادش کن
+        security = UserSecurity.objects.create(user=user)
 
     if request.method == "POST":
 
@@ -87,7 +117,7 @@ def verify_code(request):
         # ======================
         if "resend" in request.POST and request.POST["resend"] == "true":
             code = generate_activation_code(5)
-            expire_time = timezone.now() + timedelta(minutes=2)  # استفاده از timezone.now()
+            expire_time = timezone.now() + timedelta(minutes=2)
 
             security.activeCode = code
             security.expireCode = expire_time
@@ -109,9 +139,8 @@ def verify_code(request):
         if form.is_valid():
             code = form.cleaned_data['activeCode']
 
-            # بررسی زمان انقضا - با تبدیل به aware datetime
+            # بررسی زمان انقضا
             if security.expireCode:
-                # اگر expireCode از قبل aware نیست، آن را aware کنید
                 if timezone.is_naive(security.expireCode):
                     expire_time = timezone.make_aware(security.expireCode)
                 else:

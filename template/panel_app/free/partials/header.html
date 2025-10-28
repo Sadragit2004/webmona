@@ -1,0 +1,486 @@
+<header class="bg-white shadow-sm">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-2 space-x-reverse">
+            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                {{ request.user.name  }}
+            </div>
+            <h1 class="text-xl font-bold" id="pageTitle">پنل کاربری</h1>
+        </div>
+        <div class="flex items-center space-x-4 space-x-reverse">
+            {% if user_restaurants %}
+            <button onclick="openCreateRestaurantModal()"
+                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                افتتاح رستوران جدید
+            </button>
+            {% endif %}
+            <form method="post" action="{% url 'account:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                    خروج
+                </button>
+            </form>
+            <!-- همبرگر منو - همیشه نمایش داده شود -->
+            <button class="text-gray-600" id="mobileMenuButton">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<div class="container mx-auto px-4 py-6 flex flex-col md:flex-row gap-6" id="mainContainer">
+    <!-- Sidebar Section - فقط در صفحات غیر مدیریت منو نمایش داده شود -->
+    <aside class="md:w-1/4 bg-white rounded-xl shadow-sm p-4" id="desktopSidebar">
+        <div class="mb-6 text-center">
+            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-3">
+                <i class="fas fa-user text-3xl"></i>
+            </div>
+            <h2 class="font-bold text-lg">{{ request.user.name }} {{ request.user.family }}</h2>
+            <p class="text-gray-500 text-sm">{{ request.user.mobileNumber }}</p>
+            {% if request.user.email %}
+            <p class="text-gray-500 text-sm">{{ request.user.email }}</p>
+            {% endif %}
+        </div>
+
+        <nav class="space-y-2">
+            <a href="{% url 'panel:panel' %}" class="flex items-center space-x-3 space-x-reverse p-3 bg-blue-50 text-blue-600 rounded-lg">
+                <i class="fas fa-home"></i>
+                <span>داشبورد</span>
+            </a>
+
+            {% if user_restaurants %}
+                {% for restaurant in user_restaurants %}
+                <a href="{% url 'panel:restaurant_admin' slug=restaurant.slug %}" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fas fa-utensils"></i>
+                    <span>منوی {{ restaurant.title }}</span>
+                </a>
+                {% endfor %}
+            {% else %}
+                <a href="#" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-400 rounded-lg">
+                    <i class="fas fa-utensils"></i>
+                    <span>تنظیمات منو (غیرفعال)</span>
+                </a>
+            {% endif %}
+
+            <a href="#" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                <i class="fas fa-shopping-cart"></i>
+                <span>سفارش‌ها</span>
+            </a>
+            <a href="#" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                <i class="fas fa-cog"></i>
+                <span>تنظیمات</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div class="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden" id="mobileSidebarOverlay">
+        <div class="fixed inset-y-0 right-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out translate-x-full" id="mobileSidebar">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold">منو</h3>
+                    <button class="text-gray-500 hover:text-gray-700" id="closeMobileSidebar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <nav class="space-y-2">
+                    <a href="{% url 'panel:panel' %}" class="flex items-center space-x-3 space-x-reverse p-3 bg-blue-50 text-blue-600 rounded-lg">
+                        <i class="fas fa-home"></i>
+                        <span>داشبورد</span>
+                    </a>
+
+                    {% if user_restaurants %}
+                        {% for restaurant in user_restaurants %}
+                        <a href="{% url 'panel:restaurant_admin' slug=restaurant.slug %}" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                            <i class="fas fa-utensils"></i>
+                            <span>منوی {{ restaurant.title }}</span>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <a href="#" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-400 rounded-lg">
+                            <i class="fas fa-utensils"></i>
+                            <span>تنظیمات منو (غیرفعال)</span>
+                        </a>
+                    {% endif %}
+
+                    <a href="#" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>سفارش‌ها</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                        <i class="fas fa-cog"></i>
+                        <span>تنظیمات</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Section -->
+    <main class="md:w-3/4 w-full" id="mainContent">
+        <!-- فقط وقتی کاربر رستوران ندارد -->
+        {% if not user_restaurants %}
+        <div class="bg-white rounded-xl shadow-sm p-8 text-center">
+            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
+                <i class="fas fa-utensils text-2xl"></i>
+            </div>
+            <h2 class="text-xl font-bold mb-2">هنوز رستورانی ندارید</h2>
+            <p class="text-gray-600 mb-6">برای شروع، اولین رستوران خود را ایجاد کنید</p>
+            <button onclick="openCreateRestaurantModal()"
+                    class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors">
+                افتتاح رستوران جدید
+            </button>
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<!-- مودال افتتاح رستوران -->
+<div id="createRestaurantModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <!-- هدر مودال -->
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-lg font-bold">افتتاح رستوران جدید</h3>
+                <button onclick="closeCreateRestaurantModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- محتوای مودال -->
+            <div class="p-6">
+                <!-- Step 1: اطلاعات پایه -->
+                <div id="step1" class="step-content">
+                    <h4 class="font-bold mb-4">اطلاعات پایه</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">نام</label>
+                            <input type="text" id="nameInput"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   value="{{ request.user.name|default:'' }}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">نام خانوادگی</label>
+                            <input type="text" id="familyInput"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   value="{{ request.user.family|default:'' }}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">نام رستوران</label>
+                            <input type="text" id="restaurantNameInput"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="مثال: رستوران شاندیز">
+                        </div>
+                    </div>
+                    <div class="flex justify-end mt-6">
+                        <button onclick="proceedToStep2()"
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+                            مرحله بعد
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: نام انگلیسی -->
+                <div id="step2" class="step-content hidden">
+                    <h4 class="font-bold mb-4">نام انگلیسی رستوران</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">نام انگلیسی</label>
+                            <input type="text" id="englishNameInput"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="مثال: my-restaurant"
+                                   oninput="checkEnglishName()">
+                            <div id="englishNameFeedback" class="text-sm mt-2"></div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-sm text-gray-600">
+                                آدرس منوی شما:
+                                <span id="menuUrlPreview" class="font-mono text-blue-500">/menu/</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-6">
+                        <button onclick="backToStep1()"
+                                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
+                            بازگشت
+                        </button>
+                        <button id="step2Button" onclick="proceedToStep3()"
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                disabled>
+                            تأیید و ایجاد
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: در حال پردازش -->
+                <div id="step3" class="step-content hidden">
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
+                            <i class="fas fa-spinner fa-spin text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold mb-2">در حال ایجاد رستوران...</h4>
+                        <p class="text-gray-600">لطفاً چند لحظه صبر کنید</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// تشخیص صفحه و تنظیم لایوت
+function detectPageAndSetupLayout() {
+    const path = window.location.pathname;
+
+    // چک کردن الگوی: /panel/چیزی/admin/
+    const pattern = /^\/panel\/[^\/]+\/admin\/?$/;
+    const isRestaurantAdmin = pattern.test(path);
+
+    console.log('Path:', path);
+    console.log('Is Restaurant Admin:', isRestaurantAdmin);
+
+    if (isRestaurantAdmin) {
+        // صفحه مدیریت منو - سایدبار مخفی، عرض کامل
+        document.getElementById('desktopSidebar').classList.add('hidden');
+        document.getElementById('mainContent').classList.remove('md:w-3/4');
+        document.getElementById('mainContent').classList.add('w-full');
+        document.getElementById('mainContainer').classList.remove('md:flex-row');
+        document.getElementById('pageTitle').textContent = 'مدیریت منو';
+
+        // نمایش همبرگر منو در دسکتاپ
+        document.getElementById('mobileMenuButton').classList.remove('md:hidden');
+
+        console.log('Layout set to: Restaurant Admin Mode');
+    } else {
+        // صفحات دیگر - سایدبار نمایش داده شود
+        document.getElementById('desktopSidebar').classList.remove('hidden');
+        document.getElementById('mainContent').classList.remove('w-full');
+        document.getElementById('mainContent').classList.add('md:w-3/4');
+        document.getElementById('mainContainer').classList.add('md:flex-row');
+        document.getElementById('pageTitle').textContent = 'پنل کاربری';
+
+        // مخفی کردن همبرگر در دسکتاپ
+        document.getElementById('mobileMenuButton').classList.add('md:hidden');
+
+        console.log('Layout set to: Normal Mode');
+    }
+}
+
+// مدیریت سایدبار موبایل
+document.getElementById('mobileMenuButton').addEventListener('click', function() {
+    const overlay = document.getElementById('mobileSidebarOverlay');
+    const sidebar = document.getElementById('mobileSidebar');
+    overlay.classList.remove('hidden');
+    setTimeout(() => {
+        sidebar.classList.remove('translate-x-full');
+    }, 10);
+});
+
+document.getElementById('closeMobileSidebar').addEventListener('click', function() {
+    const overlay = document.getElementById('mobileSidebarOverlay');
+    const sidebar = document.getElementById('mobileSidebar');
+    sidebar.classList.add('translate-x-full');
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+    }, 300);
+});
+
+document.getElementById('mobileSidebarOverlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+        const sidebar = document.getElementById('mobileSidebar');
+        sidebar.classList.add('translate-x-full');
+        setTimeout(() => {
+            this.classList.add('hidden');
+        }, 300);
+    }
+});
+
+// اسکریپت‌های مودال
+let currentStep = 1;
+let restaurantData = {
+    step1: {},
+    step2: {}
+};
+
+function openCreateRestaurantModal() {
+    document.getElementById('createRestaurantModal').classList.remove('hidden');
+    showStep(1);
+}
+
+function closeCreateRestaurantModal() {
+    document.getElementById('createRestaurantModal').classList.add('hidden');
+    resetForm();
+}
+
+function showStep(step) {
+    currentStep = step;
+    document.querySelectorAll('.step-content').forEach(el => {
+        el.classList.add('hidden');
+    });
+    document.getElementById(`step${step}`).classList.remove('hidden');
+}
+
+function resetForm() {
+    showStep(1);
+    document.getElementById('englishNameFeedback').innerHTML = '';
+    document.getElementById('step2Button').disabled = true;
+    document.getElementById('englishNameInput').value = '';
+    document.getElementById('restaurantNameInput').value = '';
+    restaurantData = { step1: {}, step2: {} };
+}
+
+function proceedToStep2() {
+    const name = document.getElementById('nameInput').value.trim();
+    const family = document.getElementById('familyInput').value.trim();
+    const restaurantName = document.getElementById('restaurantNameInput').value.trim();
+
+    if (!name || !family || !restaurantName) {
+        alert('لطفاً تمام فیلدها را پر کنید');
+        return;
+    }
+
+    restaurantData.step1 = {
+        name: name,
+        family: family,
+        restaurant_name: restaurantName
+    };
+
+    fetch("{% url 'panel:create_restaurant_modal' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            step: 1,
+            name: name,
+            family: family,
+            restaurant_name: restaurantName
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showStep(2);
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در ارتباط با سرور');
+    });
+}
+
+function backToStep1() {
+    showStep(1);
+}
+
+let checkTimeout;
+function checkEnglishName() {
+    const englishName = document.getElementById('englishNameInput').value.trim().toLowerCase();
+    const feedback = document.getElementById('englishNameFeedback');
+    const button = document.getElementById('step2Button');
+    const menuUrl = document.getElementById('menuUrlPreview');
+
+    menuUrl.textContent = `/menu/${englishName}`;
+    clearTimeout(checkTimeout);
+
+    if (!englishName) {
+        feedback.innerHTML = '<span class="text-red-500">نام انگلیسی نمی‌تواند خالی باشد</span>';
+        button.disabled = true;
+        return;
+    }
+
+    const englishNameRegex = /^[a-z0-9-]+$/;
+    if (!englishNameRegex.test(englishName)) {
+        feedback.innerHTML = '<span class="text-red-500">فقط حروف انگلیسی، اعداد و خط تیره مجاز است</span>';
+        button.disabled = true;
+        return;
+    }
+
+    checkTimeout = setTimeout(() => {
+        fetch(`{% url 'panel:check_english_name' %}?english_name=${encodeURIComponent(englishName)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.available) {
+                    feedback.innerHTML = '<span class="text-green-500">✓ ' + data.message + '</span>';
+                    button.disabled = false;
+                    restaurantData.step2 = { english_name: englishName };
+                } else {
+                    feedback.innerHTML = '<span class="text-red-500">✗ ' + data.message + '</span>';
+                    button.disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                feedback.innerHTML = '<span class="text-red-500">خطا در بررسی نام انگلیسی</span>';
+                button.disabled = true;
+            });
+    }, 500);
+}
+
+function proceedToStep3() {
+    const englishName = document.getElementById('englishNameInput').value.trim();
+
+    if (!englishName) {
+        alert('لطفاً نام انگلیسی را وارد کنید');
+        return;
+    }
+
+    if (!restaurantData.step1.name || !restaurantData.step1.family || !restaurantData.step1.restaurant_name) {
+        alert('خطا در داده‌های مرحله اول. لطفاً از ابتدا شروع کنید.');
+        showStep(1);
+        return;
+    }
+
+    showStep(3);
+
+    fetch("{% url 'panel:create_restaurant_modal' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            step: 3,
+            name: restaurantData.step1.name,
+            family: restaurantData.step1.family,
+            restaurant_name: restaurantData.step1.restaurant_name,
+            english_name: englishName
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        } else {
+            alert(data.message);
+            showStep(2);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در ایجاد رستوران');
+        showStep(2);
+    });
+}
+
+// بستن مودال با کلیک خارج از آن
+document.getElementById('createRestaurantModal').addEventListener('click', function(e) {
+    if (e.target.id === 'createRestaurantModal') {
+        closeCreateRestaurantModal();
+    }
+});
+
+// بستن مودال با دکمه ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCreateRestaurantModal();
+    }
+});
+
+// تشخیص نوع صفحه هنگام لود
+document.addEventListener('DOMContentLoaded', function() {
+    detectPageAndSetupLayout();
+});
+</script>
