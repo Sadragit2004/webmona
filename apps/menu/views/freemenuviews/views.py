@@ -2,9 +2,12 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.utils.translation import gettext as _
 from django.conf import settings
-from django.db.models import Q  # اضافه کردن این خط
+from django.db.models import Q
+from django.shortcuts import redirect
+from django.urls import reverse
 from ...models.menufreemodels.models import Restaurant, MenuCategory, Food, Category, ExchangeRate
 
+# در views.py - تابع digital_menu
 def digital_menu(request, restaurant_slug):
     """صفحه اصلی منوی دیجیتال"""
     restaurant = get_object_or_404(Restaurant, slug=restaurant_slug, isActive=True)
@@ -36,10 +39,14 @@ def digital_menu(request, restaurant_slug):
         'foods': foods,
         'current_language': lang,
         'exchange_rate': exchange_rate,
+        'lang': lang
     }
 
-    template = 'menu_app/free/restaurant_en.html' if lang == 'en' else 'menu_app/free/restaurant.html'
-    return render(request, template, context)
+    # استفاده از تمپلیت انگلیسی برای زبان انگلیسی
+    if lang == 'en':
+        return render(request, 'menu_app/free/restaurant_en.html', context)
+    else:
+        return render(request, 'menu_app/free/restaurant.html', context)
 
 def get_foods_by_category(request, restaurant_slug, category_id):
     """دریافت غذاها بر اساس دسته‌بندی (API)"""
@@ -59,12 +66,11 @@ def get_foods_by_category(request, restaurant_slug, category_id):
             'title': food.title_en if lang == 'en' and food.title_en else food.title,
             'description': food.description_en if lang == 'en' and food.description_en else food.description,
             'price': food.price,
-            'price_usd': food.formatted_price_usd,
-            'price_usd_cents': food.price_usd_cents,
+            'price_display': food.get_price_display(lang),
             'preparationTime': food.preparationTime,
-            'image': food.image.url if food.image else '/static/images/default-food.jpg',
+            'image': food.image.url if food.image else None,
             'sound': food.sound.url if food.sound else None,
-            'category': food.menuCategory.category.title_en if lang == 'en' and food.menuCategory and food.menuCategory.category.title_en else (food.menuCategory.category.title if food.menuCategory else _('دسته‌بندی نشده'))
+            'category_id': food.menuCategory.id if food.menuCategory else None
         })
 
     return JsonResponse({'foods': foods_data})
@@ -76,7 +82,6 @@ def search_foods(request, restaurant_slug):
     lang = request.GET.get('lang', 'fa')
 
     if query:
-        # جستجو در هر دو زبان
         foods = Food.objects.filter(
             restaurant=restaurant,
             isActive=True
@@ -96,12 +101,11 @@ def search_foods(request, restaurant_slug):
             'title': food.title_en if lang == 'en' and food.title_en else food.title,
             'description': food.description_en if lang == 'en' and food.description_en else food.description,
             'price': food.price,
-            'price_usd': food.formatted_price_usd,
-            'price_usd_cents': food.price_usd_cents,
+            'price_display': food.get_price_display(lang),
             'preparationTime': food.preparationTime,
-            'image': food.image.url if food.image else '/static/images/default-food.jpg',
+            'image': food.image.url if food.image else None,
             'sound': food.sound.url if food.sound else None,
-            'category': food.menuCategory.category.title_en if lang == 'en' and food.menuCategory and food.menuCategory.category.title_en else (food.menuCategory.category.title if food.menuCategory else _('دسته‌بندی نشده'))
+            'category_id': food.menuCategory.id if food.menuCategory else None
         })
 
     return JsonResponse({'foods': foods_data})
@@ -112,4 +116,6 @@ def change_language(request, restaurant_slug):
     if lang not in ['fa', 'en']:
         lang = 'fa'
 
-    return digital_menu(request, restaurant_slug)
+    # استفاده از reverse و اضافه کردن query parameter
+    url = reverse('menu:digital_menu', kwargs={'restaurant_slug': restaurant_slug})
+    return redirect(f"{url}?lang={lang}")
