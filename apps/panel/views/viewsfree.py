@@ -771,3 +771,61 @@ def quick_add_menu_category(request, slug):
             'message': f'خطا در افزودن دسته‌بندی: {str(e)}'
         })
 
+
+
+
+@login_required
+def user_menus_view(request):
+    # رستوران‌هایی که مالک آن‌ها کاربر فعلی است
+    user_restaurants = request.user.restaurants.all()
+
+    # منوهای مربوط به همان رستوران‌ها
+    menu_categories = MenuCategory.objects.filter(
+        restaurant__in=user_restaurants
+    ).select_related('restaurant', 'category')
+
+    return render(request, 'panel_app/free/myMenu.html', {
+        'menu_categories': menu_categories,
+    })
+
+
+    # views.py
+import qrcode
+import base64
+from io import BytesIO
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+
+@login_required
+def generate_qr_code(request, restaurant_slug):
+    restaurant = get_object_or_404(Restaurant, slug=restaurant_slug, owner=request.user)
+
+    # ساخت آدرس کامل منو
+    menu_url = request.build_absolute_uri(f'/menu/{restaurant.slug}/')
+
+    # تولید QR Code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(menu_url)
+    qr.make(fit=True)
+
+    # تبدیل به تصویر
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    # ذخیره در بافر
+    buffer = BytesIO()
+    img.save(buffer, format='PNG')
+    buffer.seek(0)
+
+    # تبدیل به base64 برای نمایش در HTML
+    img_str = base64.b64encode(buffer.getvalue()).decode()
+
+    return JsonResponse({
+        'success': True,
+        'qr_code': f'data:image/png;base64,{img_str}',
+        'menu_url': menu_url
+    })

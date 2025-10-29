@@ -1,0 +1,42 @@
+  <aside class="md:w-1/4 bg-white rounded-xl shadow-sm p-4" id="desktopSidebar">
+        <div class="mb-6 text-center">
+            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-3">
+                <i class="fas fa-user text-3xl"></i>
+            </div>
+            <h2 class="font-bold text-lg">{{ request.user.name }} {{ request.user.family }}</h2>
+            <p class="text-gray-500 text-sm">{{ request.user.mobileNumber }}</p>
+            {% if request.user.email %}
+            <p class="text-gray-500 text-sm">{{ request.user.email }}</p>
+            {% endif %}
+        </div>
+
+        <nav class="space-y-2">
+            <a href="{% url 'panel:panel' %}" class="flex items-center space-x-3 space-x-reverse p-3 bg-blue-50 text-blue-600 rounded-lg">
+                <i class="fas fa-home"></i>
+                <span>داشبورد</span>
+            </a>
+
+            {% if user_restaurants %}
+                {% for restaurant in user_restaurants %}
+                <a href="{% url 'panel:restaurant_admin' slug=restaurant.slug %}" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fas fa-utensils"></i>
+                    <span>منوی {{ restaurant.title }}</span>
+                </a>
+                {% endfor %}
+            {% else %}
+                <a href="#" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-400 rounded-lg">
+                    <i class="fas fa-utensils"></i>
+                    <span>تنظیمات منو (غیرفعال)</span>
+                </a>
+            {% endif %}
+
+            <a href="{% url 'panel:user_menus' %}" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                <i class="fas fa-shopping-cart"></i>
+                <span>لیست منو ها</span>
+            </a>
+            <a href="#" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                <i class="fas fa-cog"></i>
+                <span>تنظیمات</span>
+            </a>
+        </nav>
+    </aside>

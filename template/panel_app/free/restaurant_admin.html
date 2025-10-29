@@ -1,4 +1,4 @@
-{% extends "db_template.html" %}
+{% extends "panel_template.html" %}
 {% load static %}
 
 {% block content %}
@@ -918,7 +918,7 @@
         document.getElementById('manage-categories-btn')?.addEventListener('click', () => document.getElementById('category-modal').style.display = 'flex');
         document.getElementById('restaurant-settings-btn')?.addEventListener('click', () => document.getElementById('restaurant-modal').style.display = 'flex');
         document.getElementById('add-new-category-btn')?.addEventListener('click', () => openAddCategoryModal());
-        document.getElementById('add-category-mobile-btn')?.addEventListener('click', () => openAddCategoryModal());
+        document.getElementById('add-category-mobile-btn')?.addEventListener('click', () => openQuickCategoryModal());
 
         // Floating Action Button
         document.getElementById('fab-main')?.addEventListener('click', function() {

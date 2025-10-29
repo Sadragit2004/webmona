@@ -1,0 +1,635 @@
+{% extends "db_template.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="bg-white rounded-xl shadow-sm p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-right">لیست منوهای من</h2>
+            <div class="flex space-x-2 space-x-reverse">
+                <button onclick="printAllMenus()"
+                        class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center print:hidden">
+                    <i class="fas fa-print ml-2"></i>
+                    پرینت همه منوها
+                </button>
+                <button onclick="openPrintSettings()"
+                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center print:hidden">
+                    <i class="fas fa-palette ml-2"></i>
+                    تنظیمات پرینت
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {% for restaurant in user_restaurants %}
+            <div class="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300">
+                <!-- هدر کارت -->
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-lg text-gray-800">{{ restaurant.title }}</h3>
+                    <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-xs">
+                        {{ restaurant.menu_items.count }} آیتم
+                    </span>
+                </div>
+
+                <!-- لینک منو -->
+                <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+                    <p class="text-sm text-gray-600 mb-1">آدرس منو:</p>
+                    <div class="flex items-center justify-between">
+                        <a href="/menu/{{ restaurant.slug }}"
+                           class="text-blue-500 hover:text-blue-700 text-sm font-medium truncate"
+                           target="_blank">
+                            /menu/{{ restaurant.slug }}
+                        </a>
+                        <button onclick="copyMenuLink('{{ restaurant.slug }}')"
+                                class="text-gray-400 hover:text-gray-600 transition-colors print:hidden"
+                                title="کپی لینک">
+                            <i class="fas fa-copy text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- QR Code -->
+                <div class="mb-4 text-center">
+                    <p class="text-sm text-gray-600 mb-2">QR Code منو:</p>
+                    <div class="flex justify-center">
+                        <div id="qr-code-{{ restaurant.slug }}" class="border border-gray-200 rounded-lg p-2 bg-white">
+                            <div class="w-32 h-32 flex items-center justify-center text-gray-400">
+                                <i class="fas fa-qrcode text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- دکمه‌های اقدام -->
+                <div class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 space-x-reverse print:hidden">
+                    <a href="{% url 'panel:restaurant_admin' slug=restaurant.slug %}"
+                       class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-center py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center">
+                        <i class="fas fa-cog ml-1"></i>
+                        مدیریت منو
+                    </a>
+                    <div class="flex space-x-2 space-x-reverse">
+                        <button onclick="downloadQRCode('{{ restaurant.slug }}')"
+                                class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center"
+                                title="دانلود QR Code">
+                            <i class="fas fa-download ml-1"></i>
+                            دانلود
+                        </button>
+                        <button onclick="showQRModal('{{ restaurant.slug }}')"
+                                class="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center"
+                                title="نمایش بزرگ">
+                            <i class="fas fa-expand ml-1"></i>
+                            بزرگ‌نمایی
+                        </button>
+                        <button onclick="printSingleMenu('{{ restaurant.slug }}', '{{ restaurant.title }}', '{% if restaurant.logo %}{{ restaurant.logo.url }}{% endif %}')"
+                                class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center"
+                                title="پرینت این منو">
+                            <i class="fas fa-print ml-1"></i>
+                            پرینت
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center py-12">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mx-auto mb-4">
+                    <i class="fas fa-utensils text-2xl"></i>
+                </div>
+                <h3 class="text-gray-500 text-lg mb-2">هنوز منویی نساخته‌اید</h3>
+                <p class="text-gray-400 mb-4">اولین منوی خود را ایجاد کنید</p>
+                <a href="{% url 'panel:panel' %}"
+                   class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
+                    ساخت منو
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- مودال نمایش QR Code بزرگ -->
+<div id="qrModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-lg font-bold">QR Code منو</h3>
+                <button onclick="closeQRModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 text-center">
+                <div id="modalQrCode" class="mb-4 flex justify-center">
+                    <!-- QR Code بزرگ اینجا نمایش داده می‌شود -->
+                </div>
+                <p id="modalMenuUrl" class="text-gray-600 text-sm mb-4"></p>
+                <div class="flex space-x-2 justify-center">
+                    <button onclick="downloadCurrentQR()"
+                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                        <i class="fas fa-download ml-1"></i>
+                        دانلود QR
+                    </button>
+                    <button onclick="printCurrentQR()"
+                            class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                        <i class="fas fa-print ml-1"></i>
+                        پرینت QR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تنظیمات پرینت -->
+<div id="printSettingsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-lg font-bold">تنظیمات پرینت</h3>
+                <button onclick="closePrintSettings()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">تم پرینت</label>
+                        <select id="printTheme" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="modern">مدرن (پیش‌فرض)</option>
+                            <option value="elegant">الگانت</option>
+                            <option value="minimal">مینیمال</option>
+                            <option value="colorful">رنگی</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">رنگ متن</label>
+                        <input type="color" id="textColor" value="#1f2937" class="w-full h-10 rounded-lg border border-gray-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">رنگ پس‌زمینه</label>
+                        <input type="color" id="backgroundColor" value="#ffffff" class="w-full h-10 rounded-lg border border-gray-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">سایز QR Code</label>
+                        <select id="qrSize" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="medium">متوسط</option>
+                            <option value="large">بزرگ</option>
+                            <option value="xlarge">خیلی بزرگ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 space-x-reverse mt-6">
+                    <button onclick="closePrintSettings()"
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        انصراف
+                    </button>
+                    <button onclick="applyPrintSettings()"
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        اعمال تنظیمات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// تنظیمات پرینت
+let printSettings = {
+    theme: 'modern',
+    textColor: '#1f2937',
+    backgroundColor: '#ffffff',
+    qrSize: 'medium'
+};
+
+// تابع باز کردن تنظیمات پرینت
+function openPrintSettings() {
+    document.getElementById('printSettingsModal').classList.remove('hidden');
+    // بارگذاری تنظیمات فعلی
+    document.getElementById('printTheme').value = printSettings.theme;
+    document.getElementById('textColor').value = printSettings.textColor;
+    document.getElementById('backgroundColor').value = printSettings.backgroundColor;
+    document.getElementById('qrSize').value = printSettings.qrSize;
+}
+
+// تابع بستن تنظیمات پرینت
+function closePrintSettings() {
+    document.getElementById('printSettingsModal').classList.add('hidden');
+}
+
+// تابع اعمال تنظیمات پرینت
+function applyPrintSettings() {
+    printSettings = {
+        theme: document.getElementById('printTheme').value,
+        textColor: document.getElementById('textColor').value,
+        backgroundColor: document.getElementById('backgroundColor').value,
+        qrSize: document.getElementById('qrSize').value
+    };
+    closePrintSettings();
+    showNotification('تنظیمات پرینت اعمال شد ✅');
+}
+
+// تابع تولید QR Code برای هر منو
+function generateQRCode(restaurantSlug) {
+    fetch(`/panel/generate-qr/${restaurantSlug}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const qrContainer = document.getElementById(`qr-code-${restaurantSlug}`);
+                qrContainer.innerHTML = `<img src="${data.qr_code}" alt="QR Code" class="w-32 h-32">`;
+
+                // ذخیره داده برای استفاده بعدی
+                qrContainer.dataset.qrCode = data.qr_code;
+                qrContainer.dataset.menuUrl = data.menu_url;
+            }
+        })
+        .catch(error => {
+            console.error('Error generating QR code:', error);
+        });
+}
+
+// تابع کپی لینک منو
+function copyMenuLink(restaurantSlug) {
+    const menuUrl = `${window.location.origin}/menu/${restaurantSlug}/`;
+    navigator.clipboard.writeText(menuUrl).then(() => {
+        showNotification('لینک منو کپی شد ✅');
+    });
+}
+
+// تابع نمایش مودال QR Code
+function showQRModal(restaurantSlug) {
+    const qrContainer = document.getElementById(`qr-code-${restaurantSlug}`);
+    const qrCode = qrContainer.dataset.qrCode;
+    const menuUrl = qrContainer.dataset.menuUrl;
+
+    if (qrCode) {
+        document.getElementById('modalQrCode').innerHTML = `<img src="${qrCode}" alt="QR Code" class="w-64 h-64 mx-auto border-4 border-blue-200 rounded-xl">`;
+        document.getElementById('modalMenuUrl').textContent = menuUrl;
+        document.getElementById('qrModal').classList.remove('hidden');
+        document.getElementById('qrModal').dataset.currentSlug = restaurantSlug;
+    }
+}
+
+// تابع بستن مودال
+function closeQRModal() {
+    document.getElementById('qrModal').classList.add('hidden');
+}
+
+// تابع دانلود QR Code از مودال
+function downloadCurrentQR() {
+    const restaurantSlug = document.getElementById('qrModal').dataset.currentSlug;
+    downloadQRCode(restaurantSlug);
+}
+
+// تابع پرینت QR Code از مودال
+function printCurrentQR() {
+    const restaurantSlug = document.getElementById('qrModal').dataset.currentSlug;
+    const qrContainer = document.getElementById(`qr-code-${restaurantSlug}`);
+    const restaurantTitle = qrContainer.closest('.border').querySelector('h3').textContent;
+    printSingleMenu(restaurantSlug, restaurantTitle);
+}
+
+// تابع دانلود QR Code
+function downloadQRCode(restaurantSlug) {
+    const qrContainer = document.getElementById(`qr-code-${restaurantSlug}`);
+    const qrCode = qrContainer.dataset.qrCode;
+
+    if (qrCode) {
+        const link = document.createElement('a');
+        link.href = qrCode;
+        link.download = `menu-${restaurantSlug}-qrcode.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showNotification('QR Code دانلود شد ✅');
+    }
+}
+
+// تابع پرینت تک منو
+function printSingleMenu(restaurantSlug, restaurantTitle, restaurantLogo = '') {
+    const qrContainer = document.getElementById(`qr-code-${restaurantSlug}`);
+    const qrCode = qrContainer.dataset.qrCode;
+
+    // تنظیم سایز QR Code بر اساس تنظیمات
+    let qrSize = '300px';
+    if (printSettings.qrSize === 'large') qrSize = '350px';
+    if (printSettings.qrSize === 'xlarge') qrSize = '400px';
+
+    const themeStyles = getThemeStyles();
+
+    const printContent = `
+        <!DOCTYPE html>
+        <html dir="rtl">
+        <head>
+            <title>پرینت منو - ${restaurantTitle}</title>
+            <meta charset="utf-8">
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+                * {
+                    font-family: 'Vazirmatn', sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                body {
+                    padding: 40px 20px;
+                    ${themeStyles.body}
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+                .print-container {
+                    ${themeStyles.container}
+                    text-align: center;
+                    max-width: 500px;
+                    width: 100%;
+                }
+                .header {
+                    margin-bottom: 30px;
+                }
+                .logo {
+                    margin-bottom: 15px;
+                }
+                .logo img {
+                    max-width: 80px;
+                    max-height: 80px;
+                    border-radius: 10px;
+                }
+                .title {
+                    font-size: 28px;
+                    font-weight: bold;
+                    ${themeStyles.title}
+                    margin-bottom: 8px;
+                }
+                .subtitle {
+                    font-size: 16px;
+                    ${themeStyles.subtitle}
+                }
+                .qr-code {
+                    margin: 30px 0;
+                    padding: 20px;
+                    ${themeStyles.qrContainer}
+                    display: inline-block;
+                }
+                .instructions {
+                    margin-top: 20px;
+                    ${themeStyles.instructions}
+                    font-size: 14px;
+                }
+                .url {
+                    ${themeStyles.url}
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    font-family: monospace;
+                    font-size: 12px;
+                    margin-top: 10px;
+                    display: inline-block;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-container">
+                <div class="header">
+                    ${restaurantLogo ? `<div class="logo"><img src="${restaurantLogo}" alt="لوگو ${restaurantTitle}"></div>` : ''}
+                    <h1 class="title">${restaurantTitle}</h1>
+                    <p class="subtitle">منوی دیجیتال</p>
+                </div>
+
+                <div class="qr-code">
+                    <img src="${qrCode}" alt="QR Code" style="width: ${qrSize}; height: ${qrSize};">
+                </div>
+
+                <div class="instructions">
+                    <p>برای مشاهده منو، دوربین موبایل خود را روی QR Code بالا نگه دارید</p>
+                    <div class="url">${qrContainer.dataset.menuUrl}</div>
+                </div>
+            </div>
+
+            <script>
+                window.onload = function() {
+                    window.print();
+                    setTimeout(() => {
+                        window.close();
+                    }, 1000);
+                }
+            <\/script>
+        </body>
+        </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+}
+
+// تابع پرینت همه منوها
+function printAllMenus() {
+    const printWindow = window.open('', '_blank');
+
+    let printContent = `
+        <!DOCTYPE html>
+        <html dir="rtl">
+        <head>
+            <title>پرینت همه منوها</title>
+            <meta charset="utf-8">
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+                * {
+                    font-family: 'Vazirmatn', sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                body {
+                    padding: 20px;
+                    background: #f8fafc;
+                }
+                .menus-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                    gap: 20px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                .menu-card {
+                    ${getThemeStyles().container}
+                    padding: 30px;
+                    text-align: center;
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                }
+                .header {
+                    margin-bottom: 20px;
+                }
+                .title {
+                    font-size: 22px;
+                    font-weight: bold;
+                    ${getThemeStyles().title}
+                    margin-bottom: 8px;
+                }
+                .qr-code {
+                    margin: 20px 0;
+                    padding: 15px;
+                    ${getThemeStyles().qrContainer}
+                    display: inline-block;
+                }
+                .instructions {
+                    margin-top: 15px;
+                    ${getThemeStyles().instructions}
+                    font-size: 13px;
+                }
+                .url {
+                    ${getThemeStyles().url}
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    font-family: monospace;
+                    font-size: 11px;
+                    margin-top: 8px;
+                    display: inline-block;
+                }
+                @media print {
+                    body {
+                        background: white !important;
+                        padding: 10px !important;
+                    }
+                    .menus-grid {
+                        grid-template-columns: 1fr !important;
+                        gap: 10px !important;
+                    }
+                    .menu-card {
+                        margin: 10px 0 !important;
+                        box-shadow: none !important;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="menus-grid">
+    `;
+
+    // اضافه کردن هر منو
+    {% for restaurant in user_restaurants %}
+    const qrContainer{{ forloop.counter }} = document.getElementById('qr-code-{{ restaurant.slug }}');
+    if (qrContainer{{ forloop.counter }} && qrContainer{{ forloop.counter }}.dataset.qrCode) {
+        const qrSize = printSettings.qrSize === 'medium' ? '250px' :
+                      printSettings.qrSize === 'large' ? '300px' : '350px';
+
+        printContent += `
+            <div class="menu-card">
+                <div class="header">
+                    <h2 class="title">{{ restaurant.title }}</h2>
+                    <p class="subtitle">منوی دیجیتال</p>
+                </div>
+                <div class="qr-code">
+                    <img src="${qrContainer{{ forloop.counter }}.dataset.qrCode}" alt="QR Code" style="width: ${qrSize}; height: ${qrSize};">
+                </div>
+                <div class="instructions">
+                    <p>برای مشاهده منو، QR Code را اسکن کنید</p>
+                    <div class="url">${qrContainer{{ forloop.counter }}.dataset.menuUrl}</div>
+                </div>
+            </div>
+        `;
+    }
+    {% endfor %}
+
+    printContent += `
+            </div>
+            <script>
+                window.onload = function() {
+                    window.print();
+                    setTimeout(() => {
+                        window.close();
+                    }, 1000);
+                }
+            <\/script>
+        </body>
+        </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+}
+
+// تابع دریافت استایل‌های تم
+function getThemeStyles() {
+    const themes = {
+        modern: {
+            body: 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);',
+            container: 'background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 8px solid #3B82F6;',
+            title: `color: ${printSettings.textColor};`,
+            subtitle: 'color: #6B7280;',
+            qrContainer: 'background: #F3F4F6; border-radius: 15px; border: 3px solid #E5E7EB;',
+            instructions: 'color: #4B5563;',
+            url: 'background: #E5E7EB; color: #374151;'
+        },
+        elegant: {
+            body: 'background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);',
+            container: 'background: white; border-radius: 15px; padding: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 4px solid #EC4899;',
+            title: `color: ${printSettings.textColor};`,
+            subtitle: 'color: #9CA3AF;',
+            qrContainer: 'background: #FDF2F8; border-radius: 12px; border: 2px solid #FBCFE8;',
+            instructions: 'color: #6B7280;',
+            url: 'background: #FCE7F3; color: #BE185D;'
+        },
+        minimal: {
+            body: `background: ${printSettings.backgroundColor};`,
+            container: 'background: white; border-radius: 10px; padding: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border: 2px solid #E5E7EB;',
+            title: `color: ${printSettings.textColor};`,
+            subtitle: 'color: #6B7280;',
+            qrContainer: 'background: white; border-radius: 8px; border: 1px solid #D1D5DB;',
+            instructions: 'color: #6B7280;',
+            url: 'background: #F3F4F6; color: #374151;'
+        },
+        colorful: {
+            body: 'background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);',
+            container: 'background: white; border-radius: 25px; padding: 40px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); border: 6px solid #F59E0B;',
+            title: `color: ${printSettings.textColor};`,
+            subtitle: 'color: #7C2D12;',
+            qrContainer: 'background: #FFFBEB; border-radius: 20px; border: 4px solid #FCD34D;',
+            instructions: 'color: #92400E;',
+            url: 'background: #FEF3C7; color: #92400E;'
+        }
+    };
+
+    return themes[printSettings.theme] || themes.modern;
+}
+
+// تابع نمایش نوتیفیکیشن
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// تولید QR Code برای همه منوها هنگام لود صفحه
+document.addEventListener('DOMContentLoaded', function() {
+    {% for restaurant in user_restaurants %}
+        generateQRCode('{{ restaurant.slug }}');
+    {% endfor %}
+});
+
+// بستن مودال‌ها با کلیک خارج
+document.getElementById('qrModal').addEventListener('click', function(e) {
+    if (e.target.id === 'qrModal') {
+        closeQRModal();
+    }
+});
+
+document.getElementById('printSettingsModal').addEventListener('click', function(e) {
+    if (e.target.id === 'printSettingsModal') {
+        closePrintSettings();
+    }
+});
+
+// بستن مودال با ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeQRModal();
+        closePrintSettings();
+    }
+});
+</script>
+{% endblock %}

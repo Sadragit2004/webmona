@@ -22,5 +22,7 @@ urlpatterns = [
     path('<str:slug>/foods/update-order/', viewsfree.update_food_order, name='update_food_order'),
     path('<slug:slug>/categories/tree/', viewsfree.get_category_tree, name='category-tree'),
     path('<slug:slug>/categories/quick-add/', viewsfree.quick_add_menu_category, name='quick-add-category'),
+    path('my-menus/', viewsfree.user_menus_view, name='user_menus'),
+    path('generate-qr/<slug:restaurant_slug>/', viewsfree.generate_qr_code, name='generate_qr'),
 
 ]

@@ -535,6 +535,478 @@
             opacity: 1;
             visibility: visible;
         }
+
+        /* استایل‌های جدید برای ویژگی لیست انتخاب غذا */
+        .selection-list-btn {
+            position: fixed;
+            bottom: 70px;
+            right: 16px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+            z-index: 35;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .selection-list-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+        }
+
+        .selection-list-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .selection-list-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70vh;
+            background-color: white;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            z-index: 60;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .selection-list-panel.open {
+            transform: translateY(0);
+        }
+
+        .dark-mode .selection-list-panel {
+            background-color: #1e293b;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .selection-list-header {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .dark-mode .selection-list-header {
+            border-bottom: 1px solid #334155;
+        }
+
+        .selection-list-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .selection-list-close {
+            padding: 4px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .selection-list-close:hover {
+            background-color: #f1f5f9;
+        }
+
+        .dark-mode .selection-list-close:hover {
+            background-color: #334155;
+        }
+
+        .selection-list-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .selection-list-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #64748b;
+            text-align: center;
+        }
+
+        .dark-mode .selection-list-empty {
+            color: #94a3b8;
+        }
+
+        .selection-list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+        }
+
+        .dark-mode .selection-list-item {
+            background-color: #334155;
+        }
+
+        .selection-list-item-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .selection-list-item-details {
+            flex: 1;
+        }
+
+        .selection-list-item-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .selection-list-item-price {
+            color: #3b82f6;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .selection-list-item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .quantity-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.7rem;
+        }
+
+        .dark-mode .quantity-btn {
+            background-color: #475569;
+        }
+
+        .quantity-btn:hover {
+            background-color: #cbd5e1;
+        }
+
+        .dark-mode .quantity-btn:hover {
+            background-color: #64748b;
+        }
+
+        .quantity-value {
+            font-size: 0.8rem;
+            font-weight: 600;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .selection-list-item-remove {
+            padding: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #ef4444;
+        }
+
+        .selection-list-item-remove:hover {
+            background-color: #fef2f2;
+        }
+
+        .dark-mode .selection-list-item-remove:hover {
+            background-color: #7f1d1d;
+        }
+
+        .selection-list-actions {
+            padding: 16px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            gap: 12px;
+        }
+
+        .dark-mode .selection-list-actions {
+            border-top: 1px solid #334155;
+        }
+
+        .selection-list-action-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .selection-list-clear {
+            background-color: #fef2f2;
+            color: #dc2626;
+        }
+
+        .dark-mode .selection-list-clear {
+            background-color: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        .selection-list-show {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .selection-list-clear:hover {
+            background-color: #fee2e2;
+        }
+
+        .dark-mode .selection-list-clear:hover {
+            background-color: #991b1b;
+        }
+
+        .selection-list-show:hover {
+            opacity: 0.9;
+        }
+
+        /* دکمه سفارش با حالت‌های مختلف */
+        .order-btn {
+            background-color: #3b82f6;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-width: 80px;
+        }
+
+        .order-btn:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .order-btn.added {
+            background-color: #10b981;
+        }
+
+        .order-btn.added:hover {
+            background-color: #059669;
+        }
+
+        .order-btn i {
+            font-size: 0.7rem;
+        }
+
+        /* صفحه نمایش لیست انتخاب */
+        .selection-display {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: white;
+            z-index: 70;
+            padding: 20px;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .selection-display.open {
+            transform: translateY(0);
+        }
+
+        .dark-mode .selection-display {
+            background-color: #0f172a;
+        }
+
+        .selection-display-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .dark-mode .selection-display-header {
+            border-bottom: 1px solid #334155;
+        }
+
+        .selection-display-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .selection-display-close {
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .selection-display-close:hover {
+            background-color: #f1f5f9;
+        }
+
+        .dark-mode .selection-display-close:hover {
+            background-color: #334155;
+        }
+
+        .selection-display-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .selection-display-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background-color: #f8fafc;
+        }
+
+        .dark-mode .selection-display-item {
+            background-color: #1e293b;
+        }
+
+        .selection-display-item-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .selection-display-item-details {
+            flex: 1;
+        }
+
+        .selection-display-item-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .selection-display-item-price {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .selection-display-item-quantity {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .dark-mode .selection-display-item-quantity {
+            color: #94a3b8;
+        }
+
+        .selection-display-total {
+            padding: 16px;
+            background-color: #f1f5f9;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .dark-mode .selection-display-total {
+            background-color: #1e293b;
+        }
+
+        .selection-display-total-label {
+            font-weight: 600;
+        }
+
+        .selection-display-total-price {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #3b82f6;
+        }
+
+        .selection-display-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .selection-display-action-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .selection-display-back {
+            background-color: #f1f5f9;
+            color: #64748b;
+        }
+
+        .dark-mode .selection-display-back {
+            background-color: #334155;
+            color: #cbd5e1;
+        }
+
+        .selection-display-call {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .selection-display-back:hover {
+            background-color: #e2e8f0;
+        }
+
+        .dark-mode .selection-display-back:hover {
+            background-color: #475569;
+        }
+
+        .selection-display-call:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -680,9 +1152,12 @@
                                             <i class="fas fa-volume-up text-xs"></i>
                                         </button>
                                     </div>
-                                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md order-btn whitespace-nowrap"
-                                            data-food-id="{{ food.id }}">
-                                        سفارش
+                                    <button class="order-btn"
+                                            data-food-id="{{ food.id }}"
+                                            data-food-title="{{ food.title }}"
+                                            data-food-price="{{ food.price }}"
+                                            data-food-image="{% if food.image %}{{ food.image.url }}{% endif %}">
+                                        <span class="order-text">سفارش</span>
                                     </button>
                                 </div>
                             </div>
@@ -697,6 +1172,57 @@
                 </div>
                 {% endfor %}
             </div>
+        </div>
+    </div>
+
+    <!-- دکمه لیست انتخاب غذا -->
+    <div class="selection-list-btn">
+        <i class="fas fa-list"></i>
+        <div class="selection-list-badge">0</div>
+    </div>
+
+    <!-- پنل لیست انتخاب غذا -->
+    <div class="selection-list-panel">
+        <div class="selection-list-header">
+            <h3 class="selection-list-title">لیست انتخاب شما</h3>
+            <div class="selection-list-close text-gray-500 dark:text-gray-400">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        <div class="selection-list-content">
+            <div class="selection-list-empty">
+                <i class="fas fa-list text-4xl mb-3 opacity-50"></i>
+                <p class="text-base">لیست انتخاب شما خالی است</p>
+                <p class="text-sm mt-1 opacity-75">غذاهای مورد نظر خود را با کلیک روی دکمه سفارش ذخیره کنید</p>
+            </div>
+            <div class="selection-list-items">
+                <!-- آیتم‌های انتخاب شده در اینجا نمایش داده می‌شوند -->
+            </div>
+        </div>
+        <div class="selection-list-actions">
+            <div class="selection-list-action-btn selection-list-clear">پاک کردن لیست</div>
+            <div class="selection-list-action-btn selection-list-show">نمایش به گارسون</div>
+        </div>
+    </div>
+
+    <!-- صفحه نمایش لیست انتخاب -->
+    <div class="selection-display">
+        <div class="selection-display-header">
+            <h2 class="selection-display-title">لیست انتخاب شما</h2>
+            <div class="selection-display-close text-gray-500 dark:text-gray-400">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        <div class="selection-display-items">
+            <!-- آیتم‌های انتخاب شده در اینجا نمایش داده می‌شوند -->
+        </div>
+        <div class="selection-display-total">
+            <span class="selection-display-total-label">جمع کل:</span>
+            <span class="selection-display-total-price">0 تومان</span>
+        </div>
+        <div class="selection-display-actions">
+            <div class="selection-display-action-btn selection-display-back">بازگشت</div>
+            <div class="selection-display-action-btn selection-display-call">فراخوانی گارسون</div>
         </div>
     </div>
 
@@ -770,6 +1296,7 @@
         let startX = 0;
         let currentX = 0;
         let isDragging = false;
+        let selectedFoods = JSON.parse(localStorage.getItem('selectedFoods_' + restaurantSlug)) || [];
 
         // تغییر حالت روز/شب
         const themeToggle = document.getElementById('theme-toggle');
@@ -1017,17 +1544,6 @@
             }
         });
 
-        // سفارش غذا
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.order-btn')) {
-                const foodId = e.target.closest('.order-btn').getAttribute('data-food-id');
-                const foodTitle = e.target.closest('.food-item').querySelector('.food-title').textContent;
-
-                // نمایش نوتیفیکیشن
-                showNotification(`"${foodTitle}" به سبد خرید اضافه شد`);
-            }
-        });
-
         // نمایش نوتیفیکیشن
         function showNotification(message) {
             // حذف نوتیفیکیشن قبلی اگر وجود دارد
@@ -1052,6 +1568,10 @@
             if (allCategoryBtn) {
                 filterByCategory('all');
             }
+
+            // بارگذاری لیست انتخاب شده
+            updateSelectionList();
+            updateOrderButtons();
         });
 
         // توقف پخش صدا وقتی صفحه بسته می‌شود
@@ -1060,6 +1580,263 @@
                 currentAudio.pause();
             }
         });
+
+        // ========== ویژگی لیست انتخاب غذا ==========
+
+        // عناصر مربوط به لیست انتخاب
+        const selectionListBtn = document.querySelector('.selection-list-btn');
+        const selectionListPanel = document.querySelector('.selection-list-panel');
+        const selectionListClose = document.querySelector('.selection-list-close');
+        const selectionListItems = document.querySelector('.selection-list-items');
+        const selectionListEmpty = document.querySelector('.selection-list-empty');
+        const selectionListClear = document.querySelector('.selection-list-clear');
+        const selectionListShow = document.querySelector('.selection-list-show');
+        const selectionDisplay = document.querySelector('.selection-display');
+        const selectionDisplayClose = document.querySelector('.selection-display-close');
+        const selectionDisplayItems = document.querySelector('.selection-display-items');
+        const selectionDisplayTotal = document.querySelector('.selection-display-total-price');
+        const selectionDisplayBack = document.querySelector('.selection-display-back');
+        const selectionDisplayCall = document.querySelector('.selection-display-call');
+        const orderBtns = document.querySelectorAll('.order-btn');
+
+        // باز کردن/بستن پنل لیست انتخاب
+        selectionListBtn.addEventListener('click', () => {
+            selectionListPanel.classList.add('open');
+            overlay.classList.add('active');
+        });
+
+        selectionListClose.addEventListener('click', () => {
+            selectionListPanel.classList.remove('open');
+            overlay.classList.remove('active');
+        });
+
+        // باز کردن/بستن صفحه نمایش لیست انتخاب
+        selectionListShow.addEventListener('click', () => {
+            if (selectedFoods.length === 0) {
+                showNotification('لیست انتخاب شما خالی است');
+                return;
+            }
+
+            selectionListPanel.classList.remove('open');
+            selectionDisplay.classList.add('open');
+            updateSelectionDisplay();
+        });
+
+        selectionDisplayClose.addEventListener('click', () => {
+            selectionDisplay.classList.remove('open');
+        });
+
+        selectionDisplayBack.addEventListener('click', () => {
+            selectionDisplay.classList.remove('open');
+            selectionListPanel.classList.add('open');
+            overlay.classList.add('active');
+        });
+
+        // فراخوانی گارسون
+        selectionDisplayCall.addEventListener('click', () => {
+            showNotification('گارسون به میز شما فراخوانده شد');
+            setTimeout(() => {
+                selectionDisplay.classList.remove('open');
+                overlay.classList.remove('active');
+            }, 2000);
+        });
+
+        // پاک کردن لیست انتخاب
+        selectionListClear.addEventListener('click', () => {
+            if (selectedFoods.length === 0) {
+                showNotification('لیست انتخاب شما از قبل خالی است');
+                return;
+            }
+
+            if (confirm('آیا از پاک کردن لیست انتخاب خود مطمئن هستید؟')) {
+                selectedFoods = [];
+                saveSelectionList();
+                updateSelectionList();
+                updateOrderButtons();
+                showNotification('لیست انتخاب شما پاک شد');
+            }
+        });
+
+        // اضافه کردن غذا از طریق دکمه سفارش
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.order-btn')) {
+                const orderBtn = e.target.closest('.order-btn');
+                const foodId = orderBtn.getAttribute('data-food-id');
+                const foodTitle = orderBtn.getAttribute('data-food-title');
+                const foodPrice = parseInt(orderBtn.getAttribute('data-food-price'));
+                const foodImage = orderBtn.getAttribute('data-food-image');
+
+                // بررسی آیا غذا قبلاً انتخاب شده است
+                const existingIndex = selectedFoods.findIndex(item => item.id === foodId);
+
+                if (existingIndex === -1) {
+                    // اضافه کردن غذا به لیست
+                    selectedFoods.push({
+                        id: foodId,
+                        title: foodTitle,
+                        price: foodPrice,
+                        image: foodImage,
+                        quantity: 1
+                    });
+
+                    // تغییر ظاهر دکمه
+                    orderBtn.classList.add('added');
+                    orderBtn.innerHTML = '<i class="fas fa-check"></i><span class="order-text">سفارش شده</span>';
+
+                    showNotification(`"${foodTitle}" به لیست انتخاب اضافه شد`);
+                } else {
+                    // افزایش تعداد غذا
+                    selectedFoods[existingIndex].quantity += 1;
+
+                    showNotification(`تعداد "${foodTitle}" به ${selectedFoods[existingIndex].quantity} افزایش یافت`);
+                }
+
+                saveSelectionList();
+                updateSelectionList();
+            }
+
+            // مدیریت تعداد غذاها در پنل لیست انتخاب
+            if (e.target.closest('.quantity-btn')) {
+                const quantityBtn = e.target.closest('.quantity-btn');
+                const foodId = quantityBtn.closest('.selection-list-item').querySelector('.selection-list-item-remove').getAttribute('data-food-id');
+                const isIncrease = quantityBtn.classList.contains('increase');
+
+                const existingIndex = selectedFoods.findIndex(item => item.id === foodId);
+                if (existingIndex !== -1) {
+                    const foodTitle = selectedFoods[existingIndex].title;
+
+                    if (isIncrease) {
+                        selectedFoods[existingIndex].quantity += 1;
+                        showNotification(`تعداد "${foodTitle}" افزایش یافت`);
+                    } else {
+                        if (selectedFoods[existingIndex].quantity > 1) {
+                            selectedFoods[existingIndex].quantity -= 1;
+                            showNotification(`تعداد "${foodTitle}" کاهش یافت`);
+                        } else {
+                            // اگر تعداد 1 است و دکمه کاهش زده شد، غذا حذف شود
+                            selectedFoods.splice(existingIndex, 1);
+                            showNotification(`"${foodTitle}" از لیست انتخاب حذف شد`);
+                            updateOrderButtons();
+                        }
+                    }
+
+                    saveSelectionList();
+                    updateSelectionList();
+                }
+            }
+
+            // حذف غذا از لیست انتخاب در پنل
+            if (e.target.closest('.selection-list-item-remove')) {
+                const removeBtn = e.target.closest('.selection-list-item-remove');
+                const foodId = removeBtn.getAttribute('data-food-id');
+
+                const existingIndex = selectedFoods.findIndex(item => item.id === foodId);
+                if (existingIndex !== -1) {
+                    const foodTitle = selectedFoods[existingIndex].title;
+                    selectedFoods.splice(existingIndex, 1);
+
+                    saveSelectionList();
+                    updateSelectionList();
+                    updateOrderButtons();
+
+                    showNotification(`"${foodTitle}" از لیست انتخاب حذف شد`);
+                }
+            }
+        });
+
+        // ذخیره لیست انتخاب در localStorage
+        function saveSelectionList() {
+            localStorage.setItem('selectedFoods_' + restaurantSlug, JSON.stringify(selectedFoods));
+        }
+
+        // به‌روزرسانی لیست انتخاب در پنل
+        function updateSelectionList() {
+            const badge = document.querySelector('.selection-list-badge');
+            const totalItems = selectedFoods.reduce((total, food) => total + food.quantity, 0);
+            badge.textContent = totalItems;
+
+            // به‌روزرسانی نمایش لیست
+            if (selectedFoods.length === 0) {
+                selectionListEmpty.style.display = 'flex';
+                selectionListItems.innerHTML = '';
+            } else {
+                selectionListEmpty.style.display = 'none';
+
+                let itemsHTML = '';
+                selectedFoods.forEach(food => {
+                    itemsHTML += `
+                        <div class="selection-list-item">
+                            ${food.image ?
+                                `<img src="${food.image}" alt="${food.title}" class="selection-list-item-image">` :
+                                `<div class="selection-list-item-image bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                                    <i class="fas fa-utensils"></i>
+                                </div>`
+                            }
+                            <div class="selection-list-item-details">
+                                <div class="selection-list-item-title">${food.title}</div>
+                                <div class="selection-list-item-price">${food.price.toLocaleString()} تومان</div>
+                                <div class="selection-list-item-quantity">
+                                    <div class="quantity-btn decrease">-</div>
+                                    <div class="quantity-value">${food.quantity}</div>
+                                    <div class="quantity-btn increase">+</div>
+                                </div>
+                            </div>
+                            <div class="selection-list-item-remove" data-food-id="${food.id}">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                selectionListItems.innerHTML = itemsHTML;
+            }
+        }
+
+        // به‌روزرسانی دکمه‌های سفارش
+        function updateOrderButtons() {
+            orderBtns.forEach(btn => {
+                const foodId = btn.getAttribute('data-food-id');
+                const isSelected = selectedFoods.some(food => food.id === foodId);
+
+                if (isSelected) {
+                    btn.classList.add('added');
+                    btn.innerHTML = '<i class="fas fa-check"></i><span class="order-text">سفارش شده</span>';
+                } else {
+                    btn.classList.remove('added');
+                    btn.innerHTML = '<span class="order-text">سفارش</span>';
+                }
+            });
+        }
+
+        // به‌روزرسانی صفحه نمایش لیست انتخاب
+        function updateSelectionDisplay() {
+            let itemsHTML = '';
+            let totalPrice = 0;
+
+            selectedFoods.forEach(food => {
+                const foodTotal = food.price * food.quantity;
+                totalPrice += foodTotal;
+
+                itemsHTML += `
+                    <div class="selection-display-item">
+                        ${food.image ?
+                            `<img src="${food.image}" alt="${food.title}" class="selection-display-item-image">` :
+                            `<div class="selection-display-item-image bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                                <i class="fas fa-utensils"></i>
+                            </div>`
+                        }
+                        <div class="selection-display-item-details">
+                            <div class="selection-display-item-title">${food.title}</div>
+                            <div class="selection-display-item-price">${food.price.toLocaleString()} تومان</div>
+                            <div class="selection-display-item-quantity">تعداد: ${food.quantity}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            selectionDisplayItems.innerHTML = itemsHTML;
+            selectionDisplayTotal.textContent = totalPrice.toLocaleString() + ' تومان';
+        }
     </script>
 </body>
 </html>

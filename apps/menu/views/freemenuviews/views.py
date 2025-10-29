@@ -119,3 +119,6 @@ def change_language(request, restaurant_slug):
     # استفاده از reverse و اضافه کردن query parameter
     url = reverse('menu:digital_menu', kwargs={'restaurant_slug': restaurant_slug})
     return redirect(f"{url}?lang={lang}")
+
+
+
