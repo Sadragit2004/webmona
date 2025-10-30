@@ -1,6 +1,60 @@
 <!-- فایل: panel_dashboard.html -->
 <div class="w-full max-w-7xl mx-auto">
 
+    <!-- بنر افتتاح اولین منو - برای کاربران بدون منو -->
+    <div id="firstTimeBanner" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm transform transition-all duration-500 scale-95 animate-in">
+            <div class="p-6 text-center">
+                <!-- آیکون بزرگ -->
+                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-utensils text-white text-2xl"></i>
+                </div>
+
+                <!-- متن بنر -->
+                <h3 class="text-xl font-bold text-gray-800 mb-3">منوی آنلاین خودت رو بساز!</h3>
+                <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                    با ساخت منوی دیجیتال، کسب و کارت رو متحول کن و سفارشاتت رو چند برابر افزایش بده
+                </p>
+
+                <!-- دکمه‌های اقدام -->
+                <div class="space-y-3">
+                    <button onclick="startCreatingMenu()"
+                            class="w-full bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-rocket ml-2"></i>
+                        شروع کن، رایگان!
+                    </button>
+
+                    <button onclick="closeFirstTimeBanner()"
+                            class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 py-3 rounded-xl font-medium transition-colors">
+                        بعداً می‌سازم
+                    </button>
+                </div>
+
+                <!-- نکات مثبت -->
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <div class="grid grid-cols-2 gap-3 text-xs text-gray-500">
+                        <div class="flex items-center justify-center">
+                            <i class="fas fa-bolt text-yellow-500 ml-1"></i>
+                            <span>سریع و آسان</span>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <i class="fas fa-qrcode text-blue-500 ml-1"></i>
+                            <span>QR Code رایگان</span>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <i class="fas fa-mobile text-purple-500 ml-1"></i>
+                            <span>ریسپانسیو</span>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <i class="fas fa-chart-line text-green-500 ml-1"></i>
+                            <span>افزایش فروش</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- آمار کلی - طراحی ریسپانسیو -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <!-- کارت منوهای ساخته شده -->
@@ -434,10 +488,62 @@ function updateLastUpdateTime() {
     document.getElementById('lastUpdateTime').textContent = timeString;
 }
 
+// بررسی نمایش بنر - هر بار برای کاربران بدون منو
+function checkFirstTimeVisit() {
+    const hasRestaurants = {{ user_restaurants.count|default:0 }} > 0;
+
+    // اگر کاربر منو دارد، بنر نمایش داده نشود
+    if (hasRestaurants) {
+        return;
+    }
+
+    // 2 ثانیه تاخیر برای بهتر دیده شدن
+    setTimeout(() => {
+        const banner = document.getElementById('firstTimeBanner');
+        banner.classList.remove('hidden');
+        setTimeout(() => {
+            banner.querySelector('.animate-in').classList.remove('scale-95');
+        }, 100);
+    }, 2000);
+}
+
+// شروع ساخت منو
+function startCreatingMenu() {
+    closeFirstTimeBanner();
+    openCreateRestaurantModal();
+}
+
+// بستن بنر
+function closeFirstTimeBanner() {
+    const banner = document.getElementById('firstTimeBanner');
+    banner.querySelector('.animate-in').classList.add('scale-95');
+    setTimeout(() => {
+        banner.classList.add('hidden');
+    }, 300);
+}
+
 // شروع به‌روزرسانی‌های زنده
 document.addEventListener('DOMContentLoaded', function() {
     updateLastUpdateTime();
     setInterval(updateLastUpdateTime, 60000); // بروزرسانی زمان هر 1 دقیقه
+    checkFirstTimeVisit();
+});
+
+// بستن با کلیک خارج از بنر
+document.getElementById('firstTimeBanner').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeFirstTimeBanner();
+    }
+});
+
+// بستن با دکمه ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const banner = document.getElementById('firstTimeBanner');
+        if (!banner.classList.contains('hidden')) {
+            closeFirstTimeBanner();
+        }
+    }
 });
 </script>
 
@@ -484,6 +590,38 @@ document.addEventListener('DOMContentLoaded', function() {
     90% {
         transform: translate3d(-50%, -5px, 0);
     }
+}
+
+.animate-in {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.animate-in {
+    animation: slideInUp 0.5s ease-out;
+}
+
+/* بهبود نمایش در موبایل‌های مختلف */
+@media (max-width: 380px) {
+    #firstTimeBanner .max-w-sm {
+        max-width: 95vw;
+        margin: 0 auto;
+    }
+}
+
+/* حذف اسکرول هنگام نمایش بنر */
+body:has(#firstTimeBanner:not(.hidden)) {
+    overflow: hidden;
 }
 
 /* responsive improvements */

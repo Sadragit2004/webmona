@@ -41,21 +41,14 @@ class BaseModel(models.Model):
         return self.title or self.title_en or ''
 
     def get_title(self, lang):
-        """دریافت عنوان بر اساس زبان"""
         if lang == 'en':
-            # اول انگلیسی، اگر نبود فارسی
             return self.title_en or self.title or ''
-        # پیش‌فرض فارسی، اگر نبود انگلیسی
         return self.title or self.title_en or ''
 
     def get_description(self, lang='fa'):
-        """دریافت توضیحات بر اساس زبان با منطق بازگشت صحیح"""
         if hasattr(self, 'description') and hasattr(self, 'description_en'):
             if lang == 'en':
-                # اول انگلیسی، اگر نبود فارسی
                 return self.description_en or self.description or ''
-
-            # پیش‌فرض فارسی، اگر نبود انگلیسی
             return self.description or self.description_en or ''
         return ''
 
@@ -140,6 +133,13 @@ class Restaurant(BaseModel):
     taxRate = models.DecimalField(max_digits=5, decimal_places=2, default=9.0, null=True, blank=True)
 
     def save(self, *args, **kwargs):
+        # ✅ جلوگیری از خطای رشته خالی در TimeField
+        if self.openingTime == "":
+            self.openingTime = None
+        if self.closingTime == "":
+            self.closingTime = None
+
+        # ساخت اسلاگ بر اساس نام انگلیسی
         if not self.slug and self.english_name:
             base_slug = slugify(self.english_name)
             slug = base_slug
@@ -149,19 +149,14 @@ class Restaurant(BaseModel):
                 counter += 1
             self.slug = slug
 
-        # از متد save والد ارث‌بری می‌کند که اسلاگ بر اساس title/title_en را هم مدیریت می‌کند
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title or self.title_en or self.english_name or "Restaurant"
 
     def get_address(self, lang='fa'):
-        """دریافت آدرس بر اساس زبان با منطق بازگشت صحیح"""
         if lang == 'en':
-            # اول انگلیسی، اگر نبود فارسی
             return self.address_en or self.address or ''
-
-        # پیش‌فرض فارسی، اگر نبود انگلیسی
         return self.address or self.address_en or ''
 
 
@@ -194,17 +189,10 @@ class MenuCategory(models.Model):
         return self.customImage if self.customImage else (self.category.image if self.category else None)
 
     def get_title(self, lang='fa'):
-        """دریافت عنوان بر اساس زبان با منطق بازگشت صحیح"""
-
-        # تعریف عنوان‌های فارسی و انگلیسی بر اساس اولویت
         title_fa = self.customTitle or (self.category.title if self.category else None)
         title_en = self.customTitle_en or (self.category.title_en if self.category else None)
-
         if lang == 'en':
-            # اول انگلیسی، اگر نبود فارسی
             return title_en or title_fa or ""
-
-        # پیش‌فرض فارسی، اگر نبود انگلیسی
         return title_fa or title_en or ""
 
 
@@ -226,7 +214,6 @@ class Food(BaseModel):
         ordering = ['displayOrder']
 
     def save(self, *args, **kwargs):
-        # محاسبه خودکار قیمت دلار اگر وجود ندارد
         if self.price is not None and self.price_usd_cents is None:
             self.update_usd_price()
 
@@ -234,67 +221,53 @@ class Food(BaseModel):
             base_slug = slugify(self.title_en or self.title)
             slug = base_slug
             counter = 1
-            # اسلاگ باید در سطح رستوران یکتا باشد
             while Food.objects.filter(slug=slug, restaurant=self.restaurant).exclude(id=self.id).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
 
-        # فراخوانی save والد (BaseModel) برای مدیریت اسلاگ در صورت نبودن title
         super().save(*args, **kwargs)
 
     def update_usd_price(self, exchange_rate=None):
-        """بروزرسانی قیمت دلار بر اساس نرخ جدید"""
         if self.price is not None:
             if exchange_rate is None:
                 exchange_rate = get_current_exchange_rate()
-
             if exchange_rate and exchange_rate > 0:
                 usd_amount = Decimal(self.price) / Decimal(exchange_rate)
                 self.price_usd_cents = int(usd_amount * 100)
             else:
-                # در صورتی که نرخ ارز معتبر نباشد
                 self.price_usd_cents = 0
         else:
             self.price_usd_cents = None
 
-
     @property
     def price_usd(self):
-        """قیمت به دلار (عدد اعشاری)"""
         if self.price_usd_cents is not None:
             return Decimal(self.price_usd_cents) / Decimal(100)
         return None
 
     @property
     def formatted_price_usd(self):
-        """قیمت فرمت شده به دلار"""
         if self.price_usd is not None:
             return f"${self.price_usd:.2f}"
         return None
 
     @property
     def current_exchange_rate(self):
-        """نرخ ارز فعلی استفاده شده"""
         return get_current_exchange_rate()
 
-    # در models.py - کلاس Food
     def get_price_display(self, lang='fa'):
-        """نمایش قیمت بر اساس زبان"""
         if lang == 'en':
-            # نمایش قیمت به دلار
             if self.price_usd_cents:
                 usd_amount = Decimal(self.price_usd_cents) / Decimal(100)
                 return f"${usd_amount:.2f}"
             elif self.price:
-                # اگر قیمت دلار محاسبه نشده، از نرخ ارز فعلی استفاده کن
                 exchange_rate = get_current_exchange_rate()
                 if exchange_rate:
                     usd_amount = Decimal(self.price) / Decimal(exchange_rate)
                     return f"${usd_amount:.2f}"
             return "$0.00"
         else:
-            # نمایش قیمت به تومان
             from django.contrib.humanize.templatetags.humanize import intcomma
             return f"{intcomma(self.price or 0)} تومان"
 
@@ -303,7 +276,7 @@ class Food(BaseModel):
 
 
 # ----------------------------
-# Exchange Rate (جابجا شده به بعد از Food)
+# Exchange Rate
 # ----------------------------
 class ExchangeRate(models.Model):
     rate = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="نرخ برابری (تومان)")
@@ -316,19 +289,14 @@ class ExchangeRate(models.Model):
         verbose_name_plural = 'نرخ‌های ارز'
 
     def save(self, *args, **kwargs):
-        # غیرفعال کردن سایر نرخ‌ها
         if self.is_active:
             ExchangeRate.objects.filter(is_active=True).exclude(id=self.id).update(is_active=False)
         super().save(*args, **kwargs)
-
-        # به‌روزرسانی خودکار قیمت تمام غذاها
         if self.is_active:
             self.update_all_food_prices()
 
     def update_all_food_prices(self):
-        """به‌روزرسانی قیمت تمام غذاها بر اساس این نرخ ارز"""
         try:
-            # اکنون Food شناخته شده است
             foods = Food.objects.filter(price__isnull=False)
             updated_count = 0
             for food in foods:
@@ -347,7 +315,6 @@ class ExchangeRate(models.Model):
 # Helper functions
 # ----------------------------
 def update_all_food_prices():
-    """به‌روزرسانی قیمت تمام غذاها بر اساس نرخ ارز فعلی"""
     try:
         current_rate = ExchangeRate.objects.filter(is_active=True).first()
         if current_rate:
@@ -358,13 +325,10 @@ def update_all_food_prices():
 
 
 def get_current_exchange_rate():
-    """دریافت نرخ ارز فعلی"""
     try:
         current_rate = ExchangeRate.objects.filter(is_active=True).first()
         if current_rate:
             return current_rate.rate
-    except: # پوشش خطاهای احتمالی دیتابیس در زمان راه‌اندازی
+    except:
         pass
-
-    # بازگشت به مقدار پیش‌فرض در settings یا یک عدد ثابت
     return getattr(settings, 'EXCHANGE_RATE', Decimal('60000.00'))

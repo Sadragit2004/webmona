@@ -1,5 +1,5 @@
 {% extends "main_template.html" %}
-
+{% load render_partial %}
 
 
 {% block content %}
@@ -956,18 +956,27 @@
         .blog-card:nth-child(4) { animation-delay: 0.4s; }
         .blog-card:nth-child(5) { animation-delay: 0.5s; }
     </style>
-    <!-- هیرو سکشن -->
+
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
         <div class="flex flex-col lg:grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
 
             <!-- سمت چپ - محتوای متنی -->
             <div class="order-2 lg:order-1 space-y-6 sm:space-y-8 text-center lg:text-right">
                 <!-- عنوان اصلی -->
-                <h1 class="text-3xl sm:text-4xl lg:text-6xl font-black leading-tight">
-                    هرگز طعم رو
-                    <span class="gradient-text block lg:inline">از دست نده</span>
-                </h1>
+              <h1 class="text-3xl sm:text-4xl lg:text-6xl font-black leading-tight whitespace-nowrap">
+    هرگز طعم رو
+    <span class="gradient-text inline">از دست نده</span>
+</h1>
+   <div class="flex flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+                    <a href='/panel/' class="bg-white text-black px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition text-sm sm:text-base flex-1 sm:flex-none">
 
+                       منو رستوران 10 دقیقه
+                    </a>
+                    <a href='accounts/login' class="border border-gray-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-800 transition text-sm sm:text-base flex-1 sm:flex-none">
+                       ثبت نام
+                    </a>
+                </div>
                 <!-- توضیحات -->
                 <p class="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                     با فودیلایو، بهترین رستوران‌های شهر رو کشف کن.
@@ -975,14 +984,7 @@
                 </p>
 
                 <!-- دکمه‌های اقدام - کنار هم -->
-                <div class="flex flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                    <button class="bg-white text-black px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition text-sm sm:text-base flex-1 sm:flex-none">
-                        شروع سفارش
-                    </button>
-                    <button class="border border-gray-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-800 transition text-sm sm:text-base flex-1 sm:flex-none">
-                        رستوران‌ها
-                    </button>
-                </div>
+
             </div>
 
             <!-- سمت راست - عکس بزرگ -->
@@ -1016,8 +1018,9 @@
             </div>
         </div>
     </div>
-<!-- Section 2: ویژگی‌های منحصر به فرد -->
-<section class="features-section py-16 sm:py-24 bg-gradient-to-b from-gray-900 to-black">
+
+
+  <section class="features-section py-16 sm:py-24 bg-gradient-to-b from-gray-900 to-black">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <!-- عنوان سکشن -->
         <div class="text-center mb-16">
@@ -1029,19 +1032,46 @@
             </p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <!-- برای موبایل: عکس اول -->
+        <div class="block lg:hidden mb-12">
+            <div class="relative w-full">
+                <div class="glass-frame p-2 w-full h-80">
+                    <img
+                        src="{{media_url}}images/scam.jpg"
+                        alt="تحویل غذا"
+                        class="w-full h-full object-cover rounded-lg"
+                    />
+                </div>
+                <!-- افکت‌های نوری -->
+                <div class="absolute -inset-4 bg-gradient-to-r from-blue-500/10 to-green-500/10 blur-3xl rounded-full z-0"></div>
+                <!-- کارت شناور -->
+                <div class="absolute -bottom-4 -right-4 glass-frame p-3 rounded-xl z-20">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-green-500 p-1 rounded-full">
+                            <span class="text-white text-xs">✓</span>
+                        </div>
+                        <div>
+                            <div class="text-white font-bold text-xs">آنلاین</div>
+                            <div class="text-gray-300 text-xs">آماده خدمت</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-12 items-center">
 
             <!-- سمت چپ - لیست ویژگی‌ها -->
-            <div class="space-y-8">
+            <div class="lg:w-1/2 space-y-6">
                 <!-- ویژگی ۱ -->
                 <div class="glass-frame p-6 group hover:transform hover:scale-105 transition-all duration-300">
                     <div class="flex items-start gap-4">
-                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl">
-                            <span class="text-white text-2xl">🚀</span>
+                        <div class="bg-gradient-to-r from-green-500 to-emerald-500 p-3 rounded-xl">
+                            <span class="text-white text-2xl">🎯</span>
                         </div>
                         <div>
-                            <h3 class="text-xl font-black text-white mb-2">تحویل سریع</h3>
-                            <p class="text-gray-300">سفارش شما در کمتر از ۳۰ دقیقه به دستتون می‌رسه</p>
+                            <h3 class="text-xl font-black text-white mb-2">رایگان - دائمی</h3>
+                            <p class="text-gray-300">ساخت منو کاملاً رایگان و بدون هیچ هزینه ماهانه یا سالانه</p>
                         </div>
                     </div>
                 </div>
@@ -1050,11 +1080,11 @@
                 <div class="glass-frame p-6 group hover:transform hover:scale-105 transition-all duration-300">
                     <div class="flex items-start gap-4">
                         <div class="bg-gradient-to-r from-blue-500 to-cyan-500 p-3 rounded-xl">
-                            <span class="text-white text-2xl">⭐</span>
+                            <span class="text-white text-2xl">⚡</span>
                         </div>
                         <div>
-                            <h3 class="text-xl font-black text-white mb-2">رستوران‌های برتر</h3>
-                            <p class="text-gray-300">دسترسی به بهترین رستوران‌های شهر با تضمین کیفیت</p>
+                            <h3 class="text-xl font-black text-white mb-2">سریع در ۱۲ دقیقه</h3>
+                            <p class="text-gray-300">منوی آنلاین خود را در کمتر از ۱۲ دقیقه راه‌اندازی کنید</p>
                         </div>
                     </div>
                 </div>
@@ -1062,12 +1092,12 @@
                 <!-- ویژگی ۳ -->
                 <div class="glass-frame p-6 group hover:transform hover:scale-105 transition-all duration-300">
                     <div class="flex items-start gap-4">
-                        <div class="bg-gradient-to-r from-green-500 to-emerald-500 p-3 rounded-xl">
-                            <span class="text-white text-2xl">💳</span>
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl">
+                            <span class="text-white text-2xl">💫</span>
                         </div>
                         <div>
-                            <h3 class="text-xl font-black text-white mb-2">پرداخت امن</h3>
-                            <p class="text-gray-300">پرداخت آنلاین مطمئن با چندین درگاه پرداخت مختلف</p>
+                            <h3 class="text-xl font-black text-white mb-2">ظاهر کاربرپسند</h3>
+                            <p class="text-gray-300">طراحی مدرن و جذاب برای تجربه کاربری بی‌نظیر مشتریان</p>
                         </div>
                     </div>
                 </div>
@@ -1075,26 +1105,24 @@
                 <!-- ویژگی ۴ -->
                 <div class="glass-frame p-6 group hover:transform hover:scale-105 transition-all duration-300">
                     <div class="flex items-start gap-4">
-                        <div class="bg-gradient-to-r from-orange-500 to-red-500 p-3 rounded-xl">
-                            <span class="text-white text-2xl">🎁</span>
+                        <div class="bg-gradient-to-r from-orange-500 to-yellow-500 p-3 rounded-xl">
+                            <span class="text-white text-2xl">🛡️</span>
                         </div>
                         <div>
-                            <h3 class="text-xl font-black text-white mb-2">تخفیف‌های ویژه</h3>
-                            <p class="text-gray-300">هر روز با تخفیف‌های شگفت‌انگیز ما غافلگیر شوید</p>
+                            <h3 class="text-xl font-black text-white mb-2">پشتیبانی ۲۴/۷</h3>
+                            <p class="text-gray-300">پشتیبانی آنلاین ۲۴ ساعته در ۷ روز هفته برای پاسخگویی به شما</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- سمت راست - عکس بزرگ با افکت شیشه‌ای -->
-            <div class="relative">
-                <div class="glass-frame p-6 w-full h-80 sm:h-96 lg:h-[500px] transform perspective-1000">
-                    <div class="floating-element floating-1"></div>
-                    <div class="floating-element floating-2"></div>
+            <!-- سمت راست - عکس (فقط در دسکتاپ) -->
+            <div class="lg:w-1/2 relative w-full hidden lg:block">
+                <div class="glass-frame p-2 w-full h-80 sm:h-96 lg:h-[500px] md:min-h-[400px]">
                     <img
                         src="{{media_url}}images/scam.jpg"
                         alt="تحویل غذا"
-                        class="hero-image relative z-10"
+                        class="w-full h-full object-cover rounded-lg"
                     />
                 </div>
 
@@ -1102,14 +1130,14 @@
                 <div class="absolute -inset-4 bg-gradient-to-r from-blue-500/10 to-green-500/10 blur-3xl rounded-full z-0"></div>
 
                 <!-- کارت شناور -->
-                <div class="absolute -bottom-6 -left-6 glass-frame p-4 rounded-2xl z-20">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-green-500 p-2 rounded-full">
-                            <span class="text-white text-sm">✓</span>
+                <div class="absolute -bottom-4 -right-4 glass-frame p-3 rounded-xl z-20">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-green-500 p-1 rounded-full">
+                            <span class="text-white text-xs">✓</span>
                         </div>
                         <div>
-                            <div class="text-white font-bold text-sm">آنلاین</div>
-                            <div class="text-gray-300 text-xs">آماده خدمت‌رسانی</div>
+                            <div class="text-white font-bold text-xs">آنلاین</div>
+                            <div class="text-gray-300 text-xs">آماده خدمت</div>
                         </div>
                     </div>
                 </div>
@@ -1118,313 +1146,721 @@
         </div>
 
         <!-- دکمه اقدام پایین -->
-        <div class="text-center mt-16">
-            <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl font-bold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 hover:scale-105 text-lg shadow-2xl">
+        <div class="text-center mt-12">
+            <a href='/panel/' class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl font-bold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 hover:scale-105 text-lg shadow-2xl w-full sm:w-auto">
                 🎯 همین حالا شروع کنید
-            </button>
+            </a>
         </div>
     </div>
 </section>
 
-<!-- Section 3: خدمات ما -->
-<!-- Section 3: خدمات ما -->
-<!-- Section 3: خدمات ما -->
-<!-- Section 3: خدمات ما -->
-<section class="services-section py-16 sm:py-24 bg-gradient-to-b from-gray-900 to-black">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+<style>
+/* استایل‌های ریسپانسیو */
+@media (max-width: 1023px) {
+    .features-section {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+    }
+
+    .lg\\:w-1/2 {
+        width: 100%;
+    }
+
+    .flex-col {
+        gap: 2rem;
+    }
+
+    .text-center.mb-16 {
+        margin-bottom: 2rem;
+    }
+
+    h2.text-3xl {
+        font-size: 2rem;
+    }
+
+    p.text-xl {
+        font-size: 1.125rem;
+    }
+
+    /* عکس تمام صفحه در موبایل */
+    .h-80 {
+        height: 20rem;
+    }
+
+    .glass-frame.p-2 {
+        padding: 0.5rem;
+    }
+
+    .rounded-lg {
+        border-radius: 0.5rem;
+    }
+}
+
+/* برای موبایل‌های کوچک */
+@media (max-width: 640px) {
+    .glass-frame {
+        padding: 1rem;
+    }
+
+    /* عکس بزرگتر در موبایل‌های کوچک */
+    .h-80 {
+        height: 25rem;
+        min-height: 25rem;
+    }
+
+    button.text-lg {
+        font-size: 1rem;
+        padding: 1rem 1.5rem;
+    }
+
+    /* حاشیه‌های کمتر برای عکس */
+    .px-4 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* برای موبایل‌های خیلی کوچک */
+@media (max-width: 380px) {
+    .h-80 {
+        height: 22rem;
+        min-height: 22rem;
+    }
+}
+
+/* اطمینان از نمایش کامل عکس */
+.w-full {
+    width: 100%;
+}
+
+.object-cover {
+    object-fit: cover;
+}
+</style>
+
+
+
+   <section class="roadmap-section bg-gradient-to-b from-gray-900 to-black">
+    <div class="bg-effects">
+        <div class="floating-element floating-1"></div>
+        <div class="floating-element floating-2"></div>
+        <div class="floating-element floating-3"></div>
+    </div>
+
+    <div class="roadmap-container">
         <!-- عنوان سکشن -->
-        <div class="text-center mb-16">
+        <div class="text-center mb-12">
             <h2 class="text-3xl sm:text-5xl font-black text-white mb-6">
-                <span class="gradient-text">خدمات</span> ما
+                نقشه راه <span class="gradient-text">ایجاد منو</span>
             </h2>
             <p class="text-xl text-gray-300 max-w-2xl mx-auto">
-                با خدمات متنوع و باکیفیت فودیلایو، هر نیاز غذایی شما رو برطرف می‌کنیم
+                در سه مرحله ساده، منوی رستوران خود را به صورت آنلاین ایجاد کنید
             </p>
         </div>
 
-        <!-- خدمات -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-            <!-- خدمت ۱ -->
-            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:transform hover:scale-[1.02] flex flex-col h-full">
-                <!-- عکس -->
-                <div class="mb-4 flex-shrink-0">
-                    <img
-                        src="{{media_url}}images/erve.jpg"
-                        alt="سفارش آنلاین غذا"
-                        class="w-full h-40 object-cover rounded-xl"
-                    >
-                </div>
-                <!-- محتوا -->
-                <div class="flex flex-col flex-grow">
-                    <h3 class="text-xl font-black text-white mb-3 text-center">سفارش آنلاین غذا</h3>
-                    <p class="text-gray-300 text-sm leading-relaxed flex-grow">
-                        از بهترین رستوران‌های شهر سفارش بدید و در کمترین زمان غذا رو درب منزل تحویل بگیرید.
+        <!-- مراحل نقشه راه -->
+        <div class="roadmap-steps">
+            <!-- مرحله ۱ -->
+            <div class="step step-1">
+                <div class="step-circle">۱</div>
+                <div class="step-content">
+                    <h3 class="step-title">ثبت نام در سایت</h3>
+                    <p class="step-description">
+                        با پر کردن فرم ساده ثبت نام، حساب کاربری رستوران خود را ایجاد کنید و به دنیای آنلاین غذا بپیوندید.
                     </p>
+                    <button class="step-button">ثبت نام رایگان</button>
                 </div>
             </div>
 
-            <!-- خدمت ۲ -->
-            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:transform hover:scale-[1.02] flex flex-col h-full">
-                <!-- عکس -->
-                <div class="mb-4 flex-shrink-0">
-                    <img
-                        src="{{media_url}}images/erve.jpg"
-                        alt="پیک موتوری"
-                        class="w-full h-40 object-cover rounded-xl"
-                    >
-                </div>
-                <!-- محتوا -->
-                <div class="flex flex-col flex-grow">
-                    <h3 class="text-xl font-black text-white mb-3 text-center">پیک موتوری سریع</h3>
-                    <p class="text-gray-300 text-sm leading-relaxed flex-grow">
-                        با سیستم پیک‌های حرفه‌ای ما، سفارش شما در کمترین زمان ممکن به دستتون می‌رسه.
+            <!-- مرحله ۲ -->
+            <div class="step step-2">
+                <div class="step-circle">۲</div>
+                <div class="step-content">
+                    <h3 class="step-title">ایجاد منو رایگان</h3>
+                    <p class="step-description">
+                        با استفاده از ابزار ساده ما، منوی رستوران خود را به راحتی طراحی و ایجاد کنید. بدون نیاز به کدنویسی!
                     </p>
+                    <button class="step-button">شروع طراحی</button>
                 </div>
             </div>
 
-            <!-- خدمت ۳ -->
-            <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-green-500 transition-all duration-300 hover:transform hover:scale-[1.02] flex flex-col h-full">
-                <!-- عکس -->
-                <div class="mb-4 flex-shrink-0">
-                    <img
-                        src="{{media_url}}images/erve.jpg"
-                        alt="بسته‌بندی ویژه"
-                        class="w-full h-40 object-cover rounded-xl"
-                    >
-                </div>
-                <!-- محتوا -->
-                <div class="flex flex-col flex-grow">
-                    <h3 class="text-xl font-black text-white mb-3 text-center">بسته‌بندی ویژه</h3>
-                    <p class="text-gray-300 text-sm leading-relaxed flex-grow">
-                        بسته‌بندی حرفه‌ای و بهداشتی که گرمی و تازگی غذا رو تا رسیدن به شما حفظ می‌کنه.
+            <!-- مرحله ۳ -->
+            <div class="step step-3">
+                <div class="step-circle">۳</div>
+                <div class="step-content">
+                    <h3 class="step-title">افزودن جزئیات</h3>
+                    <p class="step-description">
+                        عکس‌های باکیفیت، قیمت‌ها و توضیحات کامل برای هر آیتم منو اضافه کنید و آماده دریافت سفارش شوید.
                     </p>
+                    <button class="step-button">مشاهده منو</button>
                 </div>
             </div>
-
-            <!-- خدمت ۴ -->
-
         </div>
 
-        <!-- دکمه اقدام -->
-        <div class="text-center mt-12">
-            <button class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl font-bold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 text-lg">
-                مشاهده همه خدمات ←
-            </button>
+        <!-- خطوط پیوندی مارپیچی برای موبایل -->
+        <div class="mobile-connection-lines">
+            <svg class="connection-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid meet">
+                <!-- خط مارپیچی بین مرحله ۱ و ۲ -->
+                <path class="connection-path path-1" d="M80 200
+                    C80 230, 120 260, 80 290
+                    C40 320, 120 350, 80 380"
+                    fill="none" stroke="url(#gradient1)" stroke-width="3" />
+
+                <!-- خط مارپیچی بین مرحله ۲ و ۳ -->
+                <path class="connection-path path-2" d="M80 420
+                    C80 450, 120 480, 80 510
+                    C40 540, 120 570, 80 600"
+                    fill="none" stroke="url(#gradient2)" stroke-width="3" />
+
+                <!-- گرادیان برای خطوط -->
+                <defs>
+                    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#3B82F6" />
+                        <stop offset="50%" stop-color="#8B5CF6" />
+                        <stop offset="100%" stop-color="#EC4899" />
+                    </linearGradient>
+                    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#8B5CF6" />
+                        <stop offset="50%" stop-color="#EC4899" />
+                        <stop offset="100%" stop-color="#10B981" />
+                    </linearGradient>
+                </defs>
+            </svg>
+
+            <!-- فلش‌های متحرک مارپیچی -->
+            <div class="moving-arrow arrow-1">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12h14m-7-7l7 7-7 7" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="moving-arrow arrow-2">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12h14m-7-7l7 7-7 7" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- اطلاعات تکمیلی -->
+
+    </div>
+</section>
+
+<style>
+.roadmap-section {
+    position: relative;
+    overflow: hidden;
+    padding: 3rem 1rem;
+}
+
+.roadmap-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+}
+
+.roadmap-steps {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+    margin: 2rem 0;
+}
+
+/* استایل مراحل */
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    position: relative;
+    z-index: 20;
+    min-height: 140px;
+}
+
+.step-circle {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 30;
+}
+
+.step-content {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.25rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    margin-left: 1rem;
+}
+
+.step-title {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.step-description {
+    color: #9CA3AF;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.step-button {
+    background: linear-gradient(45deg, #10B981, #3B82F6);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+    font-size: 0.9rem;
+}
+
+.step-button:hover {
+    transform: translateY(-2px);
+}
+
+/* خطوط پیوندی مارپیچی برای موبایل */
+.mobile-connection-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.connection-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.connection-path {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: draw 3s ease-in-out forwards;
+}
+
+.path-1 {
+    animation-delay: 0.5s;
+}
+
+.path-2 {
+    animation-delay: 1s;
+}
+
+@keyframes draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* فلش‌های متحرک مارپیچی */
+.moving-arrow {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    animation: spiralMove 3s ease-in-out infinite;
+}
+
+.arrow-1 {
+    animation-delay: 0.8s;
+    top: 200px;
+    left: 80px;
+}
+
+.arrow-2 {
+    animation-delay: 1.8s;
+    top: 420px;
+    left: 80px;
+}
+
+@keyframes spiralMove {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    25% {
+        transform: translateY(45px) translateX(30px) rotate(90deg);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translateY(90px) translateX(-30px) rotate(180deg);
+        opacity: 0.6;
+    }
+    75% {
+        transform: translateY(135px) translateX(30px) rotate(270deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(180px) translateX(0) rotate(360deg);
+        opacity: 1;
+    }
+}
+
+/* اطلاعات تکمیلی */
+.info-boxes {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    position: relative;
+    z-index: 20;
+}
+
+.info-box {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.25rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.info-value {
+    color: white;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.info-label {
+    color: #9CA3AF;
+    font-size: 0.85rem;
+}
+
+/* افکت‌های شناور */
+.floating-element {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+}
+
+.floating-1 {
+    width: 80px;
+    height: 80px;
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.floating-2 {
+    width: 120px;
+    height: 120px;
+    top: 60%;
+    right: 10%;
+    animation-delay: 2s;
+}
+
+.floating-3 {
+    width: 60px;
+    height: 60px;
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 4s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-15px) rotate(180deg);
+    }
+}
+
+/* تنظیم موقعیت مراحل */
+.step-1 {
+    margin-top: 1rem;
+}
+
+.step-2 {
+    margin-top: 6rem;
+}
+
+.step-3 {
+    margin-top: 6rem;
+}
+
+/* دسکتاپ */
+@media (min-width: 768px) {
+    .roadmap-steps {
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 1.5rem;
+    }
+
+    .step {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        flex: 1;
+        min-height: auto;
+    }
+
+    .step-content {
+        margin-top: 1rem;
+        margin-left: 0;
+        padding: 1.5rem;
+    }
+
+    /* مخفی کردن خطوط موبایل در دسکتاپ */
+    .mobile-connection-lines {
+        display: none;
+    }
+
+    /* اطلاعات تکمیلی */
+    .info-boxes {
+        flex-direction: row;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+
+    .info-box {
+        flex: 1;
+        max-width: 180px;
+    }
+
+    /* تنظیم موقعیت مراحل در دسکتاپ */
+    .step-1,
+    .step-2,
+    .step-3 {
+        margin-top: 0;
+    }
+}
+
+/* تبلت */
+@media (min-width: 640px) and (max-width: 767px) {
+    .info-boxes {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .info-box {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .roadmap-steps {
+        gap: 3rem;
+    }
+
+    .step-2,
+    .step-3 {
+        margin-top: 5rem;
+    }
+}
+</style>
+
+<script>
+// فعال کردن فلش‌ها بعد از لود صفحه
+document.addEventListener('DOMContentLoaded', function() {
+    const arrows = document.querySelectorAll('.moving-arrow');
+    arrows.forEach(arrow => {
+        arrow.style.visibility = 'visible';
+    });
+});
+</script>
+
+ <section class="gallery-section">
+    <div class="gallery-container">
+        <!-- قالب ۲: مینیمال مستطیلی -->
+        <div class="minimal-gallery">
+            <div class="minimal-card">
+                <!-- عکس ۳ - مستطیلی -->
+                <div class="sample-image minimal-image">
+                    <div class="image-placeholder">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 16L8 12L12 16L16 12L20 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M4 20H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="4" y="4" width="16" height="12" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <span>منوی نمونه ۱</span>
+                    </div>
+                </div>
+                <div class="minimal-frame"></div>
+            </div>
+
+            <div class="minimal-card">
+                <!-- عکس ۴ - مستطیلی -->
+                <div class="sample-image minimal-image">
+                    <div class="image-placeholder">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 16L8 12L12 16L16 12L20 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M4 20H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="4" y="4" width="16" height="12" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <span>منوی نمونه ۲</span>
+                    </div>
+                </div>
+                <div class="minimal-frame"></div>
+            </div>
         </div>
     </div>
 </section>
-   <!-- سکشن نقشه راه ایجاد منو -->
-  <!-- سکشن نقشه راه ایجاد منو -->
-     <!-- سکشن نقشه راه ایجاد منو -->
-    <section class="roadmap-section bg-gradient-to-b from-gray-900 to-black">
-        <div class="bg-effects">
-            <div class="floating-element floating-1"></div>
-            <div class="floating-element floating-2"></div>
-            <div class="floating-element floating-3"></div>
-        </div>
 
-        <div class="roadmap-container">
-            <!-- عنوان سکشن -->
-            <div class="text-center mb-16">
-                <h2 class="text-3xl sm:text-5xl font-black text-white mb-6">
-                    نقشه راه <span class="gradient-text">ایجاد منو</span>
-                </h2>
-                <p class="text-xl text-gray-300 max-w-2xl mx-auto">
-                    در سه مرحله ساده، منوی رستوران خود را به صورت آنلاین ایجاد کنید
-                </p>
-            </div>
+<style>
+.gallery-section {
+    padding: 4rem 1rem;
 
-            <!-- فلش‌های خمیده برای موبایل -->
-            <div class="mobile-arrows">
-                <div class="mobile-arrow-1">
-                    <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path class="mobile-arrow-path" d="M50 0 C70 40, 30 80, 50 120" />
-                        <path class="mobile-arrow-path" d="M45 100 L50 120 L55 100" />
-                    </svg>
-                </div>
-                <div class="mobile-arrow-2">
-                    <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path class="mobile-arrow-path" d="M50 0 C70 40, 30 80, 50 120" />
-                        <path class="mobile-arrow-path" d="M45 100 L50 120 L55 100" />
-                    </svg>
-                </div>
-            </div>
+}
 
-            <!-- مراحل نقشه راه -->
-            <div class="roadmap-steps">
-                <!-- خط اتصال و فلش دسکتاپ -->
-                <div class="connection-line">
-                    <div class="animated-line"></div>
-                    <div class="moving-arrow">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 12h14m-7-7l7 7-7 7"/>
-                        </svg>
-                    </div>
-                </div>
+.gallery-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
 
-                <!-- مرحله ۱ -->
-                <div class="step step-1">
-                    <div class="step-circle">۱</div>
-                    <div class="step-content">
-                        <h3 class="step-title">ثبت نام در سایت</h3>
-                        <p class="step-description">
-                            با پر کردن فرم ساده ثبت نام، حساب کاربری رستوران خود را ایجاد کنید و به دنیای آنلاین غذا بپیوندید.
-                        </p>
-                        <button class="step-button">ثبت نام رایگان</button>
-                    </div>
-                </div>
+.minimal-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
 
-                <!-- مرحله ۲ -->
-                <div class="step step-2">
-                    <div class="step-circle">۲</div>
-                    <div class="step-content">
-                        <h3 class="step-title">ایجاد منو رایگان</h3>
-                        <p class="step-description">
-                            با استفاده از ابزار ساده ما، منوی رستوران خود را به راحتی طراحی و ایجاد کنید. بدون نیاز به کدنویسی!
-                        </p>
-                        <button class="step-button">شروع طراحی</button>
-                    </div>
-                </div>
+.minimal-card {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: white;
+}
 
-                <!-- مرحله ۳ -->
-                <div class="step step-3">
-                    <div class="step-circle">۳</div>
-                    <div class="step-content">
-                        <h3 class="step-title">افزودن جزئیات</h3>
-                        <p class="step-description">
-                            عکس‌های باکیفیت، قیمت‌ها و توضیحات کامل برای هر آیتم منو اضافه کنید و آماده دریافت سفارش شوید.
-                        </p>
-                        <button class="step-button">مشاهده منو</button>
-                    </div>
-                </div>
-            </div>
+.minimal-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+}
 
-            <!-- اطلاعات تکمیلی - به صورت افقی در موبایل -->
-            <div class="info-boxes">
-                <div class="info-box">
-                    <div class="info-value">۵ دقیقه</div>
-                    <div class="info-label">زمان متوسط برای ایجاد منو</div>
-                </div>
-                <div class="info-box">
-                    <div class="info-value">۰ تومان</div>
-                    <div class="info-label">هزینه ایجاد منو</div>
-                </div>
-                <div class="info-box">
-                    <div class="info-value">۲۴/۷</div>
-                    <div class="info-label">پشتیبانی آنلاین</div>
-                </div>
-            </div>
-        </div>
-    </section>
+.minimal-image {
+    width: 100%;
+    height: 400px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-  <section class="gallery-section">
-        <div class="gallery-container">
+.image-placeholder {
+    text-align: center;
+    color: white;
+}
 
-            <!-- قالب ۲: مینیمال مستطیلی -->
-            <div class="minimal-gallery">
-                <div class="minimal-card">
-                    <!-- عکس ۳ - مستطیلی -->
-                    <div class="sample-image minimal-image">
-                        عکس ۳
-                    </div>
-                    <div class="minimal-frame"></div>
-                </div>
+.image-placeholder svg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+    opacity: 0.8;
+}
 
-                <div class="minimal-card">
-                    <!-- عکس ۴ - مستطیلی -->
-                    <div class="sample-image minimal-image">
-                        عکس ۴
-                    </div>
-                    <div class="minimal-frame"></div>
-                </div>
-            </div>
+.image-placeholder span {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
 
-        </div>
-    </section>
+.minimal-frame {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* افکت‌های اضافی برای جذابیت بیشتر */
+.minimal-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* ریسپانسیو برای موبایل */
+@media (max-width: 768px) {
+    .minimal-gallery {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .minimal-image {
+        height: 300px;
+    }
+
+    .gallery-section {
+        padding: 2rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .minimal-image {
+        height: 250px;
+    }
+
+    .minimal-frame {
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+    }
+
+    .image-placeholder svg {
+        width: 60px;
+        height: 60px;
+    }
+
+    .image-placeholder span {
+        font-size: 1rem;
+    }
+}
+
+/* انیمیشن ظاهر شدن */
+.minimal-card {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.minimal-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
 
 
-        <!-- سکشن بلاگ -->
-    <section class="blog-section">
-        <div class="blog-container">
-            <div class="blog-header">
-                <h2 class="blog-title">آخرین <span class="gradient-text">مقالات</span></h2>
-                <p class="blog-subtitle">جدیدترین مطالب و آموزش‌های حوزه رستوران‌داری و مدیریت منو</p>
-            </div>
+{% render_partial 'blog:show_blog' %}
 
-            <div class="blog-scroll-container">
-                <div class="blog-posts">
-                    <!-- پست ۱ -->
-                    <article class="blog-card">
-                        <img src="{{media_url}}images/blog1.jpg" alt="طراحی منوی مدرن" class="blog-image">
-                        <div class="blog-content">
-                            <span class="blog-category">طراحی منو</span>
-                            <h3 class="blog-post-title">۱۰ ترفند برای طراحی منوی جذاب و فروش بیشتر</h3>
-                            <p class="blog-excerpt">چگونه با طراحی حرفه‌ای منو، تجربه مشتری را بهبود بخشیده و فروش خود را افزایش دهید...</p>
-                            <div class="blog-meta">
-                                <span class="blog-date">۲ روز پیش</span>
-                                <a href="#" class="blog-read-more">ادامه مطلب →</a>
-                            </div>
-                        </div>
-                    </article>
 
-                    <!-- پست ۲ -->
-                    <article class="blog-card">
-                        <img src="{{media_url}}images/blog2.jpg" alt="مدیریت رستوران" class="blog-image">
-                        <div class="blog-content">
-                            <span class="blog-category">مدیریت</span>
-                            <h3 class="blog-post-title">راهکارهای هوشمند برای مدیریت موجودی رستوران</h3>
-                            <p class="blog-excerpt">با این روش‌ها ضایعات مواد غذایی را کاهش داده و سود خود را به حداکثر برسانید...</p>
-                            <div class="blog-meta">
-                                <span class="blog-date">۱ هفته پیش</span>
-                                <a href="#" class="blog-read-more">ادامه مطلب →</a>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- پست ۳ -->
-                    <article class="blog-card">
-                        <img src="{{media_url}}images/blog3.jpg" alt="دیجیتال مارکتینگ" class="blog-image">
-                        <div class="blog-content">
-                            <span class="blog-category">مارکتینگ</span>
-                            <h3 class="blog-post-title">استراتژی‌های دیجیتال مارکتینگ برای رستوران‌ها</h3>
-                            <p class="blog-excerpt">چگونه در فضای آنلاین دیده شوید و مشتریان جدید جذب کنید...</p>
-                            <div class="blog-meta">
-                                <span class="blog-date">۲ هفته پیش</span>
-                                <a href="#" class="blog-read-more">ادامه مطلب →</a>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- پست ۴ -->
-                    <article class="blog-card">
-                        <img src="{{media_url}}images/blog4.jpg" alt="تجربه مشتری" class="blog-image">
-                        <div class="blog-content">
-                            <span class="blog-category">خدمات</span>
-                            <h3 class="blog-post-title">راهنمای کامل بهبود تجربه مشتری در رستوران</h3>
-                            <p class="blog-excerpt">از ورود تا خروج، چگونه تجربه‌ای به یاد ماندنی برای مشتریان ایجاد کنیم...</p>
-                            <div class="blog-meta">
-                                <span class="blog-date">۳ هفته پیش</span>
-                                <a href="#" class="blog-read-more">ادامه مطلب →</a>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- پست ۵ -->
-                    <article class="blog-card">
-                        <img src="{{media_url}}images/blog5.jpg" alt="فناوری رستوران" class="blog-image">
-                        <div class="blog-content">
-                            <span class="blog-category">فناوری</span>
-                            <h3 class="blog-post-title">بهترین اپلیکیشن‌های مدیریت رستوران در سال ۲۰۲۴</h3>
-                            <p class="blog-excerpt">مروری بر جدیدترین ابزارهای دیجیتال برای ساده‌سازی مدیریت رستوران...</p>
-                            <div class="blog-meta">
-                                <span class="blog-date">۱ ماه پیش</span>
-                                <a href="#" class="blog-read-more">ادامه مطلب →</a>
-                            </div>
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </div>
-    </section>
 {% endblock content %}

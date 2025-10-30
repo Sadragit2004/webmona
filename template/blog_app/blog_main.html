@@ -1,0 +1,250 @@
+<section class="blog-section">
+    <div class="blog-container">
+        <div class="blog-header">
+            <h2 class="blog-title">آخرین <span class="gradient-text">مقالات</span></h2>
+            <p class="blog-subtitle">جدیدترین مطالب و آموزش‌های حوزه رستوران‌داری و مدیریت منو</p>
+        </div>
+
+        <div class="blog-scroll-container">
+            <div class="blog-posts">
+                {% for blog in blogs %}
+                <!-- پست {{ forloop.counter }} -->
+                <article class="blog-card">
+                    {% if blog.image_name %}
+                    <img src="{{ blog.image_name.url }}" alt="{{ blog.subject }}" class="blog-image">
+                    {% else %}
+                    <div class="blog-image-placeholder">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 16L8 12L12 16L16 12L20 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M4 20H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="4" y="4" width="16" height="12" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                       <a href="{% url 'blog:detail' slug=blog.slug %}"><span style='color:#ffff;'>{{ blog.subject }}</span></a>
+                    </div>
+                    {% endif %}
+                    <div class="blog-content">
+                        <span class="blog-category">{{ blog.grop_blog.group_name }}</span>
+                       <a href="{% url 'blog:detail' slug=blog.slug %}"> <span class="blog-post-title">{{ blog.subject }}</span></a>
+                        <p class="blog-excerpt">{{ blog.description|truncatewords:20 }}</p>
+                        <div class="blog-meta">
+                            <span class="blog-date">{{ blog.time_since_posted }}</span>
+
+                        </div>
+                    </div>
+                </article>
+                {% empty %}
+                <div class="no-blogs">
+                    <p>هنوز مقاله‌ای منتشر نشده است.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.blog-section {
+    padding: 4rem 1rem;
+
+}
+
+.blog-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.blog-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.blog-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.gradient-text {
+    background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.blog-subtitle {
+    font-size: 1.2rem;
+    color: #e0e0e0;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.blog-scroll-container {
+    overflow-x: auto;
+    padding: 1rem 0;
+}
+
+.blog-posts {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem;
+    min-width: min-content;
+}
+
+.blog-card {
+    min-width: 350px;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    flex-shrink: 0;
+}
+
+.blog-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.blog-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.blog-image-placeholder {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.blog-image-placeholder svg {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 1rem;
+    opacity: 0.8;
+}
+
+.blog-image-placeholder span {
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    padding: 0 1rem;
+}
+
+.blog-content {
+    padding: 1.5rem;
+}
+
+.blog-category {
+    display: inline-block;
+    background: linear-gradient(45deg, #ff6b6b, #feca57);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.blog-post-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.blog-excerpt {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.blog-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.blog-date {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.blog-read-more {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.blog-read-more:hover {
+    color: #764ba2;
+}
+
+.no-blogs {
+    text-align: center;
+    color: white;
+    font-size: 1.2rem;
+    padding: 2rem;
+}
+
+/* اسکرول بار سفارشی */
+.blog-scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.blog-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.blog-scroll-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #ff6b6b, #feca57);
+    border-radius: 10px;
+}
+
+/* ریسپانسیو */
+@media (max-width: 768px) {
+    .blog-title {
+        font-size: 2rem;
+    }
+
+    .blog-subtitle {
+        font-size: 1rem;
+    }
+
+    .blog-card {
+        min-width: 300px;
+    }
+
+    .blog-posts {
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .blog-section {
+        padding: 2rem 1rem;
+    }
+
+    .blog-card {
+        min-width: 280px;
+    }
+
+    .blog-content {
+        padding: 1rem;
+    }
+
+    .blog-post-title {
+        font-size: 1.1rem;
+    }
+}
+</style>

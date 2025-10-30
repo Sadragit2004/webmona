@@ -42,6 +42,10 @@ INSTALLED_APPS = [
     'apps.menu.apps.MenuConfig',
     'apps.panel.apps.PanelConfig',
      'django.contrib.humanize',
+    'django_render_partial',
+     'ckeditor',
+    'ckeditor_uploader',
+    'apps.blog.apps.BlogConfig'
 ]
 
 
@@ -133,3 +137,50 @@ AUTH_USER_MODEL = 'user.CustomUser'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+CKEDITOR_UPLOAD_PATH = 'images/cheditor/upload_files/'
+CKEDITOR_STORAGE_BACKEND = 'django.core.files.storage.FileSystemStorage'
+CKEDITOR_CONFIGS = {
+    'default':{
+        'toolbar':'Custom',
+        'toolbar_Custom':[
+            ['Bold','Link','Unlink','Image'],
+        ],
+    },
+
+    'special':{
+        'toolbar':'Special','height':500,
+        'toolbar':'full',
+        'toolbar_Special':
+            [
+                ['Bold','Link','Unlink','Image'],
+                ['CodeSnippet'],
+
+            ],'extraPlugins':','.join(['codesnippet','clipboard',])
+    },
+    'special_an':
+        {
+
+            'toolbar':'Special','height':500,
+            'toolbar_Special':
+                [
+                    ['Bold'],
+                    ['CodeSnippet']
+
+                ],'extraPlugins':','.join(['codesnippet',])
+         }
+}
+
+# settings.py
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    },
+    'tokens': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'token-cache',
+    }
+}
