@@ -37,52 +37,6 @@
     </div>
 </header>
 
-
-
-    <div class="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden" id="mobileSidebarOverlay">
-        <div class="fixed inset-y-0 right-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out translate-x-full" id="mobileSidebar">
-            <div class="p-4">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-bold">منو</h3>
-                    <button class="text-gray-500 hover:text-gray-700" id="closeMobileSidebar">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <nav class="space-y-2">
-                    <a href="{% url 'panel:panel' %}" class="flex items-center space-x-3 space-x-reverse p-3 bg-blue-50 text-blue-600 rounded-lg">
-                        <i class="fas fa-home"></i>
-                        <span>داشبورد</span>
-                    </a>
-
-                    {% if user_restaurants %}
-                        {% for restaurant in user_restaurants %}
-                        <a href="{% url 'panel:restaurant_admin' slug=restaurant.slug %}" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                            <i class="fas fa-utensils"></i>
-                            <span>منوی {{ restaurant.title }}</span>
-                        </a>
-                        {% endfor %}
-                    {% else %}
-                        <a href="#" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-400 rounded-lg">
-                            <i class="fas fa-utensils"></i>
-                            <span>تنظیمات منو (غیرفعال)</span>
-                        </a>
-                    {% endif %}
-
-                    <a href="{% url 'panel:user_menus' %}" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>لیست منو</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-3 space-x-reverse p-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                        <i class="fas fa-cog"></i>
-                        <span>تنظیمات</span>
-                    </a>
-                </nav>
-            </div>
-        </div>
-    </div>
-
-
-
 <!-- مودال افتتاح رستوران -->
 <div id="createRestaurantModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
@@ -155,19 +109,118 @@
                         <button id="step2Button" onclick="proceedToStep3()"
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
                                 disabled>
-                            تأیید و ایجاد
+                            تأیید و ادامه
                         </button>
                     </div>
                 </div>
 
-                <!-- Step 3: در حال پردازش -->
+                <!-- Step 3: انتخاب نوع ساخت منو -->
                 <div id="step3" class="step-content hidden">
+                    <div class="text-center py-6">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
+                            <i class="fas fa-utensils text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold mb-4">نحوه ساخت منو را انتخاب کنید</h4>
+
+                        <div class="space-y-4">
+                            <button onclick="selectMenuCreation('self')"
+                                    class="w-full p-4 border-2 border-green-500 rounded-xl text-green-600 hover:bg-green-50 transition-colors text-right">
+                                <div class="flex items-center justify-between">
+                                    <i class="fas fa-user-edit text-xl"></i>
+                                    <div class="flex-1 mr-3">
+                                        <div class="font-bold">خودم می‌سازم</div>
+                                        <div class="text-sm text-gray-600 mt-1">منوی رستوران را خودم طراحی و تنظیم می‌کنم</div>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button onclick="selectMenuCreation('company')"
+                                    class="w-full p-4 border-2 border-blue-500 rounded-xl text-blue-600 hover:bg-blue-50 transition-colors text-right">
+                                <div class="flex items-center justify-between">
+                                    <i class="fas fa-building text-xl"></i>
+                                    <div class="flex-1 mr-3">
+                                        <div class="font-bold">شرکت می‌سازد</div>
+                                        <div class="text-sm text-gray-600 mt-1">تیم پشتیبانی منوی حرفه‌ای برای شما می‌سازد</div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: آپلود عکس منو (اگر شرکت می‌سازد) -->
+                <div id="step4" class="step-content hidden">
+                    <div class="text-center py-6">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
+                            <i class="fas fa-images text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold mb-4">عکس‌های منو را آپلود کنید</h4>
+
+                        <!-- اطلاعات تعداد عکس‌ها -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                            <div class="flex items-center text-blue-800">
+                                <i class="fas fa-info-circle ml-2"></i>
+                                <div class="text-sm text-right">
+                                    <div class="font-bold">می‌توانید حداکثر ۱۰ عکس آپلود کنید</div>
+                                    <div>عکس‌های منوی فعلی خود را آپلود کنید تا تیم پشتیبانی برای شما منوی دیجیتال ایجاد کند</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <!-- منطقه کشیدن و رها کردن -->
+                            <div id="dropZone"
+                                 class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                                <p class="text-gray-600">عکس‌ها را اینجا بکشید و رها کنید</p>
+                                <p class="text-sm text-gray-500 mt-2">یا کلیک کنید برای انتخاب فایل (حداکثر ۱۰ عکس)</p>
+                                <input type="file" id="menuImagesInput" multiple accept="image/*" class="hidden">
+                            </div>
+
+                            <!-- شمارنده عکس‌ها -->
+                            <div id="imageCounter" class="text-sm text-gray-600 hidden">
+                                <span id="currentCount">0</span> از <span id="maxCount">10</span> عکس انتخاب شده
+                            </div>
+
+                            <!-- پیشنمایش عکس‌ها -->
+                            <div id="imagePreview" class="grid grid-cols-3 gap-2 mt-4 hidden">
+                                <!-- عکس‌ها اینجا نمایش داده می‌شوند -->
+                            </div>
+
+                            <!-- اطلاعات هزینه -->
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-tag text-yellow-600 ml-2"></i>
+                                    <div class="text-sm text-yellow-800 text-right">
+                                        <div class="font-bold">هزینه ساخت منو: ۹۹,۰۰۰ تومان</div>
+                                        <div>پس از آپلود عکس‌ها، به صفحه پرداخت هدایت می‌شوید</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between mt-8">
+                            <button onclick="backToStep3()"
+                                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
+                                بازگشت
+                            </button>
+                            <button id="uploadButton" onclick="proceedToPayment()"
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                    disabled>
+                                ادامه به پرداخت
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: در حال پردازش -->
+                <div id="step5" class="step-content hidden">
                     <div class="text-center py-8">
                         <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
                             <i class="fas fa-spinner fa-spin text-2xl"></i>
                         </div>
-                        <h4 class="font-bold mb-2">در حال ایجاد رستوران...</h4>
-                        <p class="text-gray-600">لطفاً چند لحظه صبر کنید</p>
+                        <h4 class="font-bold mb-2" id="processingTitle">در حال ایجاد رستوران...</h4>
+                        <p class="text-gray-600" id="processingMessage">لطفاً چند لحظه صبر کنید</p>
                     </div>
                 </div>
             </div>
@@ -176,80 +229,17 @@
 </div>
 
 <script>
-// تشخیص صفحه و تنظیم لایوت
-function detectPageAndSetupLayout() {
-    const path = window.location.pathname;
-
-    // چک کردن الگوی: /panel/چیزی/admin/
-    const pattern = /^\/panel\/[^\/]+\/admin\/?$/;
-    const isRestaurantAdmin = pattern.test(path);
-
-    console.log('Path:', path);
-    console.log('Is Restaurant Admin:', isRestaurantAdmin);
-
-    if (isRestaurantAdmin) {
-        // صفحه مدیریت منو - سایدبار مخفی، عرض کامل
-        document.getElementById('desktopSidebar').classList.add('hidden');
-        document.getElementById('mainContent').classList.remove('md:w-3/4');
-        document.getElementById('mainContent').classList.add('w-full');
-        document.getElementById('mainContainer').classList.remove('md:flex-row');
-        document.getElementById('pageTitle').textContent = 'مدیریت منو';
-
-        // نمایش همبرگر منو در دسکتاپ
-        document.getElementById('mobileMenuButton').classList.remove('md:hidden');
-
-        console.log('Layout set to: Restaurant Admin Mode');
-    } else {
-        // صفحات دیگر - سایدبار نمایش داده شود
-        document.getElementById('desktopSidebar').classList.remove('hidden');
-        document.getElementById('mainContent').classList.remove('w-full');
-        document.getElementById('mainContent').classList.add('md:w-3/4');
-        document.getElementById('mainContainer').classList.add('md:flex-row');
-        document.getElementById('pageTitle').textContent = 'پنل کاربری';
-
-        // مخفی کردن همبرگر در دسکتاپ
-        document.getElementById('mobileMenuButton').classList.add('md:hidden');
-
-        console.log('Layout set to: Normal Mode');
-    }
-}
-
-// مدیریت سایدبار موبایل
-document.getElementById('mobileMenuButton').addEventListener('click', function() {
-    const overlay = document.getElementById('mobileSidebarOverlay');
-    const sidebar = document.getElementById('mobileSidebar');
-    overlay.classList.remove('hidden');
-    setTimeout(() => {
-        sidebar.classList.remove('translate-x-full');
-    }, 10);
-});
-
-document.getElementById('closeMobileSidebar').addEventListener('click', function() {
-    const overlay = document.getElementById('mobileSidebarOverlay');
-    const sidebar = document.getElementById('mobileSidebar');
-    sidebar.classList.add('translate-x-full');
-    setTimeout(() => {
-        overlay.classList.add('hidden');
-    }, 300);
-});
-
-document.getElementById('mobileSidebarOverlay').addEventListener('click', function(e) {
-    if (e.target === this) {
-        const sidebar = document.getElementById('mobileSidebar');
-        sidebar.classList.add('translate-x-full');
-        setTimeout(() => {
-            this.classList.add('hidden');
-        }, 300);
-    }
-});
-
-// اسکریپت‌های مودال
+// متغیرهای全局
 let currentStep = 1;
 let restaurantData = {
     step1: {},
-    step2: {}
+    step2: {},
+    menuCreationType: null,
+    uploadedImages: []
 };
+const MAX_IMAGES = 10;
 
+// مدیریت مودال
 function openCreateRestaurantModal() {
     document.getElementById('createRestaurantModal').classList.remove('hidden');
     showStep(1);
@@ -274,9 +264,37 @@ function resetForm() {
     document.getElementById('step2Button').disabled = true;
     document.getElementById('englishNameInput').value = '';
     document.getElementById('restaurantNameInput').value = '';
-    restaurantData = { step1: {}, step2: {} };
+    document.getElementById('uploadButton').disabled = true;
+    restaurantData = {
+        step1: {},
+        step2: {},
+        menuCreationType: null,
+        uploadedImages: []
+    };
+
+    // پاک کردن پیشنمایش عکس‌ها
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    preview.classList.add('hidden');
+    document.getElementById('imageCounter').classList.add('hidden');
+
+    // بازنشانی dropzone به حالت اولیه
+    const dropZone = document.getElementById('dropZone');
+    dropZone.classList.remove('opacity-50', 'cursor-not-allowed');
+    dropZone.innerHTML = `
+        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+        <p class="text-gray-600">عکس‌ها را اینجا بکشید و رها کنید</p>
+        <p class="text-sm text-gray-500 mt-2">یا کلیک کنید برای انتخاب فایل (حداکثر ۱۰ عکس)</p>
+    `;
+
+    // پاک کردن پیام‌ها
+    document.querySelectorAll('.upload-message').forEach(msg => msg.remove());
+
+    // ریست کردن input فایل
+    document.getElementById('menuImagesInput').value = '';
 }
 
+// Step 1 -> Step 2
 function proceedToStep2() {
     const name = document.getElementById('nameInput').value.trim();
     const family = document.getElementById('familyInput').value.trim();
@@ -293,37 +311,14 @@ function proceedToStep2() {
         restaurant_name: restaurantName
     };
 
-    fetch("{% url 'panel:create_restaurant_modal' %}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({
-            step: 1,
-            name: name,
-            family: family,
-            restaurant_name: restaurantName
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showStep(2);
-        } else {
-            alert(data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('خطا در ارتباط با سرور');
-    });
+    showStep(2);
 }
 
 function backToStep1() {
     showStep(1);
 }
 
+// Step 2 -> Step 3
 let checkTimeout;
 function checkEnglishName() {
     const englishName = document.getElementById('englishNameInput').value.trim().toLowerCase();
@@ -347,6 +342,9 @@ function checkEnglishName() {
         return;
     }
 
+    feedback.innerHTML = '<span class="text-blue-500">در حال بررسی...</span>';
+    button.disabled = true;
+
     checkTimeout = setTimeout(() => {
         fetch(`{% url 'panel:check_english_name' %}?english_name=${encodeURIComponent(englishName)}`)
             .then(response => response.json())
@@ -369,21 +367,290 @@ function checkEnglishName() {
 }
 
 function proceedToStep3() {
-    const englishName = document.getElementById('englishNameInput').value.trim();
-
-    if (!englishName) {
-        alert('لطفاً نام انگلیسی را وارد کنید');
-        return;
-    }
-
-    if (!restaurantData.step1.name || !restaurantData.step1.family || !restaurantData.step1.restaurant_name) {
-        alert('خطا در داده‌های مرحله اول. لطفاً از ابتدا شروع کنید.');
-        showStep(1);
-        return;
-    }
-
     showStep(3);
+}
 
+// Step 3: انتخاب نوع ساخت منو
+function selectMenuCreation(type) {
+    restaurantData.menuCreationType = type;
+
+    if (type === 'self') {
+        // اگر خودش می‌سازد، از منطق اصلی استفاده کن
+        createRestaurantFinal();
+    } else {
+        // اگر شرکت می‌سازد، برو به مرحله آپلود عکس
+        showStep(4);
+        setupFileUpload();
+    }
+}
+
+function backToStep3() {
+    showStep(3);
+}
+
+// Step 4: آپلود عکس‌ها
+function setupFileUpload() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('menuImagesInput');
+
+    // کلیک روی منطقه
+    dropZone.addEventListener('click', () => {
+        // اگر به حداکثر نرسیده، اجازه کلیک بده
+        if (restaurantData.uploadedImages.length < MAX_IMAGES) {
+            fileInput.click();
+        }
+    });
+
+    // تغییر فایل‌ها
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // کشیدن و رها کردن
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (restaurantData.uploadedImages.length < MAX_IMAGES) {
+            dropZone.classList.add('border-blue-500', 'bg-blue-50');
+        }
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+
+        if (e.dataTransfer.files.length && restaurantData.uploadedImages.length < MAX_IMAGES) {
+            const newFiles = Array.from(e.dataTransfer.files);
+            handleNewFiles(newFiles);
+        }
+    });
+
+    // به‌روزرسانی اولیه dropzone
+    updateDropZoneState();
+}
+
+function handleFileSelect(event) {
+    const newFiles = Array.from(event.target.files);
+    handleNewFiles(newFiles);
+}
+
+function handleNewFiles(newFiles) {
+    const fileInput = document.getElementById('menuImagesInput');
+
+    // محاسبه فضای باقیمانده
+    const remainingSlots = MAX_IMAGES - restaurantData.uploadedImages.length;
+
+    if (newFiles.length > remainingSlots) {
+        showMessage(`فقط می‌توانید ${remainingSlots} عکس دیگر آپلود کنید`, 'error');
+        newFiles = newFiles.slice(0, remainingSlots);
+    }
+
+    if (newFiles.length === 0) return;
+
+    // فیلتر کردن فقط فایل‌های تصویری
+    const validFiles = newFiles.filter(file => file.type.startsWith('image/'));
+
+    if (validFiles.length === 0) {
+        showMessage('لطفاً فقط فایل‌های تصویری انتخاب کنید', 'error');
+        return;
+    }
+
+    if (validFiles.length > 0) {
+        showMessage(`${validFiles.length} عکس با موفقیت انتخاب شد`, 'success');
+    }
+
+    // اضافه کردن فایل‌های جدید به لیست موجود
+    validFiles.forEach((file) => {
+        // چک کردن تکراری نبودن فایل
+        const isDuplicate = restaurantData.uploadedImages.some(
+            existingFile => existingFile.name === file.name && existingFile.size === file.size
+        );
+
+        if (!isDuplicate) {
+            restaurantData.uploadedImages.push(file);
+        }
+    });
+
+    // به‌روزرسانی پیش‌نمایش
+    updateImagePreview();
+
+    // ریست کردن input فایل برای امکان انتخاب مجدد همان فایل
+    fileInput.value = '';
+}
+
+function updateDropZoneState() {
+    const dropZone = document.getElementById('dropZone');
+    const remainingSlots = MAX_IMAGES - restaurantData.uploadedImages.length;
+
+    if (restaurantData.uploadedImages.length === 0) {
+        // حالت اولیه - هیچ عکسی آپلود نشده
+        dropZone.classList.remove('opacity-50', 'cursor-not-allowed');
+        dropZone.innerHTML = `
+            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+            <p class="text-gray-600">عکس‌ها را اینجا بکشید و رها کنید</p>
+            <p class="text-sm text-gray-500 mt-2">یا کلیک کنید برای انتخاب فایل (حداکثر ۱۰ عکس)</p>
+        `;
+    } else if (restaurantData.uploadedImages.length >= MAX_IMAGES) {
+        // حالت حداکثر - غیرفعال
+        dropZone.classList.add('opacity-50', 'cursor-not-allowed');
+        dropZone.innerHTML = `
+            <i class="fas fa-check-circle text-4xl text-green-400 mb-3"></i>
+            <p class="text-gray-600">حداکثر تعداد عکس آپلود شده</p>
+            <p class="text-sm text-gray-500 mt-2">برای آپلود بیشتر، ابتدا برخی عکس‌ها را حذف کنید</p>
+        `;
+    } else {
+        // حالت عادی - می‌تواند بیشتر آپلود کند
+        dropZone.classList.remove('opacity-50', 'cursor-not-allowed');
+        dropZone.innerHTML = `
+            <i class="fas fa-plus-circle text-4xl text-blue-400 mb-3"></i>
+            <p class="text-gray-600">عکس‌های بیشتر اضافه کنید</p>
+            <p class="text-sm text-gray-500 mt-2">می‌توانید ${remainingSlots} عکس دیگر آپلود کنید</p>
+        `;
+    }
+}
+
+function updateImagePreview() {
+    const preview = document.getElementById('imagePreview');
+    const uploadButton = document.getElementById('uploadButton');
+    const imageCounter = document.getElementById('imageCounter');
+    const currentCount = document.getElementById('currentCount');
+
+    // پاک کردن پیش‌نمایش فعلی
+    preview.innerHTML = '';
+
+    // به‌روزرسانی شمارنده
+    currentCount.textContent = restaurantData.uploadedImages.length;
+
+    // به‌روزرسانی وضعیت dropzone
+    updateDropZoneState();
+
+    // اگر عکسی وجود ندارد
+    if (restaurantData.uploadedImages.length === 0) {
+        preview.classList.add('hidden');
+        imageCounter.classList.add('hidden');
+        uploadButton.disabled = true;
+        return;
+    }
+
+    // نمایش پیش‌نمایش
+    preview.classList.remove('hidden');
+    imageCounter.classList.remove('hidden');
+    uploadButton.disabled = false;
+
+    // ایجاد پیش‌نمایش برای تمام عکس‌ها
+    restaurantData.uploadedImages.forEach((file, index) => {
+        const imgContainer = document.createElement('div');
+        imgContainer.className = 'relative group';
+        imgContainer.dataset.fileIndex = index;
+
+        const img = document.createElement('img');
+
+        // ایجاد URL برای نمایش فایل
+        const objectUrl = URL.createObjectURL(file);
+        img.src = objectUrl;
+        img.className = 'w-full h-24 object-cover rounded-lg border';
+        img.alt = `عکس منو ${index + 1}`;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        removeBtn.className = 'w-8 h-8 bg-red-500 text-white rounded-full text-sm flex items-center justify-center hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100';
+        removeBtn.title = 'حذف عکس';
+        removeBtn.onclick = (e) => {
+            e.stopPropagation();
+            removeImage(index);
+        };
+
+        const imageNumber = document.createElement('div');
+        imageNumber.className = 'absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center';
+        imageNumber.textContent = index + 1;
+
+        overlay.appendChild(removeBtn);
+        imgContainer.appendChild(img);
+        imgContainer.appendChild(overlay);
+        imgContainer.appendChild(imageNumber);
+        preview.appendChild(imgContainer);
+    });
+
+    // نمایش پیام بر اساس تعداد عکس‌ها
+    if (restaurantData.uploadedImages.length === MAX_IMAGES) {
+        showMessage(`حداکثر تعداد عکس (${MAX_IMAGES}) آپلود شد`, 'info');
+    }
+}
+
+function removeImage(index) {
+    const removedFile = restaurantData.uploadedImages[index];
+
+    // حذف از آرایه
+    restaurantData.uploadedImages.splice(index, 1);
+
+    // نمایش پیام حذف
+    showMessage(`عکس "${removedFile.name}" حذف شد`, 'info');
+
+    // به‌روزرسانی پیش‌نمایش
+    updateImagePreview();
+}
+
+function showMessage(message, type = 'info') {
+    // پاک کردن پیام‌های قبلی
+    const existingMessages = document.querySelectorAll('.upload-message');
+    existingMessages.forEach(msg => msg.remove());
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `upload-message p-3 rounded-lg mb-4 text-sm ${
+        type === 'error' ? 'bg-red-100 text-red-700 border border-red-200' :
+        type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' :
+        'bg-blue-100 text-blue-700 border border-blue-200'
+    }`;
+
+    messageDiv.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${
+                type === 'error' ? 'fa-exclamation-circle' :
+                type === 'success' ? 'fa-check-circle' :
+                'fa-info-circle'
+            } ml-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    // اضافه کردن پیام قبل از dropzone
+    const dropZone = document.getElementById('dropZone');
+    dropZone.parentNode.insertBefore(messageDiv, dropZone);
+
+    // حذف خودکار پیام بعد از 4 ثانیه
+    setTimeout(() => {
+        if (messageDiv.parentNode) {
+            messageDiv.remove();
+        }
+    }, 4000);
+}
+
+// Step 4 -> Step 5 (پرداخت)
+function proceedToPayment() {
+    if (restaurantData.uploadedImages.length === 0) {
+        showMessage('لطفاً حداقل یک عکس آپلود کنید', 'error');
+        return;
+    }
+
+    showStep(5);
+    document.getElementById('processingTitle').textContent = 'در حال ارسال اطلاعات...';
+    document.getElementById('processingMessage').textContent = 'لطفاً چند لحظه صبر کنید';
+
+    // پردازش واقعی
+    processCompanyMenuCreation();
+}
+
+// ایجاد رستوران نهایی (منطق اصلی)
+function createRestaurantFinal() {
+    showStep(5);
+    document.getElementById('processingTitle').textContent = 'در حال ایجاد رستوران...';
+    document.getElementById('processingMessage').textContent = 'لطفاً چند لحظه صبر کنید';
+
+    // استفاده از منطق اصلی که در کد اولی کار می‌کرد - با JSON
     fetch("{% url 'panel:create_restaurant_modal' %}", {
         method: 'POST',
         headers: {
@@ -391,19 +658,24 @@ function proceedToStep3() {
             'X-CSRFToken': '{{ csrf_token }}'
         },
         body: JSON.stringify({
-            step: 3,
+            step: 3, // این همان step 3 از کد اولی است
             name: restaurantData.step1.name,
             family: restaurantData.step1.family,
             restaurant_name: restaurantData.step1.restaurant_name,
-            english_name: englishName
+            english_name: restaurantData.step2.english_name
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            window.location.href = data.redirect_url;
+            document.getElementById('processingTitle').textContent = 'رستوران با موفقیت ایجاد شد!';
+            document.getElementById('processingMessage').textContent = 'در حال انتقال به پنل مدیریت...';
+
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 1500);
         } else {
-            alert(data.message);
+            alert('خطا: ' + data.message);
             showStep(2);
         }
     })
@@ -414,22 +686,60 @@ function proceedToStep3() {
     });
 }
 
-// بستن مودال با کلیک خارج از آن
+// پردازش ساخت منو توسط شرکت
+function processCompanyMenuCreation() {
+    const formData = new FormData();
+    formData.append('step', 'create_with_company');
+    formData.append('name', restaurantData.step1.name);
+    formData.append('family', restaurantData.step1.family);
+    formData.append('restaurant_name', restaurantData.step1.restaurant_name);
+    formData.append('english_name', restaurantData.step2.english_name);
+    formData.append('menu_creation_type', 'company');
+    formData.append('images_count', restaurantData.uploadedImages.length);
+
+    // آپلود واقعی عکس‌ها
+    restaurantData.uploadedImages.forEach((file, index) => {
+        formData.append(`menu_images`, file);
+    });
+
+    fetch("{% url 'panel:create_restaurant_modal' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('processingTitle').textContent = 'پرداخت با موفقیت انجام شد!';
+            document.getElementById('processingMessage').textContent = 'منوی شما در حال ساخت است و به زودی اطلاع‌رسانی می‌شود';
+
+            setTimeout(() => {
+                window.location.href = data.redirect_url || "{% url 'panel:panel' %}";
+            }, 2000);
+        } else {
+            alert('خطا: ' + data.message);
+            showStep(4);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در پردازش درخواست');
+        showStep(4);
+    });
+}
+
+// مدیریت رویدادهای مودال
 document.getElementById('createRestaurantModal').addEventListener('click', function(e) {
     if (e.target.id === 'createRestaurantModal') {
         closeCreateRestaurantModal();
     }
 });
 
-// بستن مودال با دکمه ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeCreateRestaurantModal();
     }
-});
-
-// تشخیص نوع صفحه هنگام لود
-document.addEventListener('DOMContentLoaded', function() {
-    detectPageAndSetupLayout();
 });
 </script>

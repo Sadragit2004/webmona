@@ -45,7 +45,9 @@ INSTALLED_APPS = [
     'django_render_partial',
      'ckeditor',
     'ckeditor_uploader',
-    'apps.blog.apps.BlogConfig'
+    'apps.blog.apps.BlogConfig',
+    'apps.order.apps.OrderConfig',
+    'apps.peyment.apps.PeymentConfig',
 ]
 
 

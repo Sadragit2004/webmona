@@ -11,7 +11,9 @@ urlpatterns = [
     path('accounts/',include('apps.user.urls',namespace='account')),
     path('menu/',include('apps.menu.urls.url',namespace='menu')),
     path('panel/',include('apps.panel.urls',namespace='panel')),
-     path('ckeditor',include('ckeditor_uploader.urls')),
-     path('blog/',include('apps.blog.urls',namespace='blog'))
+    path('ckeditor',include('ckeditor_uploader.urls')),
+    path('blog/',include('apps.blog.urls',namespace='blog')),
+    path('order/',include('apps.order.urls',namespace='order')),
+    path('peyment/',include('apps.peyment.urls',namespace='peyment'))
 
 ]+static(sett.MEDIA_URL,document_root = sett.MEDIA_ROOT)
