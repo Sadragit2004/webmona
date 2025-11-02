@@ -156,7 +156,6 @@
                         </div>
                         <h4 class="font-bold mb-4">عکس‌های منو را آپلود کنید</h4>
 
-                        <!-- اطلاعات تعداد عکس‌ها -->
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                             <div class="flex items-center text-blue-800">
                                 <i class="fas fa-info-circle ml-2"></i>
@@ -172,8 +171,8 @@
                             <div id="dropZone"
                                  class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
                                 <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
-                                <p class="text-gray-600">عکس‌ها را اینجا بکشید و رها کنید</p>
-                                <p class="text-sm text-gray-500 mt-2">یا کلیک کنید برای انتخاب فایل (حداکثر ۱۰ عکس)</p>
+                                <p class="text-gray-600">برای انتخاب عکس‌ها اینجا کلیک کنید</p>
+                                <p class="text-sm text-gray-500 mt-2">یا عکس‌ها را اینجا بکشید و رها کنید (حداکثر ۱۰ عکس)</p>
                                 <input type="file" id="menuImagesInput" multiple accept="image/*" class="hidden">
                             </div>
 
@@ -204,11 +203,18 @@
                                     class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
                                 بازگشت
                             </button>
-                            <button id="uploadButton" onclick="proceedToPayment()"
-                                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
-                                    disabled>
-                                ادامه به پرداخت
-                            </button>
+                            <div class="flex space-x-2 space-x-reverse">
+                                <button id="saveImagesButton" onclick="saveImages()"
+                                        class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                        disabled>
+                                    ذخیره عکس‌ها
+                                </button>
+                                <button id="uploadButton" onclick="proceedToPayment()"
+                                        class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                        disabled>
+                                    ادامه به پرداخت
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -229,13 +235,15 @@
 </div>
 
 <script>
-// متغیرهای全局
+// متغیرهای سراسری
+// متغیرهای سراسری
 let currentStep = 1;
 let restaurantData = {
     step1: {},
     step2: {},
     menuCreationType: null,
-    uploadedImages: []
+    uploadedImages: [],
+    imagesSaved: false
 };
 const MAX_IMAGES = 10;
 
@@ -243,6 +251,7 @@ const MAX_IMAGES = 10;
 function openCreateRestaurantModal() {
     document.getElementById('createRestaurantModal').classList.remove('hidden');
     showStep(1);
+    resetForm();
 }
 
 function closeCreateRestaurantModal() {
@@ -255,50 +264,89 @@ function showStep(step) {
     document.querySelectorAll('.step-content').forEach(el => {
         el.classList.add('hidden');
     });
-    document.getElementById(`step${step}`).classList.remove('hidden');
+
+    const currentStepElement = document.getElementById(`step${step}`);
+    if (currentStepElement) {
+        currentStepElement.classList.remove('hidden');
+    }
+
+    if (step === 4) {
+        setTimeout(() => {
+            setupFileUpload();
+        }, 100);
+    }
 }
 
 function resetForm() {
     showStep(1);
-    document.getElementById('englishNameFeedback').innerHTML = '';
-    document.getElementById('step2Button').disabled = true;
-    document.getElementById('englishNameInput').value = '';
-    document.getElementById('restaurantNameInput').value = '';
-    document.getElementById('uploadButton').disabled = true;
+
+    const englishNameFeedback = document.getElementById('englishNameFeedback');
+    const step2Button = document.getElementById('step2Button');
+    const englishNameInput = document.getElementById('englishNameInput');
+    const restaurantNameInput = document.getElementById('restaurantNameInput');
+    const uploadButton = document.getElementById('uploadButton');
+    const saveImagesButton = document.getElementById('saveImagesButton');
+
+    if (englishNameFeedback) englishNameFeedback.innerHTML = '';
+    if (step2Button) step2Button.disabled = true;
+    if (englishNameInput) englishNameInput.value = '';
+    if (restaurantNameInput) restaurantNameInput.value = '';
+    if (uploadButton) uploadButton.disabled = true;
+    if (saveImagesButton) saveImagesButton.disabled = true;
+
     restaurantData = {
         step1: {},
         step2: {},
         menuCreationType: null,
-        uploadedImages: []
+        uploadedImages: [],
+        imagesSaved: false
     };
 
-    // پاک کردن پیشنمایش عکس‌ها
     const preview = document.getElementById('imagePreview');
-    preview.innerHTML = '';
-    preview.classList.add('hidden');
-    document.getElementById('imageCounter').classList.add('hidden');
+    const imageCounter = document.getElementById('imageCounter');
 
-    // بازنشانی dropzone به حالت اولیه
+    if (preview) {
+        preview.innerHTML = '';
+        preview.classList.add('hidden');
+    }
+    if (imageCounter) {
+        imageCounter.classList.add('hidden');
+    }
+
     const dropZone = document.getElementById('dropZone');
-    dropZone.classList.remove('opacity-50', 'cursor-not-allowed');
-    dropZone.innerHTML = `
-        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
-        <p class="text-gray-600">عکس‌ها را اینجا بکشید و رها کنید</p>
-        <p class="text-sm text-gray-500 mt-2">یا کلیک کنید برای انتخاب فایل (حداکثر ۱۰ عکس)</p>
-    `;
+    if (dropZone) {
+        dropZone.classList.remove('border-green-400', 'border-red-400', 'opacity-50', 'cursor-not-allowed');
+        dropZone.classList.add('border-gray-300', 'cursor-pointer');
+        dropZone.innerHTML = `
+            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+            <p class="text-gray-600">برای انتخاب عکس‌ها اینجا کلیک کنید</p>
+            <p class="text-sm text-gray-500 mt-2">یا عکس‌ها را اینجا بکشید و رها کنید (حداکثر ۱۰ عکس)</p>
+            <input type="file" id="menuImagesInput" multiple accept="image/*" class="hidden">
+        `;
+    }
 
-    // پاک کردن پیام‌ها
     document.querySelectorAll('.upload-message').forEach(msg => msg.remove());
 
-    // ریست کردن input فایل
-    document.getElementById('menuImagesInput').value = '';
+    const menuImagesInput = document.getElementById('menuImagesInput');
+    if (menuImagesInput) {
+        menuImagesInput.value = '';
+    }
 }
 
 // Step 1 -> Step 2
 function proceedToStep2() {
-    const name = document.getElementById('nameInput').value.trim();
-    const family = document.getElementById('familyInput').value.trim();
-    const restaurantName = document.getElementById('restaurantNameInput').value.trim();
+    const nameInput = document.getElementById('nameInput');
+    const familyInput = document.getElementById('familyInput');
+    const restaurantNameInput = document.getElementById('restaurantNameInput');
+
+    if (!nameInput || !familyInput || !restaurantNameInput) {
+        alert('خطا در بارگذاری فرم');
+        return;
+    }
+
+    const name = nameInput.value.trim();
+    const family = familyInput.value.trim();
+    const restaurantName = restaurantNameInput.value.trim();
 
     if (!name || !family || !restaurantName) {
         alert('لطفاً تمام فیلدها را پر کنید');
@@ -321,11 +369,16 @@ function backToStep1() {
 // Step 2 -> Step 3
 let checkTimeout;
 function checkEnglishName() {
-    const englishName = document.getElementById('englishNameInput').value.trim().toLowerCase();
+    const englishNameInput = document.getElementById('englishNameInput');
     const feedback = document.getElementById('englishNameFeedback');
     const button = document.getElementById('step2Button');
     const menuUrl = document.getElementById('menuUrlPreview');
 
+    if (!englishNameInput || !feedback || !button || !menuUrl) {
+        return;
+    }
+
+    const englishName = englishNameInput.value.trim().toLowerCase();
     menuUrl.textContent = `/menu/${englishName}`;
     clearTimeout(checkTimeout);
 
@@ -375,12 +428,9 @@ function selectMenuCreation(type) {
     restaurantData.menuCreationType = type;
 
     if (type === 'self') {
-        // اگر خودش می‌سازد، از منطق اصلی استفاده کن
         createRestaurantFinal();
     } else {
-        // اگر شرکت می‌سازد، برو به مرحله آپلود عکس
         showStep(4);
-        setupFileUpload();
     }
 }
 
@@ -393,18 +443,22 @@ function setupFileUpload() {
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('menuImagesInput');
 
-    // کلیک روی منطقه
-    dropZone.addEventListener('click', () => {
-        // اگر به حداکثر نرسیده، اجازه کلیک بده
-        if (restaurantData.uploadedImages.length < MAX_IMAGES) {
-            fileInput.click();
+    if (!dropZone || !fileInput) {
+        console.error('Dropzone or file input not found');
+        return;
+    }
+
+    const newFileInput = fileInput.cloneNode(true);
+    fileInput.parentNode.replaceChild(newFileInput, fileInput);
+
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#dropZone') && restaurantData.uploadedImages.length < MAX_IMAGES) {
+            document.getElementById('menuImagesInput').click();
         }
     });
 
-    // تغییر فایل‌ها
-    fileInput.addEventListener('change', handleFileSelect);
+    document.getElementById('menuImagesInput').addEventListener('change', handleFileSelect);
 
-    // کشیدن و رها کردن
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         if (restaurantData.uploadedImages.length < MAX_IMAGES) {
@@ -426,19 +480,19 @@ function setupFileUpload() {
         }
     });
 
-    // به‌روزرسانی اولیه dropzone
     updateDropZoneState();
 }
 
 function handleFileSelect(event) {
-    const newFiles = Array.from(event.target.files);
-    handleNewFiles(newFiles);
+    const files = event.target.files;
+    if (files.length > 0) {
+        const newFiles = Array.from(files);
+        handleNewFiles(newFiles);
+        event.target.value = '';
+    }
 }
 
 function handleNewFiles(newFiles) {
-    const fileInput = document.getElementById('menuImagesInput');
-
-    // محاسبه فضای باقیمانده
     const remainingSlots = MAX_IMAGES - restaurantData.uploadedImages.length;
 
     if (newFiles.length > remainingSlots) {
@@ -448,8 +502,14 @@ function handleNewFiles(newFiles) {
 
     if (newFiles.length === 0) return;
 
-    // فیلتر کردن فقط فایل‌های تصویری
-    const validFiles = newFiles.filter(file => file.type.startsWith('image/'));
+    const validFiles = newFiles.filter(file => {
+        if (!file.type.startsWith('image/')) {
+            return false;
+        }
+        return !restaurantData.uploadedImages.some(
+            existingFile => existingFile.name === file.name && existingFile.size === file.size
+        );
+    });
 
     if (validFiles.length === 0) {
         showMessage('لطفاً فقط فایل‌های تصویری انتخاب کنید', 'error');
@@ -460,93 +520,89 @@ function handleNewFiles(newFiles) {
         showMessage(`${validFiles.length} عکس با موفقیت انتخاب شد`, 'success');
     }
 
-    // اضافه کردن فایل‌های جدید به لیست موجود
-    validFiles.forEach((file) => {
-        // چک کردن تکراری نبودن فایل
-        const isDuplicate = restaurantData.uploadedImages.some(
-            existingFile => existingFile.name === file.name && existingFile.size === file.size
-        );
-
-        if (!isDuplicate) {
-            restaurantData.uploadedImages.push(file);
-        }
+    validFiles.forEach(file => {
+        restaurantData.uploadedImages.push(file);
     });
 
-    // به‌روزرسانی پیش‌نمایش
     updateImagePreview();
-
-    // ریست کردن input فایل برای امکان انتخاب مجدد همان فایل
-    fileInput.value = '';
 }
 
 function updateDropZoneState() {
     const dropZone = document.getElementById('dropZone');
+    if (!dropZone) return;
+
     const remainingSlots = MAX_IMAGES - restaurantData.uploadedImages.length;
 
     if (restaurantData.uploadedImages.length === 0) {
-        // حالت اولیه - هیچ عکسی آپلود نشده
-        dropZone.classList.remove('opacity-50', 'cursor-not-allowed');
+        dropZone.classList.remove('border-green-400', 'border-red-400', 'opacity-50', 'cursor-not-allowed');
+        dropZone.classList.add('border-gray-300', 'cursor-pointer');
         dropZone.innerHTML = `
             <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
-            <p class="text-gray-600">عکس‌ها را اینجا بکشید و رها کنید</p>
-            <p class="text-sm text-gray-500 mt-2">یا کلیک کنید برای انتخاب فایل (حداکثر ۱۰ عکس)</p>
+            <p class="text-gray-600">برای انتخاب عکس‌ها اینجا کلیک کنید</p>
+            <p class="text-sm text-gray-500 mt-2">یا عکس‌ها را اینجا بکشید و رها کنید (حداکثر ۱۰ عکس)</p>
+            <input type="file" id="menuImagesInput" multiple accept="image/*" class="hidden">
         `;
     } else if (restaurantData.uploadedImages.length >= MAX_IMAGES) {
-        // حالت حداکثر - غیرفعال
-        dropZone.classList.add('opacity-50', 'cursor-not-allowed');
+        dropZone.classList.remove('border-gray-300', 'cursor-pointer');
+        dropZone.classList.add('border-green-400', 'opacity-50', 'cursor-not-allowed');
         dropZone.innerHTML = `
             <i class="fas fa-check-circle text-4xl text-green-400 mb-3"></i>
             <p class="text-gray-600">حداکثر تعداد عکس آپلود شده</p>
             <p class="text-sm text-gray-500 mt-2">برای آپلود بیشتر، ابتدا برخی عکس‌ها را حذف کنید</p>
+            <input type="file" id="menuImagesInput" multiple accept="image/*" class="hidden">
         `;
     } else {
-        // حالت عادی - می‌تواند بیشتر آپلود کند
-        dropZone.classList.remove('opacity-50', 'cursor-not-allowed');
+        dropZone.classList.remove('border-gray-300', 'opacity-50', 'cursor-not-allowed');
+        dropZone.classList.add('border-blue-400', 'cursor-pointer');
         dropZone.innerHTML = `
             <i class="fas fa-plus-circle text-4xl text-blue-400 mb-3"></i>
             <p class="text-gray-600">عکس‌های بیشتر اضافه کنید</p>
             <p class="text-sm text-gray-500 mt-2">می‌توانید ${remainingSlots} عکس دیگر آپلود کنید</p>
+            <input type="file" id="menuImagesInput" multiple accept="image/*" class="hidden">
         `;
+    }
+
+    const newFileInput = document.getElementById('menuImagesInput');
+    if (newFileInput) {
+        newFileInput.addEventListener('change', handleFileSelect);
     }
 }
 
 function updateImagePreview() {
     const preview = document.getElementById('imagePreview');
     const uploadButton = document.getElementById('uploadButton');
+    const saveButton = document.getElementById('saveImagesButton');
     const imageCounter = document.getElementById('imageCounter');
     const currentCount = document.getElementById('currentCount');
 
-    // پاک کردن پیش‌نمایش فعلی
+    if (!preview || !imageCounter || !currentCount) return;
+
     preview.innerHTML = '';
-
-    // به‌روزرسانی شمارنده
     currentCount.textContent = restaurantData.uploadedImages.length;
-
-    // به‌روزرسانی وضعیت dropzone
     updateDropZoneState();
 
-    // اگر عکسی وجود ندارد
     if (restaurantData.uploadedImages.length === 0) {
         preview.classList.add('hidden');
         imageCounter.classList.add('hidden');
-        uploadButton.disabled = true;
+        if (uploadButton) uploadButton.disabled = true;
+        if (saveButton) saveButton.disabled = true;
+        restaurantData.imagesSaved = false;
         return;
     }
 
-    // نمایش پیش‌نمایش
     preview.classList.remove('hidden');
     imageCounter.classList.remove('hidden');
-    uploadButton.disabled = false;
+    if (saveButton) saveButton.disabled = false;
 
-    // ایجاد پیش‌نمایش برای تمام عکس‌ها
+    // دکمه پرداخت فقط در صورتی فعال می‌شود که عکس‌ها ذخیره شده باشند
+    if (uploadButton) uploadButton.disabled = !restaurantData.imagesSaved;
+
     restaurantData.uploadedImages.forEach((file, index) => {
         const imgContainer = document.createElement('div');
         imgContainer.className = 'relative group';
         imgContainer.dataset.fileIndex = index;
 
         const img = document.createElement('img');
-
-        // ایجاد URL برای نمایش فایل
         const objectUrl = URL.createObjectURL(file);
         img.src = objectUrl;
         img.className = 'w-full h-24 object-cover rounded-lg border';
@@ -575,7 +631,6 @@ function updateImagePreview() {
         preview.appendChild(imgContainer);
     });
 
-    // نمایش پیام بر اساس تعداد عکس‌ها
     if (restaurantData.uploadedImages.length === MAX_IMAGES) {
         showMessage(`حداکثر تعداد عکس (${MAX_IMAGES}) آپلود شد`, 'info');
     }
@@ -583,21 +638,18 @@ function updateImagePreview() {
 
 function removeImage(index) {
     const removedFile = restaurantData.uploadedImages[index];
-
-    // حذف از آرایه
     restaurantData.uploadedImages.splice(index, 1);
-
-    // نمایش پیام حذف
     showMessage(`عکس "${removedFile.name}" حذف شد`, 'info');
-
-    // به‌روزرسانی پیش‌نمایش
+    restaurantData.imagesSaved = false;
     updateImagePreview();
 }
 
 function showMessage(message, type = 'info') {
-    // پاک کردن پیام‌های قبلی
     const existingMessages = document.querySelectorAll('.upload-message');
     existingMessages.forEach(msg => msg.remove());
+
+    const dropZone = document.getElementById('dropZone');
+    if (!dropZone) return;
 
     const messageDiv = document.createElement('div');
     messageDiv.className = `upload-message p-3 rounded-lg mb-4 text-sm ${
@@ -617,16 +669,78 @@ function showMessage(message, type = 'info') {
         </div>
     `;
 
-    // اضافه کردن پیام قبل از dropzone
-    const dropZone = document.getElementById('dropZone');
     dropZone.parentNode.insertBefore(messageDiv, dropZone);
 
-    // حذف خودکار پیام بعد از 4 ثانیه
     setTimeout(() => {
         if (messageDiv.parentNode) {
             messageDiv.remove();
         }
     }, 4000);
+}
+
+// تابع برای ذخیره عکس‌ها
+function saveImages() {
+    if (restaurantData.uploadedImages.length === 0) {
+        showMessage('لطفاً حداقل یک عکس آپلود کنید', 'error');
+        return;
+    }
+
+    const saveButton = document.getElementById('saveImagesButton');
+    const uploadButton = document.getElementById('uploadButton');
+    if (!saveButton || !uploadButton) return;
+
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ذخیره...';
+
+    const formData = new FormData();
+    formData.append('step', 'create_with_company');
+    formData.append('name', restaurantData.step1.name);
+    formData.append('family', restaurantData.step1.family);
+    formData.append('restaurant_name', restaurantData.step1.restaurant_name);
+    formData.append('english_name', restaurantData.step2.english_name);
+    formData.append('menu_creation_type', 'company_save_only');
+
+    restaurantData.uploadedImages.forEach((file, index) => {
+        formData.append(`menu_images`, file);
+    });
+
+    fetch("{% url 'panel:create_restaurant_modal' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message, 'success');
+            restaurantData.imagesSaved = true;
+            uploadButton.disabled = false;
+            saveButton.innerHTML = '<i class="fas fa-check"></i> عکس‌ها ذخیره شد';
+            saveButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+            saveButton.classList.add('bg-green-600', 'cursor-default');
+
+            // بررسی وضعیت رستوران در حال انتظار
+            checkPendingRestaurant();
+        } else {
+            showMessage(data.message, 'error');
+            restaurantData.imagesSaved = false;
+            uploadButton.disabled = true;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('خطا در ذخیره عکس‌ها', 'error');
+        restaurantData.imagesSaved = false;
+        uploadButton.disabled = true;
+    })
+    .finally(() => {
+        if (!restaurantData.imagesSaved) {
+            saveButton.disabled = false;
+            saveButton.innerHTML = 'ذخیره عکس‌ها';
+        }
+    });
 }
 
 // Step 4 -> Step 5 (پرداخت)
@@ -636,21 +750,30 @@ function proceedToPayment() {
         return;
     }
 
-    showStep(5);
-    document.getElementById('processingTitle').textContent = 'در حال ارسال اطلاعات...';
-    document.getElementById('processingMessage').textContent = 'لطفاً چند لحظه صبر کنید';
+    if (!restaurantData.imagesSaved) {
+        showMessage('لطفاً ابتدا عکس‌ها را ذخیره کنید', 'error');
+        return;
+    }
 
-    // پردازش واقعی
+    showStep(5);
+    const processingTitle = document.getElementById('processingTitle');
+    const processingMessage = document.getElementById('processingMessage');
+
+    if (processingTitle) processingTitle.textContent = 'در حال ارسال اطلاعات...';
+    if (processingMessage) processingMessage.textContent = 'لطفاً چند لحظه صبر کنید';
+
     processCompanyMenuCreation();
 }
 
-// ایجاد رستوران نهایی (منطق اصلی)
+// ایجاد رستوران نهایی (ساخت توسط خود کاربر)
 function createRestaurantFinal() {
     showStep(5);
-    document.getElementById('processingTitle').textContent = 'در حال ایجاد رستوران...';
-    document.getElementById('processingMessage').textContent = 'لطفاً چند لحظه صبر کنید';
+    const processingTitle = document.getElementById('processingTitle');
+    const processingMessage = document.getElementById('processingMessage');
 
-    // استفاده از منطق اصلی که در کد اولی کار می‌کرد - با JSON
+    if (processingTitle) processingTitle.textContent = 'در حال ایجاد رستوران...';
+    if (processingMessage) processingMessage.textContent = 'لطفاً چند لحظه صبر کنید';
+
     fetch("{% url 'panel:create_restaurant_modal' %}", {
         method: 'POST',
         headers: {
@@ -658,7 +781,7 @@ function createRestaurantFinal() {
             'X-CSRFToken': '{{ csrf_token }}'
         },
         body: JSON.stringify({
-            step: 3, // این همان step 3 از کد اولی است
+            step: 3,
             name: restaurantData.step1.name,
             family: restaurantData.step1.family,
             restaurant_name: restaurantData.step1.restaurant_name,
@@ -668,8 +791,11 @@ function createRestaurantFinal() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            document.getElementById('processingTitle').textContent = 'رستوران با موفقیت ایجاد شد!';
-            document.getElementById('processingMessage').textContent = 'در حال انتقال به پنل مدیریت...';
+            if (processingTitle) processingTitle.textContent = 'رستوران با موفقیت ایجاد شد!';
+            if (processingMessage) processingMessage.textContent = 'در حال انتقال به پنل مدیریت...';
+
+            // پاک کردن رستوران در حال انتظار
+            clearPendingRestaurant();
 
             setTimeout(() => {
                 window.location.href = data.redirect_url;
@@ -695,9 +821,7 @@ function processCompanyMenuCreation() {
     formData.append('restaurant_name', restaurantData.step1.restaurant_name);
     formData.append('english_name', restaurantData.step2.english_name);
     formData.append('menu_creation_type', 'company');
-    formData.append('images_count', restaurantData.uploadedImages.length);
 
-    // آپلود واقعی عکس‌ها
     restaurantData.uploadedImages.forEach((file, index) => {
         formData.append(`menu_images`, file);
     });
@@ -712,15 +836,29 @@ function processCompanyMenuCreation() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            document.getElementById('processingTitle').textContent = 'پرداخت با موفقیت انجام شد!';
-            document.getElementById('processingMessage').textContent = 'منوی شما در حال ساخت است و به زودی اطلاع‌رسانی می‌شود';
+            const processingTitle = document.getElementById('processingTitle');
+            const processingMessage = document.getElementById('processingMessage');
+
+            if (processingTitle) processingTitle.textContent = 'در حال انتقال به درگاه پرداخت...';
+            if (processingMessage) processingMessage.textContent = 'لطفاً چند لحظه صبر کنید';
+
+            // پاک کردن رستوران در حال انتظار
+            clearPendingRestaurant();
 
             setTimeout(() => {
-                window.location.href = data.redirect_url || "{% url 'panel:panel' %}";
-            }, 2000);
+                window.location.href = data.redirect_url;
+            }, 1500);
         } else {
-            alert('خطا: ' + data.message);
-            showStep(4);
+            if (data.message.includes('نام انگلیسی قبلاً انتخاب شده')) {
+                // پاک کردن رستوران در حال انتظار
+                clearPendingRestaurant();
+
+                showStep(2);
+                alert('خطا: ' + data.message + '\nلطفاً نام انگلیسی دیگری انتخاب کنید.');
+            } else {
+                alert('خطا: ' + data.message);
+                showStep(4);
+            }
         }
     })
     .catch(error => {
@@ -730,16 +868,58 @@ function processCompanyMenuCreation() {
     });
 }
 
+// بررسی وضعیت رستوران در حال انتظار
+function checkPendingRestaurant() {
+    fetch("{% url 'panel:check_pending_restaurant' %}")
+        .then(response => response.json())
+        .then(data => {
+            if (data.has_pending) {
+                console.log('رستوران در حال انتظار وجود دارد:', data.data);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking pending restaurant:', error);
+        });
+}
+
+// پاک کردن رستوران در حال انتظار
+function clearPendingRestaurant() {
+    fetch("{% url 'panel:clear_pending_restaurant' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('رستوران در حال انتظار پاک شد');
+        }
+    })
+    .catch(error => {
+        console.error('Error clearing pending restaurant:', error);
+    });
+}
+
 // مدیریت رویدادهای مودال
-document.getElementById('createRestaurantModal').addEventListener('click', function(e) {
-    if (e.target.id === 'createRestaurantModal') {
-        closeCreateRestaurantModal();
-    }
-});
+const modal = document.getElementById('createRestaurantModal');
+if (modal) {
+    modal.addEventListener('click', function(e) {
+        if (e.target.id === 'createRestaurantModal') {
+            closeCreateRestaurantModal();
+        }
+    });
+}
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeCreateRestaurantModal();
     }
+});
+
+// بررسی وضعیت رستوران در حال انتظار هنگام بارگذاری صفحه
+document.addEventListener('DOMContentLoaded', function() {
+    checkPendingRestaurant();
 });
 </script>

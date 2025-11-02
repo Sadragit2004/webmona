@@ -24,18 +24,237 @@ def restaurant_owner_required(view_func):
         return view_func(request, slug, *args, **kwargs)
     return wrapper
 
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from django.db.models import Count, Sum, Q
+from datetime import datetime, timedelta
+from apps.menu.models.menufreemodels.models import Restaurant
+from apps.order.models import Ordermenu, MenuImage
+
 @login_required
 def panel(request):
-    """پنل اصلی - نمایش رستوران‌های کاربر"""
+    """پنل اصلی - نمایش رستوران‌های کاربر و سفارشات"""
     user_restaurants = Restaurant.objects.filter(owner=request.user, isActive=True)
+
+    # دریافت سفارشات کاربر
+    user_orders = Ordermenu.objects.filter(restaurant__owner=request.user)
+
+    # سفارشات پرداخت شده
+    paid_orders = user_orders.filter(status=Ordermenu.STATUS_PAID)
+
+    # سفارشات تایید شده
+    confirmed_orders = user_orders.filter(status=Ordermenu.STATUS_CONFIRMED)
+
+    # سفارشات تحویل شده
+    delivered_orders = user_orders.filter(status=Ordermenu.STATUS_DELIVERED)
+
+    # سفارشات پرداخت نشده
+    unpaid_orders = user_orders.filter(status=Ordermenu.STATUS_UNPAID)
+
+    # آمار کلی
+    today = timezone.now().date()
+
+    # آمار سفارشات امروز - استفاده از created_at
+    today_orders_count = user_orders.filter(
+        created_at__date=today
+    ).count()
+
+    # آمار سفارشات این ماه
+    month_start = today.replace(day=1)
+    monthly_orders_count = user_orders.filter(
+        created_at__date__gte=month_start
+    ).count()
+
+    # محاسبه درآمد
+    today_revenue = paid_orders.filter(
+        created_at__date=today
+    ).count() * 99000  # هر سفارش 99,000 تومان
+
+    monthly_revenue = paid_orders.filter(
+        created_at__date__gte=month_start
+    ).count() * 99000
 
     context = {
         'restaurants': user_restaurants,
-        'has_restaurant': user_restaurants.exists()
+        'has_restaurant': user_restaurants.exists(),
+
+        # سفارشات
+        'user_orders': user_orders,
+        'paid_orders': paid_orders,
+        'confirmed_orders': confirmed_orders,
+        'delivered_orders': delivered_orders,
+        'unpaid_orders': unpaid_orders,
+
+        # آمار
+        'today_orders': today_orders_count,
+        'monthly_orders': monthly_orders_count,
+        'today_revenue': today_revenue,
+        'monthly_revenue': monthly_revenue,
+        'purchased_menus': paid_orders.count(),
+
+        # آمار نمونه (می‌تونی با داده‌های واقعی جایگزین کنی)
+        'today_views': 150,
+        'average_rating': 4.5,
     }
 
-    print(user_restaurants.exists())
     return render(request, 'panel_app/free/panel.html', context)
+
+@login_required
+def order_detail(request, order_id):
+    """جزئیات سفارش"""
+    order = get_object_or_404(Ordermenu, id=order_id, restaurant__owner=request.user)
+
+    # دریافت عکس‌های مربوط به سفارش
+    menu_images = order.images.all()
+
+    context = {
+        'order': order,
+        'menu_images': menu_images,
+    }
+
+    return render(request, 'panel_app/free/order_detail.html', context)
+
+@login_required
+def update_order_status(request, order_id):
+    """به‌روزرسانی وضعیت سفارش"""
+    if request.method == 'POST':
+        order = get_object_or_404(Ordermenu, id=order_id, restaurant__owner=request.user)
+
+        try:
+            new_status = int(request.POST.get('status'))
+
+            # بررسی معتبر بودن وضعیت
+            valid_statuses = [status[0] for status in Ordermenu.STATUS_CHOICES]
+            if new_status in valid_statuses:
+                order.status = new_status
+                order.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'message': 'وضعیت سفارش با موفقیت به‌روزرسانی شد',
+                    'new_status': order.get_status_display()
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'وضعیت نامعتبر'
+                })
+
+        except (ValueError, TypeError):
+            return JsonResponse({
+                'success': False,
+                'message': 'خطا در پردازش درخواست'
+            })
+
+    return JsonResponse({
+        'success': False,
+        'message': 'متد نامعتبر'
+    })
+
+@login_required
+def process_payment(request, order_id):
+    """پردازش پرداخت برای سفارشات پرداخت نشده"""
+    order = get_object_or_404(Ordermenu, id=order_id, restaurant__owner=request.user)
+
+    # فقط برای سفارشات پرداخت نشده
+    if order.status != Ordermenu.STATUS_UNPAID:
+        return JsonResponse({
+            'success': False,
+            'message': 'این سفارش قبلاً پرداخت شده است'
+        })
+
+    if request.method == 'POST':
+        try:
+            # در اینجا منطق پرداخت رو پیاده‌سازی کن
+            # برای نمونه، وضعیت رو به پرداخت شده تغییر می‌دیم
+
+            order.status = Ordermenu.STATUS_PAID
+            order.isfinaly = True
+            order.isActive = True
+            order.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'پرداخت با موفقیت انجام شد',
+                'redirect_url': f'/panel/orders/{order.id}/'
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'خطا در پردازش پرداخت: {str(e)}'
+            })
+
+    # نمایش صفحه پرداخت
+    context = {
+        'order': order,
+        'amount': order.get_fixed_price(),  # 99,000 تومان
+    }
+
+    return render(request, 'panel_app/free/payment_page.html', context)
+
+@login_required
+def cancel_order(request, order_id):
+    """لغو سفارش"""
+    if request.method == 'POST':
+        order = get_object_or_404(Ordermenu, id=order_id, restaurant__owner=request.user)
+
+        # فقط سفارشات پرداخت نشده قابل لغو هستند
+        if order.status != Ordermenu.STATUS_UNPAID:
+            return JsonResponse({
+                'success': False,
+                'message': 'فقط سفارشات پرداخت نشده قابل لغو هستند'
+            })
+
+        try:
+            # حذف سفارش
+            order.delete()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'سفارش با موفقیت لغو شد'
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'خطا در لغو سفارش: {str(e)}'
+            })
+
+    return JsonResponse({
+        'success': False,
+        'message': 'متد نامعتبر'
+    })
+
+@login_required
+def order_list(request):
+    """لیست تمام سفارشات کاربر"""
+    status_filter = request.GET.get('status', 'all')
+
+    user_orders = Ordermenu.objects.filter(restaurant__owner=request.user)
+
+    # فیلتر بر اساس وضعیت
+    if status_filter == 'unpaid':
+        orders = user_orders.filter(status=Ordermenu.STATUS_UNPAID)
+    elif status_filter == 'paid':
+        orders = user_orders.filter(status=Ordermenu.STATUS_PAID)
+    elif status_filter == 'confirmed':
+        orders = user_orders.filter(status=Ordermenu.STATUS_CONFIRMED)
+    elif status_filter == 'delivered':
+        orders = user_orders.filter(status=Ordermenu.STATUS_DELIVERED)
+    else:
+        orders = user_orders
+
+    context = {
+        'orders': orders.order_by('-id'),
+        'current_filter': status_filter,
+        'status_choices': Ordermenu.STATUS_CHOICES,
+    }
+
+    return render(request, 'panel_app/free/order_list.html', context)
+
 
 @login_required
 def create_restaurant(request):
@@ -525,18 +744,26 @@ def restaurant_context(request):
 
 
 
-
-# views.py
+# views.py - فقط توسعه ویو create_restaurant_modal
 @login_required
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_restaurant_modal(request):
-    """مدیریت افتتاح رستوران از طریق مودال"""
+    """مدیریت افتتاح رستوران از طریق مودال - نسخه اصلاح شده"""
     try:
-        data = json.loads(request.body)
+        # بررسی نوع درخواست (JSON یا FormData)
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+            files = None
+        else:
+            data = request.POST
+            files = request.FILES
+
+        step = data.get('step')
+        menu_creation_type = data.get('menu_creation_type')
 
         # مرحله 1: دریافت نام و نام خانوادگی و نام رستوران
-        if data.get('step') == 1:
+        if step == 1:
             name = data.get('name', '').strip()
             family = data.get('family', '').strip()
             restaurant_name = data.get('restaurant_name', '').strip()
@@ -556,7 +783,7 @@ def create_restaurant_modal(request):
                     'restaurant_name': restaurant_name
                 }
             }
-            request.session.modified = True  # این خط مهم است
+            request.session.modified = True
 
             return JsonResponse({
                 'success': True,
@@ -565,7 +792,7 @@ def create_restaurant_modal(request):
             })
 
         # مرحله 2: دریافت نام انگلیسی
-        elif data.get('step') == 2:
+        elif step == 2:
             english_name = data.get('english_name', '').strip().lower()
 
             if not english_name:
@@ -593,9 +820,9 @@ def create_restaurant_modal(request):
                 'next_step': 3
             })
 
-        # مرحله نهایی: ایجاد رستوران
-        elif data.get('step') == 3:
-            # دریافت مستقیم داده‌ها از request
+        # مرحله 3: ایجاد رستوران (ساخت توسط خود کاربر)
+        elif step == 3:
+            # دریافت مستقیم داده‌ها
             name = data.get('name', '').strip()
             family = data.get('family', '').strip()
             restaurant_name = data.get('restaurant_name', '').strip()
@@ -639,11 +866,118 @@ def create_restaurant_modal(request):
                 'redirect_url': f'/panel/{restaurant.slug}/admin/'
             })
 
+        # مرحله جدید: ایجاد با شرکت (آپلود عکس‌ها)
+        elif step == 'create_with_company':
+            # دریافت داده‌ها
+            name = data.get('name', '').strip()
+            family = data.get('family', '').strip()
+            restaurant_name = data.get('restaurant_name', '').strip()
+            english_name = data.get('english_name', '').strip().lower()
+
+            # اعتبارسنجی
+            if not name or not family or not restaurant_name or not english_name:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'اطلاعات ناقص است'
+                })
+
+            # بررسی تکراری نبودن نام انگلیسی
+            if Restaurant.objects.filter(english_name=english_name).exists():
+                return JsonResponse({
+                    'success': False,
+                    'message': 'این نام انگلیسی قبلاً انتخاب شده است'
+                })
+
+            # اگر فقط ذخیره عکس‌ها باشد (بدون پرداخت)
+            if menu_creation_type == 'company_save_only':
+                # ذخیره اطلاعات در session برای استفاده بعدی
+                request.session['pending_restaurant'] = {
+                    'name': name,
+                    'family': family,
+                    'restaurant_name': restaurant_name,
+                    'english_name': english_name,
+                    'menu_images_count': 0
+                }
+
+                # ذخیره عکس‌ها در session به صورت موقت
+                menu_images = files.getlist('menu_images') if files else []
+                saved_images_count = 0
+
+                # ذخیره اطلاعات عکس‌ها در session (فقط نام و سایز)
+                image_info_list = []
+                for image in menu_images:
+                    if saved_images_count < 10:  # حداکثر 10 عکس
+                        image_info_list.append({
+                            'name': image.name,
+                            'size': image.size,
+                            'type': image.content_type
+                        })
+                        saved_images_count += 1
+
+                request.session['pending_restaurant']['menu_images_info'] = image_info_list
+                request.session['pending_restaurant']['menu_images_count'] = saved_images_count
+                request.session.modified = True
+
+                # به‌روزرسانی نام کاربر
+                request.user.name = name
+                request.user.family = family
+                request.user.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'message': f'عکس‌ها با موفقیت ذخیره شد ({saved_images_count} عکس)',
+                    'saved_images': saved_images_count
+                })
+
+            # اگر پرداخت باشد
+            else:
+                # ایجاد رستوران
+                restaurant = Restaurant(
+                    owner=request.user,
+                    title=restaurant_name,
+                    english_name=english_name,
+                    isActive=True
+                )
+                restaurant.save()
+
+                # ایجاد سفارش برای پرداخت
+                from apps.order.models import Ordermenu, MenuImage
+                order = Ordermenu.objects.create(
+                    restaurant=restaurant,
+                    isfinaly=False,
+                    isActive=False,
+                    status=Ordermenu.STATUS_UNPAID
+                )
+
+                # ذخیره عکس‌ها
+                menu_images = files.getlist('menu_images') if files else []
+                saved_images_count = 0
+
+                for image in menu_images:
+                    if saved_images_count < 10:  # حداکثر 10 عکس
+                        MenuImage.objects.create(
+                            order=order,
+                            image=image
+                        )
+                        saved_images_count += 1
+
+                # پاک کردن session
+                if 'pending_restaurant' in request.session:
+                    del request.session['pending_restaurant']
+
+                return JsonResponse({
+                    'success': True,
+                    'message': f'رستوران ایجاد شد و {saved_images_count} عکس آپلود شد',
+                    'order_id': order.id,
+                    'redirect_url': f'/peyment/request/{order.id}/'
+                })
+
     except Exception as e:
         return JsonResponse({
             'success': False,
             'message': f'خطا در پردازش: {str(e)}'
         })
+
 
 @login_required
 def check_english_name(request):
@@ -829,3 +1163,33 @@ def generate_qr_code(request, restaurant_slug):
         'qr_code': f'data:image/png;base64,{img_str}',
         'menu_url': menu_url
     })
+
+
+
+@login_required
+def check_pending_restaurant(request):
+    """بررسی وجود رستوران در حال انتظار"""
+    pending_restaurant = request.session.get('pending_restaurant')
+
+    if pending_restaurant:
+        return JsonResponse({
+            'has_pending': True,
+            'data': pending_restaurant
+        })
+    else:
+        return JsonResponse({
+            'has_pending': False
+        })
+
+@login_required
+def clear_pending_restaurant(request):
+    """پاک کردن رستوران در حال انتظار"""
+    if 'pending_restaurant' in request.session:
+        del request.session['pending_restaurant']
+
+    return JsonResponse({'success': True})
+
+
+
+
+

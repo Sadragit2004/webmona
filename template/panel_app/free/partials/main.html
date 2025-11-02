@@ -1,5 +1,5 @@
 <!-- فایل: panel_dashboard.html -->
-<div class="w-full max-w-7xl mx-auto">
+<div class="w-full max-w-7xl mx-auto p-4">
 
     <!-- بنر افتتاح اولین منو - برای کاربران بدون منو -->
     <div id="firstTimeBanner" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
@@ -114,145 +114,169 @@
         </div>
     </div>
 
+    <!-- بخش سفارشات منو -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
+        <div class="p-6 border-b border-gray-100">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-shopping-cart text-blue-500 ml-3 text-lg"></i>
+                سفارشات ساخت منو
+            </h2>
+            <p class="text-gray-600 text-sm mt-2">مدیریت سفارشات ساخت منوی حرفه‌ای</p>
+        </div>
+
+        <div class="p-6">
+            {% if user_orders %}
+            <div class="space-y-4">
+                {% for order in user_orders %}
+                <div class="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all duration-300">
+                    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                        <!-- اطلاعات سفارش -->
+                        <div class="flex-1">
+                            <div class="flex items-center flex-wrap gap-2 mb-4">
+                                <!-- وضعیت -->
+                                <span class="status-badge px-3 py-1 rounded-lg text-sm font-medium
+                                    {% if order.status == 1 %}bg-red-100 text-red-600 border border-red-200{% endif %}
+                                    {% if order.status == 2 %}bg-green-100 text-green-600 border border-green-200{% endif %}
+                                    {% if order.status == 3 %}bg-purple-100 text-purple-600 border border-purple-200{% endif %}
+                                    {% if order.status == 4 %}bg-blue-100 text-blue-600 border border-blue-200{% endif %}">
+                                    <i class="fas
+                                        {% if order.status == 1 %}fa-clock{% endif %}
+                                        {% if order.status == 2 %}fa-check-circle{% endif %}
+                                        {% if order.status == 3 %}fa-clipboard-check{% endif %}
+                                        {% if order.status == 4 %}fa-check-double{% endif %}
+                                        ml-1 text-xs"></i>
+                                    {{ order.get_status_display }}
+                                </span>
+
+                                <!-- شماره سفارش -->
+                                <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-sm font-medium border border-gray-200">
+                                    <i class="fas fa-hashtag ml-1 text-xs"></i>
+                                    #{{ order.id }}
+                                </span>
+
+                                <!-- رستوران -->
+                                <span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-lg text-sm font-medium border border-orange-200">
+                                    <i class="fas fa-store ml-1 text-xs"></i>
+                                    {{ order.restaurant.title }}
+                                </span>
+                            </div>
+
+                            <!-- اطلاعات رستوران -->
+                            <div class="mb-4">
+                                <p class="text-gray-700 font-medium text-lg">{{ order.restaurant.title }}</p>
+                                <p class="text-gray-500 text-sm mt-1">
+                                    <i class="fas fa-link ml-1 text-gray-400"></i>
+                                    آدرس: /menu/{{ order.restaurant.english_name }}
+                                </p>
+                            </div>
+
+                            <!-- اطلاعات زمانی و قیمت -->
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-100 space-y-2 sm:space-y-0">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-clock ml-1"></i>
+                                    تاریخ ایجاد:
+                                    <span class="font-medium mr-1">{{ order.created_at|date:"Y/m/d - H:i" }}</span>
+                                </div>
+                                <div class="text-lg font-bold text-gray-800">
+                                    مبلغ: 99,000 تومان
+                                </div>
+                            </div>
+
+                            <!-- عکس‌های آپلود شده -->
+                            {% if order.images.all %}
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-images ml-2 text-gray-400"></i>
+                                    عکس‌های آپلود شده
+                                </h4>
+                                <div class="grid grid-cols-3 gap-2">
+                                    {% for image in order.images.all %}
+                                    <div class="relative group">
+                                        <img src="{{ image.image.url }}"
+                                             alt="عکس منو {{ forloop.counter }}"
+                                             class="w-full h-20 object-cover rounded-lg border">
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
+                                            <button onclick="viewImage('{{ image.image.url }}')"
+                                                    class="w-8 h-8 bg-white text-gray-700 rounded-full text-sm flex items-center justify-center hover:bg-gray-100 transition-all opacity-0 group-hover:opacity-100">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- دکمه‌های اقدام -->
+                        <div class="flex flex-col space-y-3 min-w-[200px]">
+                            {% if order.status == 1 %}
+                            <!-- وضعیت پرداخت نشده -->
+                            <button onclick="processRealPayment({{ order.id }})"
+                                    class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
+                                <i class="fas fa-credit-card ml-2"></i>
+                                پرداخت (99,000 تومان)
+                            </button>
+                            {% elif order.status == 2 %}
+                            <!-- وضعیت پرداخت شده -->
+                            <span class="w-full bg-green-500 text-white px-4 py-3 rounded-xl text-sm font-medium text-center flex items-center justify-center">
+                                <i class="fas fa-check-circle ml-2"></i>
+                                پرداخت شده
+                            </span>
+                            {% elif order.status == 3 %}
+                            <!-- وضعیت تایید شده -->
+                            <span class="w-full bg-purple-500 text-white px-4 py-3 rounded-xl text-sm font-medium text-center flex items-center justify-center">
+                                <i class="fas fa-clipboard-check ml-2"></i>
+                                تایید شده
+                            </span>
+                            {% elif order.status == 4 %}
+                            <!-- وضعیت تحویل شده -->
+                            <span class="w-full bg-blue-500 text-white px-4 py-3 rounded-xl text-sm font-medium text-center flex items-center justify-center">
+                                <i class="fas fa-check-double ml-2"></i>
+                                تحویل شده
+                            </span>
+                            {% endif %}
+
+                            <button onclick="viewOrderDetails({{ order.id }})"
+                                    class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
+                                <i class="fas fa-eye ml-2"></i>
+                                مشاهده جزئیات
+                            </button>
+
+                            {% if order.status == 1 %}
+                            <button onclick="cancelOrder({{ order.id }})"
+                                    class="w-full border border-red-300 hover:bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
+                                <i class="fas fa-times ml-2"></i>
+                                لغو سفارش
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- حالت خالی -->
+            <div class="text-center py-12">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mx-auto mb-4">
+                    <i class="fas fa-shopping-cart text-3xl"></i>
+                </div>
+                <h3 class="text-gray-500 text-lg font-medium mb-2">هنوز سفارشی ثبت نکرده‌اید</h3>
+                <p class="text-gray-400 mb-6">سفارشات ساخت منو در این بخش نمایش داده می‌شوند</p>
+                <button onclick="openCreateRestaurantModal()"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors">
+                    ساخت اولین منو
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- محتوای اصلی - طرح دو ستونی برای دسکتاپ -->
     <div class="flex flex-col xl:flex-row gap-6">
 
         <!-- ستون سمت چپ - سفارشات زنده و آمار -->
         <div class="xl:w-2/3 space-y-6">
-
-            <!-- سفارشات زنده -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
-                <div class="p-6 border-b border-gray-100">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                            <i class="fas fa-bell text-yellow-500 ml-3 text-lg"></i>
-                            سفارشات زنده
-                        </h2>
-                        <div class="flex items-center space-x-3 space-x-reverse">
-                            <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium animate-pulse">
-                                <i class="fas fa-circle ml-1 text-xs"></i>
-                                زنده
-                            </span>
-                            <span class="text-gray-500 text-sm">
-                                آخرین بروزرسانی: <span id="lastUpdateTime">هم اکنون</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="p-6">
-                    {% if live_orders %}
-                    <div class="space-y-4" id="liveOrdersContainer">
-                        {% for order in live_orders %}
-                        <div class="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all duration-300 gradient-border">
-                            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                                <!-- اطلاعات سفارش -->
-                                <div class="flex-1">
-                                    <div class="flex items-center flex-wrap gap-2 mb-4">
-                                        <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-sm font-medium">
-                                            <i class="fas fa-table ml-1"></i>
-                                            میز {{ order.table_number|default:"-" }}
-                                        </span>
-                                        <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-sm font-medium">
-                                            {{ order.get_status_display }}
-                                        </span>
-                                        <span class="text-gray-500 text-sm">
-                                            <i class="fas fa-clock ml-1"></i>
-                                            {{ order.created_at|timesince }} قبل
-                                        </span>
-                                    </div>
-
-                                    <!-- لیست غذاها -->
-                                    <div class="mb-4">
-                                        <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
-                                            <i class="fas fa-list ml-2 text-gray-400"></i>
-                                            موارد سفارش
-                                        </h4>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                            {% for item in order.items.all %}
-                                            <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
-                                                <div class="flex items-center">
-                                                    <span class="text-gray-700 font-medium">{{ item.food.title }}</span>
-                                                </div>
-                                                <div class="flex items-center space-x-2 space-x-reverse">
-                                                    <span class="bg-white px-2 py-1 rounded text-sm font-medium border">
-                                                        ×{{ item.quantity }}
-                                                    </span>
-                                                    <span class="text-green-600 text-sm font-medium">
-                                                        {{ item.total_price|floatformat:0 }} تومان
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-
-                                    <!-- اطلاعات پایین -->
-                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-100 space-y-2 sm:space-y-0">
-                                        <div class="flex items-center text-sm text-gray-600">
-                                            <i class="fas fa-clock ml-1"></i>
-                                            زمان تقریبی:
-                                            <span class="font-medium mr-1">{{ order.estimated_time }}</span>
-                                            دقیقه
-                                        </div>
-                                        <div class="text-lg font-bold text-gray-800">
-                                            جمع کل: {{ order.total_price|floatformat:0 }} تومان
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- دکمه‌های اقدام -->
-                                <div class="flex flex-col space-y-3 min-w-[200px]">
-                                    {% if order.status == 'pending' %}
-                                    <button onclick="updateOrderStatus({{ order.id }}, 'preparing')"
-                                            class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
-                                        <i class="fas fa-play ml-2"></i>
-                                        شروع آماده‌سازی
-                                    </button>
-                                    {% elif order.status == 'preparing' %}
-                                    <button onclick="updateOrderStatus({{ order.id }}, 'ready')"
-                                            class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
-                                        <i class="fas fa-check ml-2"></i>
-                                        آماده شد
-                                    </button>
-                                    {% elif order.status == 'ready' %}
-                                    <button onclick="updateOrderStatus({{ order.id }}, 'completed')"
-                                            class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
-                                        <i class="fas fa-check-double ml-2"></i>
-                                        تحویل داده شد
-                                    </button>
-                                    {% endif %}
-
-                                    <button onclick="viewOrderDetails({{ order.id }})"
-                                            class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
-                                        <i class="fas fa-eye ml-2"></i>
-                                        مشاهده جزئیات
-                                    </button>
-
-                                    <button onclick="printOrder({{ order.id }})"
-                                            class="w-full border border-gray-300 hover:border-gray-400 text-gray-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
-                                        <i class="fas fa-print ml-2"></i>
-                                        چاپ سفارش
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <!-- حالت خالی -->
-                    <div class="text-center py-12">
-                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mx-auto mb-4">
-                            <i class="fas fa-receipt text-3xl"></i>
-                        </div>
-                        <h3 class="text-gray-500 text-lg font-medium mb-2">هیچ سفارش فعالی وجود ندارد</h3>
-                        <p class="text-gray-400 max-w-md mx-auto">
-                            سفارشات جدید مشتریان به صورت زنده در این بخش نمایش داده می‌شوند
-                        </p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
 
             <!-- آمار سریع -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -425,7 +449,75 @@
     </div>
 </div>
 
+<!-- مودال نمایش عکس -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative w-full max-w-4xl">
+            <button onclick="closeImageModal()"
+                    class="absolute -top-12 left-0 text-white text-2xl hover:text-gray-300 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modalImage" src="" alt="عکس منو" class="w-full h-auto rounded-lg">
+        </div>
+    </div>
+</div>
+
 <script>
+// پرداخت واقعی - انتقال به درگاه پرداخت
+function processRealPayment(orderId) {
+    if (confirm('آیا می‌خواهید به درگاه پرداخت منتقل شوید؟')) {
+        // نمایش وضعیت در حال پردازش
+        showNotification('در حال انتقال به درگاه پرداخت...', 'info');
+
+        // انتقال به درگاه پرداخت واقعی
+        window.location.href = `/peyment/request/${orderId}/`;
+    }
+}
+
+// مشاهده جزئیات سفارش
+function viewOrderDetails(orderId) {
+    // در اینجا می‌توانید صفحه جزئیات سفارش را باز کنید
+    window.open(`/panel/orders/${orderId}/`, '_blank');
+}
+
+// لغو سفارش
+function cancelOrder(orderId) {
+    if (confirm('آیا از لغو این سفارش مطمئن هستید؟')) {
+        fetch(`/panel/orders/${orderId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('سفارش با موفقیت لغو شد ✅');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showNotification('خطا در لغو سفارش: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('خطا در ارتباط با سرور ❌', 'error');
+        });
+    }
+}
+
+// مشاهده عکس در مودال
+function viewImage(imageUrl) {
+    document.getElementById('modalImage').src = imageUrl;
+    document.getElementById('imageModal').classList.remove('hidden');
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+}
+
 // تابع کپی لینک منو
 function copyMenuLink(slug) {
     const link = `${window.location.origin}/menu/${slug}`;
@@ -434,44 +526,14 @@ function copyMenuLink(slug) {
     });
 }
 
-// تابع به‌روزرسانی وضعیت سفارش
-function updateOrderStatus(orderId, newStatus) {
-    fetch(`/panel/orders/${orderId}/update-status/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({
-            status: newStatus
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('وضعیت سفارش به‌روزرسانی شد ✅');
-            location.reload();
-        } else {
-            showNotification('خطا در به‌روزرسانی وضعیت ❌', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('خطا در ارتباط با سرور ❌', 'error');
-    });
-}
-
-// تابع چاپ سفارش
-function printOrder(orderId) {
-    window.open(`/panel/orders/${orderId}/print/`, '_blank');
-}
-
 // تابع نمایش نوتیفیکیشن
 function showNotification(message, type = 'success') {
     // ایجاد نوتیفیکیشن
     const notification = document.createElement('div');
     notification.className = `fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-xl shadow-lg text-white font-medium ${
-        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        type === 'success' ? 'bg-green-500' :
+        type === 'error' ? 'bg-red-500' :
+        'bg-blue-500'
     } animate-bounce`;
     notification.textContent = message;
     document.body.appendChild(notification);
@@ -479,13 +541,6 @@ function showNotification(message, type = 'success') {
     setTimeout(() => {
         notification.remove();
     }, 3000);
-}
-
-// به‌روزرسانی زمان آخرین بروزرسانی
-function updateLastUpdateTime() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('fa-IR');
-    document.getElementById('lastUpdateTime').textContent = timeString;
 }
 
 // بررسی نمایش بنر - هر بار برای کاربران بدون منو
@@ -524,8 +579,6 @@ function closeFirstTimeBanner() {
 
 // شروع به‌روزرسانی‌های زنده
 document.addEventListener('DOMContentLoaded', function() {
-    updateLastUpdateTime();
-    setInterval(updateLastUpdateTime, 60000); // بروزرسانی زمان هر 1 دقیقه
     checkFirstTimeVisit();
 });
 
@@ -536,12 +589,22 @@ document.getElementById('firstTimeBanner').addEventListener('click', function(e)
     }
 });
 
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
 // بستن با دکمه ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const banner = document.getElementById('firstTimeBanner');
         if (!banner.classList.contains('hidden')) {
             closeFirstTimeBanner();
+        }
+        const imageModal = document.getElementById('imageModal');
+        if (!imageModal.classList.contains('hidden')) {
+            closeImageModal();
         }
     }
 });
@@ -564,13 +627,6 @@ document.addEventListener('keydown', function(e) {
     50% {
         opacity: 0.7;
     }
-}
-
-.gradient-border {
-    background: linear-gradient(white, white) padding-box,
-                linear-gradient(45deg, #3B82F6, #10B981) border-box;
-    border: 2px solid transparent;
-    border-radius: 12px;
 }
 
 .animate-bounce {
@@ -636,5 +692,15 @@ body:has(#firstTimeBanner:not(.hidden)) {
     .container {
         max-width: 1280px;
     }
+}
+
+.status-badge {
+    display: inline-flex;f
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.status-badge:hover {
+    transform: scale(1.05);
 }
 </style>
