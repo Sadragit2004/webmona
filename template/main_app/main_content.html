@@ -1,0 +1,124 @@
+
+
+{% if text_image_blocks %}
+<style>
+    /* --- Base Styles --- */
+    :root {
+        --ti-bg-color: #000000ff; /* Background color for the section */
+        --ti-title-color: #ffffffff;
+        --ti-text-color: #ffffffff;
+    }
+
+    /* --- Text-Image Section --- */
+    .text-image-section {
+        padding: 80px 0;
+        background-color: var(--ti-bg-color);
+        direction: rtl; /* For Persian content */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .ti-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* --- Text-Image Block (the main flex container) --- */
+    .ti-block {
+        display: flex;
+        /* Mobile First: Stack columns vertically by default */
+        flex-direction: column;
+        align-items: center; /* Center items for a better look on mobile */
+        margin-bottom: 80px; /* Space between blocks */
+    }
+
+    .ti-block:last-child {
+        margin-bottom: 0;
+    }
+
+    /* --- Text & Image Columns --- */
+    .ti-text-col,
+    .ti-image-col {
+        flex: 1; /* Each column will try to take up equal space */
+        width: 100%; /* Full width on mobile */
+    }
+
+    .ti-image-col {
+        margin-bottom: 30px; /* Space between image and text on mobile */
+    }
+
+    .ti-image-col img {
+        width: 79%;
+        height: auto;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        object-fit: cover;
+    }
+
+    .ti-text-col h2 {
+        font-size: 2.5rem; /* Large, impactful title as requested */
+        font-weight: 700;
+        color: var(--ti-title-color);
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    .ti-text-col .ti-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--ti-text-color);
+    }
+
+    /* --- Rich Text Formatting --- */
+    .ti-content p {
+        margin-bottom: 1em;
+    }
+    .ti-content ul, .ti-content ol {
+        padding-right: 20px;
+    }
+
+    /* --- Desktop & Tablet Layout --- */
+    @media (min-width: 768px) {
+        .ti-block {
+            /* On larger screens, arrange items in a row */
+            flex-direction: row;
+            gap: 60px; /* Modern way to add space between columns */
+        }
+
+        .ti-image-col {
+            margin-bottom: 0; /* Remove mobile margin */
+        }
+
+        /*
+         * THE MAGIC!
+         * This rule reverses the order of columns if the image is on the right.
+         */
+        .ti-block.ti-image-right {
+            flex-direction: row-reverse;
+        }
+    }
+</style>
+
+<section class="text-image-section">
+    <div class="ti-container">
+        {% for item in text_image_blocks %}
+            {# The class 'ti-image-{{ item.image_position }}' will be either 'ti-image-left' or 'ti-image-right' #}
+            <div class="ti-block ti-image-{{ item.image_position }}">
+
+                <div class="ti-image-col">
+                    <img src="{{ item.image.url }}" alt="{{ item.title }}">
+                </div>
+
+                <div class="ti-text-col">
+                    <h2>{{ item.title }}</h2>
+                    {# The |safe filter is crucial for rendering HTML from RichTextUploadingField #}
+                    <div style='text-align:justify;' class="ti-content">
+                        {{ item.text|safe }}
+                    </div>
+                </div>
+
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}

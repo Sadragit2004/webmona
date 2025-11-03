@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'apps.blog.apps.BlogConfig',
     'apps.order.apps.OrderConfig',
     'apps.peyment.apps.PeymentConfig',
+    'apps.main.apps.MainConfig'
 ]
 
 

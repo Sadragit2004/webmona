@@ -38,183 +38,250 @@
 </header>
 
 <!-- مودال افتتاح رستوران -->
-<div id="createRestaurantModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+<div id="createRestaurantModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto">
             <!-- هدر مودال -->
-            <div class="flex justify-between items-center p-6 border-b">
-                <h3 class="text-lg font-bold">افتتاح رستوران جدید</h3>
-                <button onclick="closeCreateRestaurantModal()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
+            <div class="flex justify-between items-center p-6 border-b border-gray-100">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center text-white">
+                        <i class="fas fa-utensils text-sm"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800">افتتاح رستوران جدید</h3>
+                </div>
+                <button onclick="closeCreateRestaurantModal()"
+                        class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
 
+            <!-- Progress Steps -->
+            <div class="px-6 py-4 border-b border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex flex-col items-center">
+                        <div id="step1Indicator" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all bg-blue-500 text-white">
+                            1
+                        </div>
+                        <span class="text-xs mt-1 text-blue-500 font-medium">اطلاعات پایه</span>
+                    </div>
+                    <div id="step1Line" class="h-1 flex-1 mx-2 bg-gray-200"></div>
+                    <div class="flex flex-col items-center">
+                        <div id="step2Indicator" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all bg-gray-200 text-gray-500">
+                            2
+                        </div>
+                        <span class="text-xs mt-1 text-gray-500">نام انگلیسی</span>
+                    </div>
+                    <div id="step2Line" class="h-1 flex-1 mx-2 bg-gray-200"></div>
+                    <div class="flex flex-col items-center">
+                        <div id="step3Indicator" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all bg-gray-200 text-gray-500">
+                            3
+                        </div>
+                        <span class="text-xs mt-1 text-gray-500">نوع ساخت</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- محتوای مودال -->
-            <div class="p-6">
+            <div class="p-6 max-h-[70vh] overflow-y-auto">
                 <!-- Step 1: اطلاعات پایه -->
-                <div id="step1" class="step-content">
-                    <h4 class="font-bold mb-4">اطلاعات پایه</h4>
+                <div id="step1" class="step-content space-y-5">
+                    <div class="text-center mb-2">
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-100 to-blue-50 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-3">
+                            <i class="fas fa-info-circle text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-lg text-gray-800">اطلاعات پایه رستوران</h4>
+                        <p class="text-sm text-gray-600 mt-1">لطفاً اطلاعات اولیه رستوران خود را وارد کنید</p>
+                    </div>
+
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">نام</label>
-                            <input type="text" id="nameInput"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                   value="{{ request.user.name|default:'' }}">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">نام کامل</label>
+                            <input type="text" id="fullNameInput"
+                                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                   placeholder="نام و نام خانوادگی خود را وارد کنید"
+                                   value="{{ request.user.name|default:'' }} {{ request.user.family|default:'' }}"
+                                   autofocus>
+                            <p class="text-xs text-gray-500 mt-1">نام و نام خانوادگی خود را با فاصله وارد کنید</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">نام خانوادگی</label>
-                            <input type="text" id="familyInput"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                   value="{{ request.user.family|default:'' }}">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">نام رستوران</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">نام رستوران</label>
                             <input type="text" id="restaurantNameInput"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                    placeholder="مثال: رستوران شاندیز">
                         </div>
                     </div>
                     <div class="flex justify-end mt-6">
                         <button onclick="proceedToStep2()"
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+                                class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg">
                             مرحله بعد
+                            <i class="fas fa-arrow-left mr-2"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Step 2: نام انگلیسی -->
-                <div id="step2" class="step-content hidden">
-                    <h4 class="font-bold mb-4">نام انگلیسی رستوران</h4>
+                <div id="step2" class="step-content hidden space-y-5">
+                    <div class="text-center mb-2">
+                        <div class="w-16 h-16 bg-gradient-to-r from-green-100 to-green-50 rounded-full flex items-center justify-center text-green-500 mx-auto mb-3">
+                            <i class="fas fa-language text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-lg text-gray-800">نام انگلیسی رستوران</h4>
+                        <p class="text-sm text-gray-600 mt-1">نام انگلیسی منحصر به فرد برای رستوران خود انتخاب کنید</p>
+                    </div>
+
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">نام انگلیسی</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">نام انگلیسی</label>
                             <input type="text" id="englishNameInput"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                    placeholder="مثال: my-restaurant"
+                                   autofocus
                                    oninput="checkEnglishName()">
-                            <div id="englishNameFeedback" class="text-sm mt-2"></div>
+                            <div id="englishNameFeedback" class="text-sm mt-2 flex items-center space-x-1 space-x-reverse"></div>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded-lg">
-                            <p class="text-sm text-gray-600">
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
+                            <p class="text-sm text-gray-700 flex items-center">
+                                <i class="fas fa-link text-blue-500 ml-2"></i>
                                 آدرس منوی شما:
-                                <span id="menuUrlPreview" class="font-mono text-blue-500">/menu/</span>
+                                <span id="menuUrlPreview" class="font-mono text-blue-600 bg-blue-100 px-2 py-1 rounded mr-2">/menu/</span>
                             </p>
                         </div>
                     </div>
                     <div class="flex justify-between mt-6">
                         <button onclick="backToStep1()"
-                                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
+                                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl transition-all transform hover:scale-105">
+                            <i class="fas fa-arrow-right ml-2"></i>
                             بازگشت
                         </button>
                         <button id="step2Button" onclick="proceedToStep3()"
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-8 py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                                 disabled>
                             تأیید و ادامه
+                            <i class="fas fa-arrow-left mr-2"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Step 3: انتخاب نوع ساخت منو -->
-                <div id="step3" class="step-content hidden">
-                    <div class="text-center py-6">
-                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
+                <div id="step3" class="step-content hidden space-y-5">
+                    <div class="text-center mb-2">
+                        <div class="w-16 h-16 bg-gradient-to-r from-purple-100 to-purple-50 rounded-full flex items-center justify-center text-purple-500 mx-auto mb-3">
                             <i class="fas fa-utensils text-2xl"></i>
                         </div>
-                        <h4 class="font-bold mb-4">نحوه ساخت منو را انتخاب کنید</h4>
+                        <h4 class="font-bold text-lg text-gray-800">نحوه ساخت منو را انتخاب کنید</h4>
+                        <p class="text-sm text-gray-600 mt-1">روش مورد نظر خود برای ایجاد منوی رستوران را انتخاب نمایید</p>
+                    </div>
 
-                        <div class="space-y-4">
-                            <button onclick="selectMenuCreation('self')"
-                                    class="w-full p-4 border-2 border-green-500 rounded-xl text-green-600 hover:bg-green-50 transition-colors text-right">
-                                <div class="flex items-center justify-between">
+                    <div class="space-y-4">
+                        <button onclick="selectMenuCreation('self')"
+                                class="w-full p-5 border-2 border-green-200 rounded-2xl text-right hover:border-green-500 hover:bg-green-50 transition-all duration-300 transform hover:scale-[1.02] group">
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 group-hover:bg-green-200 transition-colors">
                                     <i class="fas fa-user-edit text-xl"></i>
-                                    <div class="flex-1 mr-3">
-                                        <div class="font-bold">خودم می‌سازم</div>
-                                        <div class="text-sm text-gray-600 mt-1">منوی رستوران را خودم طراحی و تنظیم می‌کنم</div>
-                                    </div>
                                 </div>
-                            </button>
+                                <div class="flex-1 mr-4">
+                                    <div class="font-bold text-gray-800 text-lg">خودم می‌سازم</div>
+                                    <div class="text-sm text-gray-600 mt-1">منوی رستوران را خودم طراحی و تنظیم می‌کنم</div>
+                                </div>
+                                <div class="w-6 h-6 rounded-full border-2 border-green-500 flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-green-500 hidden"></div>
+                                </div>
+                            </div>
+                        </button>
 
-                            <button onclick="selectMenuCreation('company')"
-                                    class="w-full p-4 border-2 border-blue-500 rounded-xl text-blue-600 hover:bg-blue-50 transition-colors text-right">
-                                <div class="flex items-center justify-between">
+                        <button onclick="selectMenuCreation('company')"
+                                class="w-full p-5 border-2 border-blue-200 rounded-2xl text-right hover:border-blue-500 hover:bg-blue-50 transition-all duration-300 transform hover:scale-[1.02] group">
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-200 transition-colors">
                                     <i class="fas fa-building text-xl"></i>
-                                    <div class="flex-1 mr-3">
-                                        <div class="font-bold">شرکت می‌سازد</div>
-                                        <div class="text-sm text-gray-600 mt-1">تیم پشتیبانی منوی حرفه‌ای برای شما می‌سازد</div>
-                                    </div>
                                 </div>
-                            </button>
+                                <div class="flex-1 mr-4">
+                                    <div class="font-bold text-gray-800 text-lg">شرکت می‌سازد</div>
+                                    <div class="text-sm text-gray-600 mt-1">تیم پشتیبانی منوی حرفه‌ای برای شما می‌سازد</div>
+                                </div>
+                                <div class="w-6 h-6 rounded-full border-2 border-blue-500 flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-blue-500 hidden"></div>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200 mt-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-yellow-500 ml-2 mt-1"></i>
+                            <div class="text-sm text-yellow-800 text-right">
+                                <div class="font-bold">هزینه ساخت منو توسط شرکت: ۹۹,۰۰۰ تومان</div>
+                                <div class="mt-1">در صورت انتخاب گزینه "شرکت می‌سازد" این هزینه دریافت خواهد شد</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 4: آپلود عکس منو (اگر شرکت می‌سازد) -->
-                <div id="step4" class="step-content hidden">
-                    <div class="text-center py-6">
-                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
+                <!-- Step 4: آپلود عکس منو -->
+                <div id="step4" class="step-content hidden space-y-5">
+                    <div class="text-center mb-2">
+                        <div class="w-16 h-16 bg-gradient-to-r from-indigo-100 to-indigo-50 rounded-full flex items-center justify-center text-indigo-500 mx-auto mb-3">
                             <i class="fas fa-images text-2xl"></i>
                         </div>
-                        <h4 class="font-bold mb-4">عکس‌های منو را آپلود کنید</h4>
+                        <h4 class="font-bold text-lg text-gray-800">عکس‌های منو را آپلود کنید</h4>
+                        <p class="text-sm text-gray-600 mt-1">عکس‌های منوی فعلی خود را برای ساخت منوی دیجیتال آپلود کنید</p>
+                    </div>
 
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                            <div class="flex items-center text-blue-800">
-                                <i class="fas fa-info-circle ml-2"></i>
-                                <div class="text-sm text-right">
-                                    <div class="font-bold">می‌توانید حداکثر ۱۰ عکس آپلود کنید</div>
-                                    <div>عکس‌های منوی فعلی خود را آپلود کنید تا تیم پشتیبانی برای شما منوی دیجیتال ایجاد کند</div>
-                                </div>
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200 mb-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-blue-500 ml-2 mt-1"></i>
+                            <div class="text-sm text-blue-800 text-right">
+                                <div class="font-bold">می‌توانید حداکثر ۱۰ عکس آپلود کنید</div>
+                                <div class="mt-1">عکس‌های منوی فعلی خود را آپلود کنید تا تیم پشتیبانی برای شما منوی دیجیتال ایجاد کند</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- منطقه کشیدن و رها کردن -->
+                        <div id="dropZone"
+                             class="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:border-blue-500 transition-all duration-300 cursor-pointer bg-gray-50 hover:bg-blue-50">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-600 font-medium">برای انتخاب عکس‌ها اینجا کلیک کنید</p>
+                            <p class="text-sm text-gray-500 mt-2">یا عکس‌ها را اینجا بکشید و رها کنید (حداکثر ۱۰ عکس)</p>
+                            <input type="file" id="menuImagesInput" multiple accept="image/*" class="hidden">
+                        </div>
+
+                        <!-- شمارنده عکس‌ها -->
+                        <div id="imageCounter" class="flex justify-between items-center bg-gray-100 p-3 rounded-xl hidden">
+                            <div class="text-sm text-gray-700">
+                                <span id="currentCount" class="font-bold">0</span> از <span id="maxCount" class="font-bold">10</span> عکس انتخاب شده
+                            </div>
+                            <div id="progressBar" class="w-24 h-2 bg-gray-300 rounded-full overflow-hidden">
+                                <div id="progressFill" class="h-full bg-green-500 transition-all duration-300" style="width: 0%"></div>
                             </div>
                         </div>
 
-                        <div class="space-y-4">
-                            <!-- منطقه کشیدن و رها کردن -->
-                            <div id="dropZone"
-                                 class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
-                                <p class="text-gray-600">برای انتخاب عکس‌ها اینجا کلیک کنید</p>
-                                <p class="text-sm text-gray-500 mt-2">یا عکس‌ها را اینجا بکشید و رها کنید (حداکثر ۱۰ عکس)</p>
-                                <input type="file" id="menuImagesInput" multiple accept="image/*" class="hidden">
-                            </div>
-
-                            <!-- شمارنده عکس‌ها -->
-                            <div id="imageCounter" class="text-sm text-gray-600 hidden">
-                                <span id="currentCount">0</span> از <span id="maxCount">10</span> عکس انتخاب شده
-                            </div>
-
-                            <!-- پیشنمایش عکس‌ها -->
-                            <div id="imagePreview" class="grid grid-cols-3 gap-2 mt-4 hidden">
-                                <!-- عکس‌ها اینجا نمایش داده می‌شوند -->
-                            </div>
-
-                            <!-- اطلاعات هزینه -->
-                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-tag text-yellow-600 ml-2"></i>
-                                    <div class="text-sm text-yellow-800 text-right">
-                                        <div class="font-bold">هزینه ساخت منو: ۹۹,۰۰۰ تومان</div>
-                                        <div>پس از آپلود عکس‌ها، به صفحه پرداخت هدایت می‌شوید</div>
-                                    </div>
-                                </div>
-                            </div>
+                        <!-- پیشنمایش عکس‌ها -->
+                        <div id="imagePreview" class="grid grid-cols-3 gap-3 mt-4 hidden">
+                            <!-- عکس‌ها اینجا نمایش داده می‌شوند -->
                         </div>
+                    </div>
 
-                        <div class="flex justify-between mt-8">
-                            <button onclick="backToStep3()"
-                                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
-                                بازگشت
+                    <div class="flex justify-between mt-8">
+                        <button onclick="backToStep3()"
+                                class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl transition-all transform hover:scale-105">
+                            <i class="fas fa-arrow-right ml-2"></i>
+                            بازگشت
+                        </button>
+                        <div class="flex space-x-2 space-x-reverse">
+                            <button id="saveImagesButton" onclick="saveImages()"
+                                    class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                    disabled>
+                                <i class="fas fa-save ml-2"></i>
+                                ذخیره عکس‌ها
                             </button>
-                            <div class="flex space-x-2 space-x-reverse">
-                                <button id="saveImagesButton" onclick="saveImages()"
-                                        class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
-                                        disabled>
-                                    ذخیره عکس‌ها
-                                </button>
-                                <button id="uploadButton" onclick="proceedToPayment()"
-                                        class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
-                                        disabled>
-                                    ادامه به پرداخت
-                                </button>
-                            </div>
+                            <button id="uploadButton" onclick="proceedToPayment()"
+                                    class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-3 rounded-xl transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                    disabled>
+                                ادامه به پرداخت
+                                <i class="fas fa-arrow-left mr-2"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -222,11 +289,15 @@
                 <!-- Step 5: در حال پردازش -->
                 <div id="step5" class="step-content hidden">
                     <div class="text-center py-8">
-                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
-                            <i class="fas fa-spinner fa-spin text-2xl"></i>
+                        <div class="w-20 h-20 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
+                            <i class="fas fa-spinner fa-spin text-3xl"></i>
                         </div>
-                        <h4 class="font-bold mb-2" id="processingTitle">در حال ایجاد رستوران...</h4>
+                        <h4 class="font-bold text-xl text-gray-800 mb-3" id="processingTitle">در حال ایجاد رستوران...</h4>
                         <p class="text-gray-600" id="processingMessage">لطفاً چند لحظه صبر کنید</p>
+
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-6">
+                            <div id="progressBarAnimated" class="h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -235,7 +306,6 @@
 </div>
 
 <script>
-// متغیرهای سراسری
 // متغیرهای سراسری
 let currentStep = 1;
 let restaurantData = {
@@ -247,11 +317,23 @@ let restaurantData = {
 };
 const MAX_IMAGES = 10;
 
+let fullNameTimeout;
+let autoFocusTimeout;
+
 // مدیریت مودال
 function openCreateRestaurantModal() {
     document.getElementById('createRestaurantModal').classList.remove('hidden');
     showStep(1);
     resetForm();
+    updateProgress();
+
+    // فوکوس روی اولین فیلد
+    setTimeout(() => {
+        const fullNameInput = document.getElementById('fullNameInput');
+        if (fullNameInput) {
+            fullNameInput.focus();
+        }
+    }, 300);
 }
 
 function closeCreateRestaurantModal() {
@@ -275,6 +357,51 @@ function showStep(step) {
             setupFileUpload();
         }, 100);
     }
+
+    updateProgress();
+
+    // فوکوس اتوماتیک روی فیلدهای ورودی
+    setTimeout(() => {
+        let focusElement = null;
+        if (step === 1) {
+            focusElement = document.getElementById('fullNameInput');
+        } else if (step === 2) {
+            focusElement = document.getElementById('englishNameInput');
+        }
+
+        if (focusElement) {
+            focusElement.focus();
+        }
+    }, 400);
+}
+
+function updateProgress() {
+    // به‌روزرسانی نشانگر مراحل
+    const steps = [1, 2, 3];
+    steps.forEach(step => {
+        const indicator = document.getElementById(`step${step}Indicator`);
+        const line = document.getElementById(`step${step}Line`);
+
+        if (step <= currentStep) {
+            if (indicator) {
+                indicator.classList.remove('bg-gray-200', 'text-gray-500');
+                indicator.classList.add('bg-blue-500', 'text-white');
+            }
+            if (line && step < 3) {
+                line.classList.remove('bg-gray-200');
+                line.classList.add('bg-blue-500');
+            }
+        } else {
+            if (indicator) {
+                indicator.classList.remove('bg-blue-500', 'text-white');
+                indicator.classList.add('bg-gray-200', 'text-gray-500');
+            }
+            if (line && step < 3) {
+                line.classList.remove('bg-blue-500');
+                line.classList.add('bg-gray-200');
+            }
+        }
+    });
 }
 
 function resetForm() {
@@ -284,6 +411,7 @@ function resetForm() {
     const step2Button = document.getElementById('step2Button');
     const englishNameInput = document.getElementById('englishNameInput');
     const restaurantNameInput = document.getElementById('restaurantNameInput');
+    const fullNameInput = document.getElementById('fullNameInput');
     const uploadButton = document.getElementById('uploadButton');
     const saveImagesButton = document.getElementById('saveImagesButton');
 
@@ -291,6 +419,7 @@ function resetForm() {
     if (step2Button) step2Button.disabled = true;
     if (englishNameInput) englishNameInput.value = '';
     if (restaurantNameInput) restaurantNameInput.value = '';
+    if (fullNameInput) fullNameInput.value = '{{ request.user.name|default:"" }} {{ request.user.family|default:"" }}';
     if (uploadButton) uploadButton.disabled = true;
     if (saveImagesButton) saveImagesButton.disabled = true;
 
@@ -319,7 +448,7 @@ function resetForm() {
         dropZone.classList.add('border-gray-300', 'cursor-pointer');
         dropZone.innerHTML = `
             <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
-            <p class="text-gray-600">برای انتخاب عکس‌ها اینجا کلیک کنید</p>
+            <p class="text-gray-600 font-medium">برای انتخاب عکس‌ها اینجا کلیک کنید</p>
             <p class="text-sm text-gray-500 mt-2">یا عکس‌ها را اینجا بکشید و رها کنید (حداکثر ۱۰ عکس)</p>
             <input type="file" id="menuImagesInput" multiple accept="image/*" class="hidden">
         `;
@@ -331,26 +460,38 @@ function resetForm() {
     if (menuImagesInput) {
         menuImagesInput.value = '';
     }
+
+    updateProgress();
 }
 
 // Step 1 -> Step 2
 function proceedToStep2() {
-    const nameInput = document.getElementById('nameInput');
-    const familyInput = document.getElementById('familyInput');
+    const fullNameInput = document.getElementById('fullNameInput');
     const restaurantNameInput = document.getElementById('restaurantNameInput');
 
-    if (!nameInput || !familyInput || !restaurantNameInput) {
+    if (!fullNameInput || !restaurantNameInput) {
         alert('خطا در بارگذاری فرم');
         return;
     }
 
-    const name = nameInput.value.trim();
-    const family = familyInput.value.trim();
+    const fullName = fullNameInput.value.trim();
     const restaurantName = restaurantNameInput.value.trim();
 
-    if (!name || !family || !restaurantName) {
+    if (!fullName || !restaurantName) {
         alert('لطفاً تمام فیلدها را پر کنید');
         return;
+    }
+
+    // جداسازی نام و نام خانوادگی
+    const nameParts = fullName.split(' ');
+    let name = '';
+    let family = '';
+
+    if (nameParts.length > 0) {
+        name = nameParts[0];
+        if (nameParts.length > 1) {
+            family = nameParts.slice(1).join(' ');
+        }
     }
 
     restaurantData.step1 = {
@@ -383,19 +524,19 @@ function checkEnglishName() {
     clearTimeout(checkTimeout);
 
     if (!englishName) {
-        feedback.innerHTML = '<span class="text-red-500">نام انگلیسی نمی‌تواند خالی باشد</span>';
+        feedback.innerHTML = '<span class="text-red-500 flex items-center"><i class="fas fa-times-circle ml-1"></i> نام انگلیسی نمی‌تواند خالی باشد</span>';
         button.disabled = true;
         return;
     }
 
     const englishNameRegex = /^[a-z0-9-]+$/;
     if (!englishNameRegex.test(englishName)) {
-        feedback.innerHTML = '<span class="text-red-500">فقط حروف انگلیسی، اعداد و خط تیره مجاز است</span>';
+        feedback.innerHTML = '<span class="text-red-500 flex items-center"><i class="fas fa-times-circle ml-1"></i> فقط حروف انگلیسی، اعداد و خط تیره مجاز است</span>';
         button.disabled = true;
         return;
     }
 
-    feedback.innerHTML = '<span class="text-blue-500">در حال بررسی...</span>';
+    feedback.innerHTML = '<span class="text-blue-500 flex items-center"><i class="fas fa-spinner fa-spin ml-1"></i> در حال بررسی...</span>';
     button.disabled = true;
 
     checkTimeout = setTimeout(() => {
@@ -403,17 +544,17 @@ function checkEnglishName() {
             .then(response => response.json())
             .then(data => {
                 if (data.available) {
-                    feedback.innerHTML = '<span class="text-green-500">✓ ' + data.message + '</span>';
+                    feedback.innerHTML = '<span class="text-green-500 flex items-center"><i class="fas fa-check-circle ml-1"></i> ' + data.message + '</span>';
                     button.disabled = false;
                     restaurantData.step2 = { english_name: englishName };
                 } else {
-                    feedback.innerHTML = '<span class="text-red-500">✗ ' + data.message + '</span>';
+                    feedback.innerHTML = '<span class="text-red-500 flex items-center"><i class="fas fa-times-circle ml-1"></i> ' + data.message + '</span>';
                     button.disabled = true;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                feedback.innerHTML = '<span class="text-red-500">خطا در بررسی نام انگلیسی</span>';
+                feedback.innerHTML = '<span class="text-red-500 flex items-center"><i class="fas fa-times-circle ml-1"></i> خطا در بررسی نام انگلیسی</span>';
                 button.disabled = true;
             });
     }, 500);
@@ -538,7 +679,7 @@ function updateDropZoneState() {
         dropZone.classList.add('border-gray-300', 'cursor-pointer');
         dropZone.innerHTML = `
             <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
-            <p class="text-gray-600">برای انتخاب عکس‌ها اینجا کلیک کنید</p>
+            <p class="text-gray-600 font-medium">برای انتخاب عکس‌ها اینجا کلیک کنید</p>
             <p class="text-sm text-gray-500 mt-2">یا عکس‌ها را اینجا بکشید و رها کنید (حداکثر ۱۰ عکس)</p>
             <input type="file" id="menuImagesInput" multiple accept="image/*" class="hidden">
         `;
@@ -574,11 +715,17 @@ function updateImagePreview() {
     const saveButton = document.getElementById('saveImagesButton');
     const imageCounter = document.getElementById('imageCounter');
     const currentCount = document.getElementById('currentCount');
+    const progressFill = document.getElementById('progressFill');
 
-    if (!preview || !imageCounter || !currentCount) return;
+    if (!preview || !imageCounter || !currentCount || !progressFill) return;
 
     preview.innerHTML = '';
     currentCount.textContent = restaurantData.uploadedImages.length;
+
+    // به‌روزرسانی نوار پیشرفت
+    const progressPercentage = (restaurantData.uploadedImages.length / MAX_IMAGES) * 100;
+    progressFill.style.width = `${progressPercentage}%`;
+
     updateDropZoneState();
 
     if (restaurantData.uploadedImages.length === 0) {
@@ -605,15 +752,15 @@ function updateImagePreview() {
         const img = document.createElement('img');
         const objectUrl = URL.createObjectURL(file);
         img.src = objectUrl;
-        img.className = 'w-full h-24 object-cover rounded-lg border';
+        img.className = 'w-full h-24 object-cover rounded-xl border-2 border-gray-200 group-hover:border-blue-400 transition-all';
         img.alt = `عکس منو ${index + 1}`;
 
         const overlay = document.createElement('div');
-        overlay.className = 'absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center';
+        overlay.className = 'absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 rounded-xl transition-all flex items-center justify-center';
 
         const removeBtn = document.createElement('button');
         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-        removeBtn.className = 'w-8 h-8 bg-red-500 text-white rounded-full text-sm flex items-center justify-center hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100';
+        removeBtn.className = 'w-8 h-8 bg-red-500 text-white rounded-full text-sm flex items-center justify-center hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100';
         removeBtn.title = 'حذف عکس';
         removeBtn.onclick = (e) => {
             e.stopPropagation();
@@ -621,7 +768,7 @@ function updateImagePreview() {
         };
 
         const imageNumber = document.createElement('div');
-        imageNumber.className = 'absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center';
+        imageNumber.className = 'absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold';
         imageNumber.textContent = index + 1;
 
         overlay.appendChild(removeBtn);
@@ -652,7 +799,7 @@ function showMessage(message, type = 'info') {
     if (!dropZone) return;
 
     const messageDiv = document.createElement('div');
-    messageDiv.className = `upload-message p-3 rounded-lg mb-4 text-sm ${
+    messageDiv.className = `upload-message p-3 rounded-xl mb-4 text-sm ${
         type === 'error' ? 'bg-red-100 text-red-700 border border-red-200' :
         type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' :
         'bg-blue-100 text-blue-700 border border-blue-200'
@@ -690,7 +837,7 @@ function saveImages() {
     if (!saveButton || !uploadButton) return;
 
     saveButton.disabled = true;
-    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ذخیره...';
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin ml-2"></i> در حال ذخیره...';
 
     const formData = new FormData();
     formData.append('step', 'create_with_company');
@@ -717,12 +864,9 @@ function saveImages() {
             showMessage(data.message, 'success');
             restaurantData.imagesSaved = true;
             uploadButton.disabled = false;
-            saveButton.innerHTML = '<i class="fas fa-check"></i> عکس‌ها ذخیره شد';
-            saveButton.classList.remove('bg-green-500', 'hover:bg-green-600');
-            saveButton.classList.add('bg-green-600', 'cursor-default');
-
-            // بررسی وضعیت رستوران در حال انتظار
-            checkPendingRestaurant();
+            saveButton.innerHTML = '<i class="fas fa-check ml-2"></i> عکس‌ها ذخیره شد';
+            saveButton.classList.remove('from-green-500', 'to-emerald-500', 'hover:from-green-600', 'hover:to-emerald-600');
+            saveButton.classList.add('from-green-600', 'to-emerald-600', 'cursor-default');
         } else {
             showMessage(data.message, 'error');
             restaurantData.imagesSaved = false;
@@ -738,7 +882,7 @@ function saveImages() {
     .finally(() => {
         if (!restaurantData.imagesSaved) {
             saveButton.disabled = false;
-            saveButton.innerHTML = 'ذخیره عکس‌ها';
+            saveButton.innerHTML = '<i class="fas fa-save ml-2"></i> ذخیره عکس‌ها';
         }
     });
 }
@@ -758,11 +902,16 @@ function proceedToPayment() {
     showStep(5);
     const processingTitle = document.getElementById('processingTitle');
     const processingMessage = document.getElementById('processingMessage');
+    const progressBar = document.getElementById('progressBarAnimated');
 
     if (processingTitle) processingTitle.textContent = 'در حال ارسال اطلاعات...';
     if (processingMessage) processingMessage.textContent = 'لطفاً چند لحظه صبر کنید';
+    if (progressBar) progressBar.style.width = '30%';
 
-    processCompanyMenuCreation();
+    setTimeout(() => {
+        if (progressBar) progressBar.style.width = '70%';
+        processCompanyMenuCreation();
+    }, 1000);
 }
 
 // ایجاد رستوران نهایی (ساخت توسط خود کاربر)
@@ -770,9 +919,11 @@ function createRestaurantFinal() {
     showStep(5);
     const processingTitle = document.getElementById('processingTitle');
     const processingMessage = document.getElementById('processingMessage');
+    const progressBar = document.getElementById('progressBarAnimated');
 
     if (processingTitle) processingTitle.textContent = 'در حال ایجاد رستوران...';
     if (processingMessage) processingMessage.textContent = 'لطفاً چند لحظه صبر کنید';
+    if (progressBar) progressBar.style.width = '30%';
 
     fetch("{% url 'panel:create_restaurant_modal' %}", {
         method: 'POST',
@@ -790,6 +941,8 @@ function createRestaurantFinal() {
     })
     .then(response => response.json())
     .then(data => {
+        if (progressBar) progressBar.style.width = '100%';
+
         if (data.success) {
             if (processingTitle) processingTitle.textContent = 'رستوران با موفقیت ایجاد شد!';
             if (processingMessage) processingMessage.textContent = 'در حال انتقال به پنل مدیریت...';
@@ -835,6 +988,9 @@ function processCompanyMenuCreation() {
     })
     .then(response => response.json())
     .then(data => {
+        const progressBar = document.getElementById('progressBarAnimated');
+        if (progressBar) progressBar.style.width = '100%';
+
         if (data.success) {
             const processingTitle = document.getElementById('processingTitle');
             const processingMessage = document.getElementById('processingMessage');
@@ -902,6 +1058,31 @@ function clearPendingRestaurant() {
     });
 }
 
+// مدیریت فوکوس اتوماتیک بین فیلدها
+function setupAutoFocus() {
+    const fullNameInput = document.getElementById('fullNameInput');
+    const restaurantNameInput = document.getElementById('restaurantNameInput');
+
+    if (fullNameInput && restaurantNameInput) {
+        fullNameInput.addEventListener('input', function() {
+            clearTimeout(fullNameTimeout);
+
+            // اگر کاربر space زد و بعد از 2 ثانیه چیزی تایپ نکرد، به فیلد بعدی برو
+            if (this.value.includes(' ') && this.value.trim() !== '') {
+                fullNameTimeout = setTimeout(() => {
+                    restaurantNameInput.focus();
+                }, 1000);
+            }
+        });
+
+        fullNameInput.addEventListener('keydown', function(e) {
+            if (e.key === ' ') {
+                clearTimeout(fullNameTimeout);
+            }
+        });
+    }
+}
+
 // مدیریت رویدادهای مودال
 const modal = document.getElementById('createRestaurantModal');
 if (modal) {
@@ -921,5 +1102,6 @@ document.addEventListener('keydown', function(e) {
 // بررسی وضعیت رستوران در حال انتظار هنگام بارگذاری صفحه
 document.addEventListener('DOMContentLoaded', function() {
     checkPendingRestaurant();
+    setupAutoFocus();
 });
 </script>
