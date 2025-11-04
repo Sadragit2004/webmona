@@ -62,6 +62,7 @@
 
         .dark-mode .cooking-time {
             color: #9ca3af;
+            background-color: #334155 !important;
         }
 
         /* Bottom categories for LTR */
@@ -177,6 +178,10 @@
             font-size: 1rem;
         }
 
+        .dark-mode .slider-title {
+            color: #e2e8f0;
+        }
+
         .slider-close {
             padding: 4px;
             border-radius: 50%;
@@ -258,6 +263,10 @@
             font-size: 0.9rem;
             font-weight: 500;
             flex: 1;
+        }
+
+        .dark-mode .slider-category-name {
+            color: #e2e8f0;
         }
 
         /* Toggle button for sliding menu - on RIGHT side for LTR */
@@ -636,6 +645,10 @@
             font-size: 1rem;
         }
 
+        .dark-mode .selection-list-title {
+            color: #e2e8f0;
+        }
+
         .selection-list-close {
             padding: 4px;
             border-radius: 50%;
@@ -704,6 +717,10 @@
             margin-bottom: 4px;
         }
 
+        .dark-mode .selection-list-item-title {
+            color: #e2e8f0;
+        }
+
         .selection-list-item-price {
             color: #3b82f6;
             font-weight: 600;
@@ -732,6 +749,7 @@
 
         .dark-mode .quantity-btn {
             background-color: #475569;
+            color: #e2e8f0;
         }
 
         .quantity-btn:hover {
@@ -747,6 +765,10 @@
             font-weight: 600;
             min-width: 20px;
             text-align: center;
+        }
+
+        .dark-mode .quantity-value {
+            color: #e2e8f0;
         }
 
         .selection-list-item-remove {
@@ -889,6 +911,10 @@
             font-size: 1.2rem;
         }
 
+        .dark-mode .selection-display-title {
+            color: #e2e8f0;
+        }
+
         .selection-display-close {
             padding: 8px;
             border-radius: 50%;
@@ -942,6 +968,10 @@
             margin-bottom: 4px;
         }
 
+        .dark-mode .selection-display-item-title {
+            color: #e2e8f0;
+        }
+
         .selection-display-item-price {
             color: #3b82f6;
             font-weight: 600;
@@ -973,6 +1003,10 @@
 
         .selection-display-total-label {
             font-weight: 600;
+        }
+
+        .dark-mode .selection-display-total-label {
+            color: #e2e8f0;
         }
 
         .selection-display-total-price {
@@ -1023,6 +1057,259 @@
         .selection-display-call:hover {
             opacity: 0.9;
         }
+
+        /* New styles for search box */
+        .search-container {
+            background-color: white;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .dark-mode .search-container {
+            background-color: #1e293b;
+            border-top: 1px solid #334155;
+        }
+
+        .search-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .dark-mode .search-box {
+            background-color: #334155;
+            border: 1px solid #475569;
+        }
+
+        .search-box input {
+            color: #1e293b;
+        }
+
+        .dark-mode .search-box input {
+            color: #e2e8f0;
+        }
+
+        .search-box input::placeholder {
+            color: #64748b;
+        }
+
+        .dark-mode .search-box input::placeholder {
+            color: #94a3b8;
+        }
+
+        /* New styles for header */
+        header {
+            background-color: white;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .dark-mode header {
+            background-color: #1e293b;
+            border-bottom: 1px solid #334155;
+        }
+
+        .hamburger-icon {
+            color: #64748b;
+        }
+
+        .dark-mode .hamburger-icon {
+            color: #cbd5e1;
+        }
+
+        .header-icon {
+            background-color: #f1f5f9;
+            color: #64748b;
+        }
+
+        .dark-mode .header-icon {
+            background-color: #334155;
+            color: #cbd5e1;
+        }
+
+        /* New styles for language button */
+        .lang-btn {
+            background-color: #f1f5f9;
+            color: #64748b;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .dark-mode .lang-btn {
+            background-color: #334155;
+            color: #cbd5e1;
+        }
+
+        /* New styles for various texts */
+        .dark-mode .text-gray-600 {
+            color: #cbd5e1 !important;
+        }
+
+        .dark-mode .text-gray-300 {
+            color: #64748b !important;
+        }
+
+        .dark-mode .text-gray-400 {
+            color: #94a3b8 !important;
+        }
+
+        .dark-mode .text-gray-500 {
+            color: #64748b !important;
+        }
+
+        .dark-mode .text-gray-700 {
+            color: #cbd5e1 !important;
+        }
+
+        .dark-mode .bg-gray-100 {
+            background-color: #334155 !important;
+        }
+
+        .dark-mode .bg-gray-700 {
+            background-color: #475569 !important;
+        }
+
+        .dark-mode .bg-gray-800 {
+            background-color: #1e293b !important;
+        }
+
+        .dark-mode .border-gray-200 {
+            border-color: #334155 !important;
+        }
+
+        .dark-mode .border-gray-600 {
+            border-color: #475569 !important;
+        }
+
+        .dark-mode .border-gray-700 {
+            border-color: #475569 !important;
+        }
+
+        .dark-mode .bg-gray-50 {
+            background-color: #334155 !important;
+        }
+
+        .dark-mode .from-gray-100 {
+            --tw-gradient-from: #334155 !important;
+        }
+
+        .dark-mode .to-gray-200 {
+            --tw-gradient-to: #475569 !important;
+        }
+
+        .dark-mode .from-gray-700 {
+            --tw-gradient-from: #475569 !important;
+        }
+
+        .dark-mode .to-gray-600 {
+            --tw-gradient-to: #334155 !important;
+        }
+
+        .dark-mode .text-gray-400 {
+            color: #94a3b8 !important;
+        }
+
+        .dark-mode .text-gray-500 {
+            color: #64748b !important;
+        }
+
+        /* Restaurant description section */
+        .restaurant-description-section {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .description-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .dark-mode .description-container {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        .description-header {
+            padding: 16px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+            color: #374151;
+        }
+
+        .dark-mode .description-header {
+            color: #e5e7eb;
+        }
+
+        .description-header:hover {
+            background-color: #f1f5f9;
+        }
+
+        .dark-mode .description-header:hover {
+            background-color: #4b5563;
+        }
+
+        .description-content {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            border-top: 1px solid transparent;
+        }
+
+        .description-content div {
+            padding: 20px 0;
+            text-align: justify;
+            line-height: 1.7;
+            color: #4b5563;
+            font-size: 0.9rem;
+        }
+
+        .dark-mode .description-content div {
+            color: #d1d5db;
+        }
+
+        .description-container.expanded .description-content {
+            max-height: 500px;
+            padding: 0 20px;
+            border-top-color: #e5e7eb;
+        }
+
+        .dark-mode .description-container.expanded .description-content {
+            border-top-color: #4b5563;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            color: #6b7280;
+        }
+
+        .description-container.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        /* For mobile devices */
+        @media (max-width: 768px) {
+            .restaurant-description-section {
+                margin: 20px auto;
+                padding: 0 16px;
+            }
+
+            .description-header {
+                padding: 14px 16px;
+            }
+
+            .description-content div {
+                padding: 16px 0;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 <body class="ltr-direction">
@@ -1030,17 +1317,17 @@
     <div class="overlay"></div>
 
     <!-- Header -->
-    <header class="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm dark:bg-gray-800">
+    <header class="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm">
         <div class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <div class="hamburger-icon cursor-pointer text-gray-600 dark:text-gray-300">
+                    <div class="hamburger-icon cursor-pointer text-gray-600">
                         <i class="fas fa-bars text-lg"></i>
                     </div>
                     <div class="logo-container">
                         {% if restaurant.logo %}
                         <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.title_en|default:restaurant.title }}"
-                             class="w-10 h-10 rounded-xl object-cover border border-gray-200 dark:border-gray-600">
+                             class="w-10 h-10 rounded-xl object-cover border border-gray-200">
                         {% else %}
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
                             {{ restaurant.title_en|default:restaurant.title|first }}
@@ -1054,10 +1341,10 @@
                 </div>
                 <div class="header-actions">
                     <!-- Change to Persian -->
-                    <a href="{% url 'menu:change_language' restaurant.slug %}?lang=fa" class="lang-btn text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 no-underline">
+                    <a href="{% url 'menu:change_language' restaurant.slug %}?lang=fa" class="lang-btn bg-gray-100 text-gray-700 no-underline">
                         <span class="lang-text">FA</span>
                     </a>
-                    <button id="theme-toggle" class="header-icon bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-yellow-300">
+                    <button id="theme-toggle" class="header-icon bg-gray-100 text-gray-600">
                         <i class="fas fa-moon text-base"></i>
                     </button>
                 </div>
@@ -1065,12 +1352,12 @@
         </div>
 
         <!-- Search bar -->
-        <div class="search-container bg-white dark:bg-gray-800 py-3 border-t border-gray-100 dark:border-gray-700">
+        <div class="search-container bg-white py-3 border-t border-gray-100">
             <div class="container mx-auto px-4">
-                <div class="search-box bg-gray-50 dark:bg-gray-700 rounded-xl px-4 py-2 flex items-center gap-3 border border-gray-200 dark:border-gray-600">
-                    <i class="fas fa-search text-gray-400 dark:text-gray-400 text-sm"></i>
+                <div class="search-box bg-gray-50 rounded-xl px-4 py-2 flex items-center gap-3 border border-gray-200">
+                    <i class="fas fa-search text-gray-400 text-sm"></i>
                     <input type="text" placeholder="Search food..."
-                           class="w-full bg-transparent border-none outline-none text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 text-sm">
+                           class="w-full bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 text-sm">
                 </div>
             </div>
         </div>
@@ -1131,14 +1418,14 @@
             <div class="food-grid">
                 {% for food in foods %}
                 <div class="food-item" data-category="{{ food.menuCategory.id|default:'all' }}">
-                    <div class="food-card dark:bg-gray-800">
+                    <div class="food-card">
                         <div class="food-card-inner">
                             <div class="food-image-container">
                                 {% if food.image %}
                                 <img src="{{ food.image.url }}" alt="{{ food.title_en|default:food.title }}"
                                      class="w-full h-full object-cover food-image-ltr">
                                 {% else %}
-                                <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-400 dark:text-gray-500 food-image-ltr">
+                                <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 food-image-ltr">
                                     <i class="fas fa-utensils text-xl"></i>
                                 </div>
                                 {% endif %}
@@ -1161,12 +1448,12 @@
                                 </div>
                                 <div class="flex justify-between items-center gap-2">
                                     <div class="flex items-center gap-3">
-                                        <div class="cooking-time bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-lg">
+                                        <div class="cooking-time bg-gray-50 px-2 py-1 rounded-lg">
                                             <i class="fas fa-clock text-xs"></i>
                                             <span class="text-xs font-medium">{{ food.preparationTime|default:"-" }} min</span>
                                         </div>
                                         <!-- Sound icon -->
-                                        <button class="sound-btn text-gray-400 hover:text-blue-500 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 {% if food.sound %}cursor-pointer{% else %}cursor-not-allowed opacity-50{% endif %}"
+                                        <button class="sound-btn text-gray-400 hover:text-blue-500 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-100 {% if food.sound %}cursor-pointer{% else %}cursor-not-allowed opacity-50{% endif %}"
                                                 {% if food.sound %}data-sound="{{ food.sound.url }}"{% endif %}
                                                 title="{% if food.sound %}Play audio description{% else %}Audio description not available{% endif %}">
                                             <i class="fas fa-volume-up text-xs"></i>
@@ -1185,7 +1472,7 @@
                     </div>
                 </div>
                 {% empty %}
-                <div class="col-span-2 text-center py-12 text-gray-400 dark:text-gray-500">
+                <div class="col-span-2 text-center py-12 text-gray-400">
                     <i class="fas fa-utensils text-4xl mb-3 opacity-50"></i>
                     <p class="text-base">No food items available</p>
                     <p class="text-sm mt-1 opacity-75">Please check back later</p>
@@ -1205,7 +1492,7 @@
     <div class="selection-list-panel">
         <div class="selection-list-header">
             <h3 class="selection-list-title">Your Selection</h3>
-            <div class="selection-list-close text-gray-500 dark:text-gray-400">
+            <div class="selection-list-close text-gray-500">
                 <i class="fas fa-times"></i>
             </div>
         </div>
@@ -1229,7 +1516,7 @@
     <div class="selection-display">
         <div class="selection-display-header">
             <h2 class="selection-display-title">Your Selection</h2>
-            <div class="selection-display-close text-gray-500 dark:text-gray-400">
+            <div class="selection-display-close text-gray-500">
                 <i class="fas fa-times"></i>
             </div>
         </div>
@@ -1251,7 +1538,7 @@
         <div class="slider-header">
             <div class="drag-handle"></div>
             <h3 class="slider-title">Categories</h3>
-            <div class="slider-close text-gray-500 dark:text-gray-400">
+            <div class="slider-close text-gray-500">
                 <i class="fas fa-times"></i>
             </div>
         </div>
@@ -1311,6 +1598,48 @@
                 </span>
             </div>
             {% endfor %}
+        </div>
+    </div>
+
+    <!-- Restaurant Description Section - Collapsible -->
+    <div class="restaurant-description-section">
+        <div class="description-container">
+            <!-- Clickable Header -->
+            <div class="description-header">
+                <span style="
+                    font-size: 1rem;
+                    margin: 0;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+                    About {{ restaurant.title_en|default:restaurant.title }}
+                </span>
+                <div class="toggle-icon">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <!-- Collapsible Content -->
+            <div class="description-content">
+                <div>
+                    {% if restaurant.text_en and restaurant.text_en != 'Empty' %}
+                     {% autoescape off %}
+                        {{ restaurant.text_en }}
+                     {% endautoescape %}
+                    {% elif restaurant.text and restaurant.text != 'خالی' %}
+                     {% autoescape off %}
+                        {{ restaurant.text }}
+                     {% endautoescape %}
+                    {% else %}
+                        <p style="color: #9ca3af; font-style: italic; text-align: center;">
+                            No description available for this restaurant
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1793,7 +2122,7 @@
                         <div class="selection-list-item">
                             ${food.image ?
                                 `<img src="${food.image}" alt="${food.title}" class="selection-list-item-image">` :
-                                `<div class="selection-list-item-image bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                                `<div class="selection-list-item-image bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-400">
                                     <i class="fas fa-utensils"></i>
                                 </div>`
                             }
@@ -1846,7 +2175,7 @@
                     <div class="selection-display-item">
                         ${food.image ?
                             `<img src="${food.image}" alt="${food.title}" class="selection-display-item-image">` :
-                            `<div class="selection-display-item-image bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                            `<div class="selection-display-item-image bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-400">
                                 <i class="fas fa-utensils"></i>
                             </div>`
                         }
@@ -1862,6 +2191,40 @@
             selectionDisplayItems.innerHTML = itemsHTML;
             selectionDisplayTotal.textContent = '$' + totalPrice.toFixed(2);
         }
+
+        // Script for collapsible restaurant description
+        document.addEventListener('DOMContentLoaded', function() {
+            const descriptionContainer = document.querySelector('.description-container');
+            const descriptionHeader = document.querySelector('.description-header');
+            const descriptionContent = document.querySelector('.description-content');
+            const toggleIcon = document.querySelector('.toggle-icon');
+
+            // Only make collapsible if content exists
+            {% if restaurant.text_en and restaurant.text_en != 'Empty' or restaurant.text and restaurant.text != 'خالی' %}
+                descriptionHeader.addEventListener('click', function() {
+                    descriptionContainer.classList.toggle('expanded');
+
+                    // Smooth animation for expanding/collapsing
+                    if (descriptionContainer.classList.contains('expanded')) {
+                        descriptionContent.style.maxHeight = descriptionContent.scrollHeight + 'px';
+                    } else {
+                        descriptionContent.style.maxHeight = '0';
+                    }
+                });
+            {% else %}
+                // If no content, disable
+                descriptionHeader.style.cursor = 'default';
+                descriptionHeader.style.opacity = '0.6';
+                toggleIcon.style.opacity = '0.3';
+            {% endif %}
+
+            // For responsive height
+            window.addEventListener('resize', function() {
+                if (descriptionContainer.classList.contains('expanded')) {
+                    descriptionContent.style.maxHeight = descriptionContent.scrollHeight + 'px';
+                }
+            });
+        });
     </script>
 </body>
 </html>

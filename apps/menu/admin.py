@@ -71,7 +71,7 @@ class RestaurantAdmin(admin.ModelAdmin, BilingualAdminMixin):
     fieldsets = (
         (_('Basic Information'), {
             'fields': (
-                'owner', 'get_title_display', 'title', 'title_en', 'slug',
+                'owner', 'get_title_display', 'title', 'title_en', 'slug','text',
                   'description', 'description_en',
                 'isActive', 'displayOrder'
             )

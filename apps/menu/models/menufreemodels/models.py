@@ -6,6 +6,7 @@ from django.utils.text import slugify
 from apps.user.models import CustomUser
 from django.utils.translation import gettext as _
 from django.conf import settings
+from ckeditor_uploader.fields import RichTextUploadingField
 
 
 # ----------------------------
@@ -19,6 +20,7 @@ class BaseModel(models.Model):
     displayOrder = models.IntegerField(default=0, null=True, blank=True)
     createdAt = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updatedAt = models.DateTimeField(auto_now=True, null=True, blank=True)
+
 
     class Meta:
         abstract = True
@@ -123,6 +125,7 @@ class Restaurant(BaseModel):
     description_en = models.TextField(null=True, blank=True, verbose_name="توضیح انگلیسی")
     logo = models.ImageField(upload_to=upload_to_restaurant_logo, null=True, blank=True)
     coverImage = models.ImageField(upload_to=upload_to_restaurant_cover, null=True, blank=True)
+    text = RichTextUploadingField(verbose_name=('متن'),default='خالی')
     phone = models.CharField(max_length=15, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     address_en = models.TextField(null=True, blank=True, verbose_name="آدرس انگلیسی")

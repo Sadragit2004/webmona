@@ -5,9 +5,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منوی دیجیتال - {{ restaurant.title }}</title>
+
+    <!-- متا تگ‌های اصلی SEO -->
+    <title>منوی دیجیتال {{ restaurant.title }} | سفارش آنلاین غذا</title>
+    <meta name="description" content="منوی دیجیتال رستوران {{ restaurant.title }} - {{ restaurant.text|striptags|truncatechars:150|default:'سفارش آنلاین غذا با بهترین کیفیت و سریع‌ترین زمان آماده‌سازی' }}">
+
+    <!-- متا تگ‌های Open Graph برای شبکه‌های اجتماعی -->
+    <meta property="og:title" content="منوی دیجیتال {{ restaurant.title }}">
+    <meta property="og:description" content="{{ restaurant.text|striptags|truncatechars:150|default:'سفارش آنلاین غذا از رستوران '|add:restaurant.title }}">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="fa_IR">
+    <meta property="og:site_name" content="{{ restaurant.title }}">
+
+    <!-- متا تگ Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="منوی دیجیتال {{ restaurant.title }}">
+    <meta name="twitter:description" content="{{ restaurant.text|striptags|truncatechars:150|default:'سفارش آنلاین غذا از رستوران '|add:restaurant.title }}">
+
+    <!-- متا تگ‌های اضافی -->
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="{{ restaurant.title }}">
+    <meta name="copyright" content="{{ restaurant.title }}">
+    <meta name="language" content="fa">
+    <meta name="coverage" content="Worldwide">
+    <meta name="distribution" content="Global">
+    <meta name="rating" content="General">
+    <meta name="revisit-after" content="7 days">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+
+    <!-- متا تگ‌های موبایل -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Favicon -->
+    {% if restaurant.logo %}
+    <link rel="icon" href="{{ restaurant.logo.url }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ restaurant.logo.url }}" type="image/x-icon">
+    {% else %}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+    {% endif %}
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Schema.org Structured Data -->
+   <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FoodEstablishment",
+  "@id": "{{ request.build_absolute_uri }}#restaurant",
+  "name": "{{ restaurant.title }}",
+  "description": "{{ restaurant.description|striptags|truncatechars:200|default:restaurant.text|striptags|truncatechars:200 }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "telephone": "{{ restaurant.phone|default:'' }}",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "{{ restaurant.address|default:'' }}"
+  },
+  "openingHours": [
+    {% if restaurant.openingTime and restaurant.closingTime %}
+    "{{ restaurant.openingTime|time:'H:i' }}-{{ restaurant.closingTime|time:'H:i' }}"
+    {% else %}
+    "Mo-Su"
+    {% endif %}
+  ],
+  "servesCuisine": [
+    {% for menu_category in menu_categories %}
+    "{{ menu_category.category.title }}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "menu": "{{ request.build_absolute_uri }}",
+  "hasMenu": {
+    "@type": "Menu",
+    "name": "منوی دیجیتال {{ restaurant.title }}",
+    "url": "{{ request.build_absolute_uri }}",
+    "hasMenuSection": [
+      {% for menu_category in menu_categories %}
+      {
+        "@type": "MenuSection",
+        "name": "{{ menu_category.customTitle|default:menu_category.category.title }}",
+        "hasMenuItem": [
+          {% for food in foods %}
+          {% if food.menuCategory.id == menu_category.id %}
+          {
+            "@type": "MenuItem",
+            "name": "{{ food.title }}",
+            "description": "{{ food.description|default:'' }}",
+            "image": "{% if food.image %}{{ food.image.url }}{% endif %}",
+            "offers": {
+              "@type": "Offer",
+              "price": "{{ food.price }}",
+              "priceCurrency": "IRR"
+            }{% if food.preparationTime %},
+            "prepTime": "PT{{ food.preparationTime }}M"{% endif %}
+          }{% if not forloop.last %},{% endif %}
+          {% endif %}
+          {% endfor %}
+        ]
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
 
@@ -33,7 +138,7 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             border: 1px solid #f1f5f9;
-            height: calc(25vh - 20px); /* ارتفاع برای نمایش 4 کارت در صفحه */
+            height: calc(25vh - 20px);
             min-height: 160px;
         }
 
@@ -62,6 +167,7 @@
 
         .dark-mode .cooking-time {
             color: #9ca3af;
+            background-color: #334155 !important;
         }
 
         /* استایل‌های جدید برای دسته‌بندی‌های پایین */
@@ -139,7 +245,7 @@
         .categories-slider {
             position: fixed;
             top: 0;
-            right: -320px; /* خارج از صفحه در سمت راست */
+            right: -320px;
             width: 320px;
             height: 100vh;
             background-color: white;
@@ -151,7 +257,7 @@
         }
 
         .categories-slider.open {
-            right: 0; /* وقتی باز است */
+            right: 0;
         }
 
         .dark-mode .categories-slider {
@@ -175,6 +281,10 @@
         .slider-title {
             font-weight: 600;
             font-size: 1rem;
+        }
+
+        .dark-mode .slider-title {
+            color: #e2e8f0;
         }
 
         .slider-close {
@@ -260,11 +370,15 @@
             flex: 1;
         }
 
-        /* دکمه باز کردن منوی کشویی - فلش به سمت راست و در سمت چپ صفحه */
+        .dark-mode .slider-category-name {
+            color: #e2e8f0;
+        }
+
+        /* دکمه باز کردن منوی کشویی */
         .categories-toggle {
             position: fixed;
             bottom: 70px;
-            left: 16px; /* تغییر از right به left */
+            left: 16px;
             width: 56px;
             height: 56px;
             border-radius: 50%;
@@ -620,6 +734,10 @@
             font-size: 1rem;
         }
 
+        .dark-mode .selection-list-title {
+            color: #e2e8f0;
+        }
+
         .selection-list-close {
             padding: 4px;
             border-radius: 50%;
@@ -688,6 +806,10 @@
             margin-bottom: 4px;
         }
 
+        .dark-mode .selection-list-item-title {
+            color: #e2e8f0;
+        }
+
         .selection-list-item-price {
             color: #3b82f6;
             font-weight: 600;
@@ -716,6 +838,7 @@
 
         .dark-mode .quantity-btn {
             background-color: #475569;
+            color: #e2e8f0;
         }
 
         .quantity-btn:hover {
@@ -731,6 +854,10 @@
             font-weight: 600;
             min-width: 20px;
             text-align: center;
+        }
+
+        .dark-mode .quantity-value {
+            color: #e2e8f0;
         }
 
         .selection-list-item-remove {
@@ -873,6 +1000,10 @@
             font-size: 1.2rem;
         }
 
+        .dark-mode .selection-display-title {
+            color: #e2e8f0;
+        }
+
         .selection-display-close {
             padding: 8px;
             border-radius: 50%;
@@ -926,6 +1057,10 @@
             margin-bottom: 4px;
         }
 
+        .dark-mode .selection-display-item-title {
+            color: #e2e8f0;
+        }
+
         .selection-display-item-price {
             color: #3b82f6;
             font-weight: 600;
@@ -957,6 +1092,10 @@
 
         .selection-display-total-label {
             font-weight: 600;
+        }
+
+        .dark-mode .selection-display-total-label {
+            color: #e2e8f0;
         }
 
         .selection-display-total-price {
@@ -1007,6 +1146,205 @@
         .selection-display-call:hover {
             opacity: 0.9;
         }
+
+        /* استایل‌های جدید برای جعبه جستجو */
+        .search-container {
+            background-color: white;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .dark-mode .search-container {
+            background-color: #1e293b;
+            border-top: 1px solid #334155;
+        }
+
+        .search-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .dark-mode .search-box {
+            background-color: #334155;
+            border: 1px solid #475569;
+        }
+
+        .search-box input {
+            color: #1e293b;
+        }
+
+        .dark-mode .search-box input {
+            color: #e2e8f0;
+        }
+
+        .search-box input::placeholder {
+            color: #64748b;
+        }
+
+        .dark-mode .search-box input::placeholder {
+            color: #94a3b8;
+        }
+
+        /* استایل‌های جدید برای هدر */
+        header {
+            background-color: white;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .dark-mode header {
+            background-color: #1e293b;
+            border-bottom: 1px solid #334155;
+        }
+
+        .hamburger-icon {
+            color: #64748b;
+        }
+
+        .dark-mode .hamburger-icon {
+            color: #cbd5e1;
+        }
+
+        .header-icon {
+            background-color: #f1f5f9;
+            color: #64748b;
+        }
+
+        .dark-mode .header-icon {
+            background-color: #334155;
+            color: #cbd5e1;
+        }
+
+        /* استایل‌های جدید برای دکمه زبان */
+        .lang-btn {
+            background-color: #f1f5f9;
+            color: #64748b;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .dark-mode .lang-btn {
+            background-color: #334155;
+            color: #cbd5e1;
+        }
+
+        /* استایل‌های جدید برای متن‌های مختلف */
+        .dark-mode .text-gray-600 {
+            color: #cbd5e1 !important;
+        }
+
+        .dark-mode .text-gray-300 {
+            color: #64748b !important;
+        }
+
+        .dark-mode .text-gray-400 {
+            color: #94a3b8 !important;
+        }
+
+        .dark-mode .text-gray-500 {
+            color: #64748b !important;
+        }
+
+        .dark-mode .text-gray-700 {
+            color: #cbd5e1 !important;
+        }
+
+        .dark-mode .bg-gray-100 {
+            background-color: #334155 !important;
+        }
+
+        .dark-mode .bg-gray-700 {
+            background-color: #475569 !important;
+        }
+
+        .dark-mode .bg-gray-800 {
+            background-color: #1e293b !important;
+        }
+
+        .dark-mode .border-gray-200 {
+            border-color: #334155 !important;
+        }
+
+        .dark-mode .border-gray-600 {
+            border-color: #475569 !important;
+        }
+
+        .dark-mode .border-gray-700 {
+            border-color: #475569 !important;
+        }
+
+        .dark-mode .bg-gray-50 {
+            background-color: #334155 !important;
+        }
+
+        .dark-mode .from-gray-100 {
+            --tw-gradient-from: #334155 !important;
+        }
+
+        .dark-mode .to-gray-200 {
+            --tw-gradient-to: #475569 !important;
+        }
+
+        .dark-mode .from-gray-700 {
+            --tw-gradient-from: #475569 !important;
+        }
+
+        .dark-mode .to-gray-600 {
+            --tw-gradient-to: #334155 !important;
+        }
+
+        .dark-mode .text-gray-400 {
+            color: #94a3b8 !important;
+        }
+
+        .dark-mode .text-gray-500 {
+            color: #64748b !important;
+        }
+
+        /* استایل‌های جدید برای بخش توضیحات رستوران */
+        .description-container {
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+        }
+
+        .dark-mode .description-container {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        .description-header {
+            color: #374151;
+            transition: background-color 0.3s ease;
+        }
+
+        .dark-mode .description-header {
+            color: #e5e7eb;
+        }
+
+        .description-header:hover {
+            background-color: #f1f5f9;
+        }
+
+        .dark-mode .description-header:hover {
+            background-color: #4b5563;
+        }
+
+        .description-content div {
+            color: #4b5563;
+        }
+
+        .dark-mode .description-content div {
+            color: #d1d5db;
+        }
+
+        .description-container.expanded .description-content {
+            border-top-color: #e5e7eb;
+        }
+
+        .dark-mode .description-container.expanded .description-content {
+            border-top-color: #4b5563;
+        }
     </style>
 </head>
 <body>
@@ -1014,17 +1352,17 @@
     <div class="overlay"></div>
 
     <!-- نوار بالایی اصلی -->
-    <header class="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm dark:bg-gray-800">
+    <header class="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm">
         <div class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <div class="hamburger-icon cursor-pointer text-gray-600 dark:text-gray-300">
+                    <div class="hamburger-icon cursor-pointer text-gray-600">
                         <i class="fas fa-bars text-lg"></i>
                     </div>
                     <div class="logo-container">
                         {% if restaurant.logo %}
                         <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.title }}"
-                             class="w-10 h-10 rounded-xl object-cover border border-gray-200 dark:border-gray-600">
+                             class="w-10 h-10 rounded-xl object-cover border border-gray-200">
                         {% else %}
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
                             {{ restaurant.title|first }}
@@ -1038,10 +1376,10 @@
                 </div>
                 <div class="header-actions">
                     <!-- دکمه تغییر زبان به انگلیسی -->
-                    <a href="{% url 'menu:change_language' restaurant.slug %}?lang=en" class="lang-btn text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 no-underline">
+                    <a href="{% url 'menu:change_language' restaurant.slug %}?lang=en" class="lang-btn bg-gray-100 text-gray-700 no-underline">
                         <span class="lang-text">EN</span>
                     </a>
-                    <button id="theme-toggle" class="header-icon bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-yellow-300">
+                    <button id="theme-toggle" class="header-icon bg-gray-100 text-gray-600">
                         <i class="fas fa-moon text-base"></i>
                     </button>
                 </div>
@@ -1049,12 +1387,12 @@
         </div>
 
         <!-- نوار جستجو -->
-        <div class="search-container bg-white dark:bg-gray-800 py-3 border-t border-gray-100 dark:border-gray-700">
+        <div class="search-container bg-white py-3 border-t border-gray-100">
             <div class="container mx-auto px-4">
-                <div class="search-box bg-gray-50 dark:bg-gray-700 rounded-xl px-4 py-2 flex items-center gap-3 border border-gray-200 dark:border-gray-600">
-                    <i class="fas fa-search text-gray-400 dark:text-gray-400 text-sm"></i>
+                <div class="search-box bg-gray-50 rounded-xl px-4 py-2 flex items-center gap-3 border border-gray-200">
+                    <i class="fas fa-search text-gray-400 text-sm"></i>
                     <input type="text" placeholder="جستجوی غذا..."
-                           class="w-full bg-transparent border-none outline-none text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 text-sm">
+                           class="w-full bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 text-sm">
                 </div>
             </div>
         </div>
@@ -1115,14 +1453,14 @@
             <div class="food-grid">
                 {% for food in foods %}
                 <div class="food-item" data-category="{{ food.menuCategory.id|default:'all' }}">
-                    <div class="food-card dark:bg-gray-800">
+                    <div class="food-card">
                         <div class="food-card-inner">
                             <div class="food-image-container">
                                 {% if food.image %}
                                 <img src="{{ food.image.url }}" alt="{{ food.title }}"
                                      class="w-full h-full object-cover food-image">
                                 {% else %}
-                                <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center text-gray-400 dark:text-gray-500 food-image">
+                                <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 food-image">
                                     <i class="fas fa-utensils text-xl"></i>
                                 </div>
                                 {% endif %}
@@ -1130,7 +1468,7 @@
                             <div class="food-details">
                                 <div class="food-content">
                                     <div class="flex justify-between items-start gap-2 mb-2">
-                                        <h3 class="food-title flex-1">{{ food.title }}</h3>
+                                        <span class="food-title flex-1">{{ food.title }}</span>
                                         <span class="food-price">
                                             {{ food.price|intcomma }} تومان
                                         </span>
@@ -1141,12 +1479,12 @@
                                 </div>
                                 <div class="flex justify-between items-center gap-2">
                                     <div class="flex items-center gap-3">
-                                        <div class="cooking-time bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-lg">
+                                        <div class="cooking-time bg-gray-50 px-2 py-1 rounded-lg">
                                             <i class="fas fa-clock text-xs"></i>
                                             <span class="text-xs font-medium">{{ food.preparationTime|default:"-" }} دقیقه</span>
                                         </div>
                                         <!-- آیکون صدا برای همه غذاها -->
-                                        <button class="sound-btn text-gray-400 hover:text-blue-500 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 {% if food.sound %}cursor-pointer{% else %}cursor-not-allowed opacity-50{% endif %}"
+                                        <button class="sound-btn text-gray-400 hover:text-blue-500 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-100 {% if food.sound %}cursor-pointer{% else %}cursor-not-allowed opacity-50{% endif %}"
                                                 {% if food.sound %}data-sound="{{ food.sound.url }}"{% endif %}
                                                 title="{% if food.sound %}پخش توضیحات صوتی{% else %}توضیحات صوتی موجود نیست{% endif %}">
                                             <i class="fas fa-volume-up text-xs"></i>
@@ -1165,7 +1503,7 @@
                     </div>
                 </div>
                 {% empty %}
-                <div class="col-span-2 text-center py-12 text-gray-400 dark:text-gray-500">
+                <div class="col-span-2 text-center py-12 text-gray-400">
                     <i class="fas fa-utensils text-4xl mb-3 opacity-50"></i>
                     <p class="text-base">هیچ غذایی در منو موجود نیست</p>
                     <p class="text-sm mt-1 opacity-75">لطفاً بعداً مراجعه کنید</p>
@@ -1184,8 +1522,8 @@
     <!-- پنل لیست انتخاب غذا -->
     <div class="selection-list-panel">
         <div class="selection-list-header">
-            <h3 class="selection-list-title">لیست انتخاب شما</h3>
-            <div class="selection-list-close text-gray-500 dark:text-gray-400">
+            <span class="selection-list-title">لیست انتخاب شما</span>
+            <div class="selection-list-close text-gray-500">
                 <i class="fas fa-times"></i>
             </div>
         </div>
@@ -1208,8 +1546,8 @@
     <!-- صفحه نمایش لیست انتخاب -->
     <div class="selection-display">
         <div class="selection-display-header">
-            <h2 class="selection-display-title">لیست انتخاب شما</h2>
-            <div class="selection-display-close text-gray-500 dark:text-gray-400">
+            <span class="selection-display-title">لیست انتخاب شما</span>
+            <div class="selection-display-close text-gray-500">
                 <i class="fas fa-times"></i>
             </div>
         </div>
@@ -1230,8 +1568,8 @@
     <div class="categories-slider scrollbar-hide">
         <div class="slider-header">
             <div class="drag-handle"></div>
-            <h3 class="slider-title">دسته‌بندی‌ها</h3>
-            <div class="slider-close text-gray-500 dark:text-gray-400">
+            <span class="slider-title">دسته‌بندی‌ها</span>
+            <div class="slider-close text-gray-500">
                 <i class="fas fa-times"></i>
             </div>
         </div>
@@ -1287,6 +1625,78 @@
                 <span class="category-bottom-name">{{ menu_category.category.title|truncatechars:10 }}</span>
             </div>
             {% endfor %}
+        </div>
+    </div>
+
+    <!-- بخش توضیحات رستوران - قابل باز و بسته شدن -->
+    <div class="restaurant-description-section" style="
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+    ">
+        <div class="description-container" style="
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        ">
+            <!-- هدر قابل کلیک -->
+            <div class="description-header" style="
+                padding: 16px 20px;
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                transition: background-color 0.3s ease;
+            ">
+                <span style="
+                    font-size: 1rem;
+                    margin: 0;
+                    color: #374151;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                ">
+                    <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+                     درباره {{ restaurant.title }}
+                </span>
+                <div class="toggle-icon" style="
+                    transition: transform 0.3s ease;
+                    color: #6b7280;
+                ">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <!-- محتوای قابل باز و بسته شدن -->
+            <div class="description-content" style="
+                padding: 0 20px;
+                max-height: 0;
+                overflow: hidden;
+                transition: all 0.4s ease;
+                border-top: 1px solid transparent;
+            ">
+                <div style="
+                    padding: 20px 0;
+                    text-align: justify;
+                    line-height: 1.7;
+                    color: #4b5563;
+                    font-size: 0.9rem;
+                ">
+                    {% if restaurant.text and restaurant.text != 'خالی' %}
+                     {% autoescape off %}
+                        <h2>درباره {{ restaurant.title }}</h2>
+                        {{ restaurant.text }}
+                     {% endautoescape %}
+                    {% else %}
+                        <p style="color: #9ca3af; font-style: italic; text-align: center;">
+                            توضیحاتی برای این رستوران ثبت نشده است
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1768,7 +2178,7 @@
                         <div class="selection-list-item">
                             ${food.image ?
                                 `<img src="${food.image}" alt="${food.title}" class="selection-list-item-image">` :
-                                `<div class="selection-list-item-image bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                                `<div class="selection-list-item-image bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-400">
                                     <i class="fas fa-utensils"></i>
                                 </div>`
                             }
@@ -1821,7 +2231,7 @@
                     <div class="selection-display-item">
                         ${food.image ?
                             `<img src="${food.image}" alt="${food.title}" class="selection-display-item-image">` :
-                            `<div class="selection-display-item-image bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                            `<div class="selection-display-item-image bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-400">
                                 <i class="fas fa-utensils"></i>
                             </div>`
                         }
@@ -1837,6 +2247,40 @@
             selectionDisplayItems.innerHTML = itemsHTML;
             selectionDisplayTotal.textContent = totalPrice.toLocaleString() + ' تومان';
         }
+
+        // اسکریپت برای باز و بسته شدن بخش توضیحات رستوران
+        document.addEventListener('DOMContentLoaded', function() {
+            const descriptionContainer = document.querySelector('.description-container');
+            const descriptionHeader = document.querySelector('.description-header');
+            const descriptionContent = document.querySelector('.description-content');
+            const toggleIcon = document.querySelector('.toggle-icon');
+
+            // فقط اگر محتوایی وجود دارد قابلیت باز شدن داشته باشد
+            {% if restaurant.text and restaurant.text != 'خالی' %}
+                descriptionHeader.addEventListener('click', function() {
+                    descriptionContainer.classList.toggle('expanded');
+
+                    // انیمیشن اسموت برای باز و بسته شدن
+                    if (descriptionContainer.classList.contains('expanded')) {
+                        descriptionContent.style.maxHeight = descriptionContent.scrollHeight + 'px';
+                    } else {
+                        descriptionContent.style.maxHeight = '0';
+                    }
+                });
+            {% else %}
+                // اگر محتوایی نیست، غیرفعال شود
+                descriptionHeader.style.cursor = 'default';
+                descriptionHeader.style.opacity = '0.6';
+                toggleIcon.style.opacity = '0.3';
+            {% endif %}
+
+            // برای ریسپانسیو کردن ارتفاع
+            window.addEventListener('resize', function() {
+                if (descriptionContainer.classList.contains('expanded')) {
+                    descriptionContent.style.maxHeight = descriptionContent.scrollHeight + 'px';
+                }
+            });
+        });
     </script>
 </body>
 </html>
