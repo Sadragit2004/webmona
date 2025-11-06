@@ -827,6 +827,7 @@ def create_restaurant_modal(request):
             family = data.get('family', '').strip()
             restaurant_name = data.get('restaurant_name', '').strip()
             english_name = data.get('english_name', '').strip().lower()
+            is_seo_enabled = data.get('is_seo_enabled', False)
 
             # اعتبارسنجی نهایی
             if not name or not family or not restaurant_name or not english_name:
@@ -874,6 +875,10 @@ def create_restaurant_modal(request):
             restaurant_name = data.get('restaurant_name', '').strip()
             english_name = data.get('english_name', '').strip().lower()
 
+            # دریافت وضعیت سئو و تبدیل به boolean
+            is_seo_enabled_str = data.get('is_seo_enabled', '0')
+            is_seo_enabled = is_seo_enabled_str == '1'
+
             # اعتبارسنجی
             if not name or not family or not restaurant_name or not english_name:
                 return JsonResponse({
@@ -896,6 +901,7 @@ def create_restaurant_modal(request):
                     'family': family,
                     'restaurant_name': restaurant_name,
                     'english_name': english_name,
+                    'is_seo_enabled': is_seo_enabled,
                     'menu_images_count': 0
                 }
 
@@ -946,7 +952,8 @@ def create_restaurant_modal(request):
                     restaurant=restaurant,
                     isfinaly=False,
                     isActive=False,
-                    status=Ordermenu.STATUS_UNPAID
+                    status=Ordermenu.STATUS_UNPAID,
+                    is_seo_enabled=is_seo_enabled
                 )
 
                 # ذخیره عکس‌ها

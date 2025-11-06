@@ -23,6 +23,7 @@ class OrdermenuAdmin(admin.ModelAdmin):
         (None, {
             'fields': (
                 'restaurant',
+                'is_seo_enabled',
                 'status',
                 'isfinaly',
                 'isActive',

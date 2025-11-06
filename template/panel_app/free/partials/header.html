@@ -38,6 +38,7 @@
 </header>
 
 <!-- مودال افتتاح رستوران -->
+<!-- مودال افتتاح رستوران -->
 <div id="createRestaurantModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto">
@@ -217,7 +218,7 @@
                     </div>
                 </div>
 
-                <!-- Step 4: آپلود عکس منو -->
+                <!-- Step 4: آپلود عکس منو و انتخاب سئو -->
                 <div id="step4" class="step-content hidden space-y-5">
                     <div class="text-center mb-2">
                         <div class="w-16 h-16 bg-gradient-to-r from-indigo-100 to-indigo-50 rounded-full flex items-center justify-center text-indigo-500 mx-auto mb-3">
@@ -225,6 +226,55 @@
                         </div>
                         <h4 class="font-bold text-lg text-gray-800">عکس‌های منو را آپلود کنید</h4>
                         <p class="text-sm text-gray-600 mt-1">عکس‌های منوی فعلی خود را برای ساخت منوی دیجیتال آپلود کنید</p>
+                    </div>
+
+                    <!-- کارت انتخاب سئو -->
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-4 transition-all duration-300 hover:border-purple-400 cursor-pointer"
+                         onclick="toggleSeoOption()">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3 space-x-reverse">
+                                <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-white">
+                                    <i class="fas fa-search-plus text-sm"></i>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-800 flex items-center">
+                                        سئو و بهینه‌سازی منو
+                                        <span class="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full mr-2">پیشنهاد ویژه</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mt-1">منوی شما در نتایج جستجوی گوگل نمایش داده می‌شود</div>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <input type="checkbox" id="seoOption" class="hidden">
+                                <div id="seoCheckbox" class="w-6 h-6 rounded border-2 border-gray-300 flex items-center justify-center transition-all duration-200">
+                                    <i class="fas fa-check text-white text-xs transition-all duration-200 opacity-0"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- جزئیات هزینه سئو -->
+                        <div id="seoPriceDetails" class="mt-3 p-3 bg-white rounded-xl border border-purple-100 hidden">
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-600">هزینه ساخت منو:</span>
+                                <span class="font-bold">۹۹,۰۰۰ تومان</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm mt-2">
+                                <span class="text-purple-600">هزینه سئو و بهینه‌سازی:</span>
+                                <span class="font-bold text-purple-600">+۳۹,۰۰۰ تومان</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm mt-2 pt-2 border-t border-gray-200">
+                                <span class="text-gray-800 font-bold">مبلغ قابل پرداخت:</span>
+                                <span id="totalPrice" class="font-bold text-lg text-green-600">۹۹,۰۰۰ تومان</span>
+                            </div>
+                        </div>
+
+                        <!-- توضیحات سئو -->
+                        <div class="mt-3 text-xs text-purple-700 bg-purple-100 p-2 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-lightbulb ml-1 mt-0.5"></i>
+                                <span>با سئو، مشتریان بیشتری منوی شما را در گوگل پیدا می‌کنند و فروش افزایش می‌یابد</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200 mb-4">
@@ -313,12 +363,18 @@ let restaurantData = {
     step2: {},
     menuCreationType: null,
     uploadedImages: [],
-    imagesSaved: false
+    imagesSaved: false,
+    isSeoEnabled: true  // فعال بودن پیش‌فرض
 };
 const MAX_IMAGES = 10;
 
+// قیمت‌ها - هماهنگ با مدل Django
+const BASE_PRICE = 99000 * 10;  // 990,000 تومان
+const SEO_EXTRA_PRICE = 39000 * 10;  // 390,000 تومان
+
 let fullNameTimeout;
 let autoFocusTimeout;
+let checkTimeout;
 
 // مدیریت مودال
 function openCreateRestaurantModal() {
@@ -327,7 +383,6 @@ function openCreateRestaurantModal() {
     resetForm();
     updateProgress();
 
-    // فوکوس روی اولین فیلد
     setTimeout(() => {
         const fullNameInput = document.getElementById('fullNameInput');
         if (fullNameInput) {
@@ -355,12 +410,12 @@ function showStep(step) {
     if (step === 4) {
         setTimeout(() => {
             setupFileUpload();
+            updateTotalPrice();
         }, 100);
     }
 
     updateProgress();
 
-    // فوکوس اتوماتیک روی فیلدهای ورودی
     setTimeout(() => {
         let focusElement = null;
         if (step === 1) {
@@ -376,7 +431,6 @@ function showStep(step) {
 }
 
 function updateProgress() {
-    // به‌روزرسانی نشانگر مراحل
     const steps = [1, 2, 3];
     steps.forEach(step => {
         const indicator = document.getElementById(`step${step}Indicator`);
@@ -423,12 +477,18 @@ function resetForm() {
     if (uploadButton) uploadButton.disabled = true;
     if (saveImagesButton) saveImagesButton.disabled = true;
 
+    // فعال بودن پیش‌فرض سئو
+    restaurantData.isSeoEnabled = true;
+    updateSeoCheckbox();
+    updateTotalPrice();
+
     restaurantData = {
         step1: {},
         step2: {},
         menuCreationType: null,
         uploadedImages: [],
-        imagesSaved: false
+        imagesSaved: false,
+        isSeoEnabled: true  // فعال بودن پیش‌فرض
     };
 
     const preview = document.getElementById('imagePreview');
@@ -464,6 +524,67 @@ function resetForm() {
     updateProgress();
 }
 
+// مدیریت گزینه سئو
+function toggleSeoOption() {
+    restaurantData.isSeoEnabled = !restaurantData.isSeoEnabled;
+    updateSeoCheckbox();
+    updateTotalPrice();
+
+    console.log('سئو فعال شد:', restaurantData.isSeoEnabled);
+    console.log('قیمت نهایی:', BASE_PRICE + (restaurantData.isSeoEnabled ? SEO_EXTRA_PRICE : 0));
+}
+
+function updateSeoCheckbox() {
+    const seoCheckbox = document.getElementById('seoCheckbox');
+    const seoPriceDetails = document.getElementById('seoPriceDetails');
+
+    if (!seoCheckbox) return;
+
+    if (restaurantData.isSeoEnabled) {
+        seoCheckbox.classList.remove('border-gray-300', 'bg-white');
+        seoCheckbox.classList.add('border-purple-500', 'bg-purple-500');
+        seoCheckbox.querySelector('i').classList.remove('opacity-0');
+        seoCheckbox.querySelector('i').classList.add('opacity-100');
+        if (seoPriceDetails) seoPriceDetails.classList.remove('hidden');
+    } else {
+        seoCheckbox.classList.remove('border-purple-500', 'bg-purple-500');
+        seoCheckbox.classList.add('border-gray-300', 'bg-white');
+        seoCheckbox.querySelector('i').classList.remove('opacity-100');
+        seoCheckbox.querySelector('i').classList.add('opacity-0');
+        if (seoPriceDetails) seoPriceDetails.classList.add('hidden');
+    }
+}
+
+function updateTotalPrice() {
+    const totalPriceElement = document.getElementById('totalPrice');
+    const basePriceElement = document.querySelector('#seoPriceDetails div:first-child span:last-child');
+    const seoPriceElement = document.querySelector('#seoPriceDetails div:nth-child(2) span:last-child');
+
+    if (!totalPriceElement) return;
+
+    let total = BASE_PRICE;
+    if (restaurantData.isSeoEnabled) {
+        total += SEO_EXTRA_PRICE;
+    }
+
+    const formattedPrice = (total / 10).toLocaleString('fa-IR') + ' تومان';
+    totalPriceElement.textContent = formattedPrice;
+
+    if (basePriceElement) {
+        basePriceElement.textContent = (BASE_PRICE / 10).toLocaleString('fa-IR') + ' تومان';
+    }
+
+    if (seoPriceElement) {
+        if (restaurantData.isSeoEnabled) {
+            seoPriceElement.textContent = '+' + (SEO_EXTRA_PRICE / 10).toLocaleString('fa-IR') + ' تومان';
+            seoPriceElement.classList.add('text-purple-600', 'font-bold');
+        } else {
+            seoPriceElement.textContent = '+۰ تومان';
+            seoPriceElement.classList.remove('text-purple-600', 'font-bold');
+        }
+    }
+}
+
 // Step 1 -> Step 2
 function proceedToStep2() {
     const fullNameInput = document.getElementById('fullNameInput');
@@ -482,7 +603,6 @@ function proceedToStep2() {
         return;
     }
 
-    // جداسازی نام و نام خانوادگی
     const nameParts = fullName.split(' ');
     let name = '';
     let family = '';
@@ -508,7 +628,6 @@ function backToStep1() {
 }
 
 // Step 2 -> Step 3
-let checkTimeout;
 function checkEnglishName() {
     const englishNameInput = document.getElementById('englishNameInput');
     const feedback = document.getElementById('englishNameFeedback');
@@ -722,7 +841,6 @@ function updateImagePreview() {
     preview.innerHTML = '';
     currentCount.textContent = restaurantData.uploadedImages.length;
 
-    // به‌روزرسانی نوار پیشرفت
     const progressPercentage = (restaurantData.uploadedImages.length / MAX_IMAGES) * 100;
     progressFill.style.width = `${progressPercentage}%`;
 
@@ -741,7 +859,6 @@ function updateImagePreview() {
     imageCounter.classList.remove('hidden');
     if (saveButton) saveButton.disabled = false;
 
-    // دکمه پرداخت فقط در صورتی فعال می‌شود که عکس‌ها ذخیره شده باشند
     if (uploadButton) uploadButton.disabled = !restaurantData.imagesSaved;
 
     restaurantData.uploadedImages.forEach((file, index) => {
@@ -846,10 +963,13 @@ function saveImages() {
     formData.append('restaurant_name', restaurantData.step1.restaurant_name);
     formData.append('english_name', restaurantData.step2.english_name);
     formData.append('menu_creation_type', 'company_save_only');
+    formData.append('is_seo_enabled', restaurantData.isSeoEnabled ? '1' : '0');
 
     restaurantData.uploadedImages.forEach((file, index) => {
         formData.append(`menu_images`, file);
     });
+
+    console.log('ارسال داده‌ها برای ذخیره عکس - سئو فعال:', restaurantData.isSeoEnabled);
 
     fetch("{% url 'panel:create_restaurant_modal' %}", {
         method: 'POST',
@@ -858,8 +978,15 @@ function saveImages() {
         },
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('خطا در پاسخ سرور: ' + response.status);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('پاسخ سرور:', data);
+
         if (data.success) {
             showMessage(data.message, 'success');
             restaurantData.imagesSaved = true;
@@ -868,14 +995,14 @@ function saveImages() {
             saveButton.classList.remove('from-green-500', 'to-emerald-500', 'hover:from-green-600', 'hover:to-emerald-600');
             saveButton.classList.add('from-green-600', 'to-emerald-600', 'cursor-default');
         } else {
-            showMessage(data.message, 'error');
+            showMessage(data.message || 'خطا در ذخیره عکس‌ها', 'error');
             restaurantData.imagesSaved = false;
             uploadButton.disabled = true;
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showMessage('خطا در ذخیره عکس‌ها', 'error');
+        showMessage('خطا در ارتباط با سرور: ' + error.message, 'error');
         restaurantData.imagesSaved = false;
         uploadButton.disabled = true;
     })
@@ -925,6 +1052,8 @@ function createRestaurantFinal() {
     if (processingMessage) processingMessage.textContent = 'لطفاً چند لحظه صبر کنید';
     if (progressBar) progressBar.style.width = '30%';
 
+    console.log('ایجاد رستوران نهایی - سئو فعال:', restaurantData.isSeoEnabled);
+
     fetch("{% url 'panel:create_restaurant_modal' %}", {
         method: 'POST',
         headers: {
@@ -936,18 +1065,24 @@ function createRestaurantFinal() {
             name: restaurantData.step1.name,
             family: restaurantData.step1.family,
             restaurant_name: restaurantData.step1.restaurant_name,
-            english_name: restaurantData.step2.english_name
+            english_name: restaurantData.step2.english_name,
+            is_seo_enabled: restaurantData.isSeoEnabled
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('خطا در پاسخ سرور: ' + response.status);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('پاسخ ایجاد رستوران:', data);
         if (progressBar) progressBar.style.width = '100%';
 
         if (data.success) {
             if (processingTitle) processingTitle.textContent = 'رستوران با موفقیت ایجاد شد!';
             if (processingMessage) processingMessage.textContent = 'در حال انتقال به پنل مدیریت...';
 
-            // پاک کردن رستوران در حال انتظار
             clearPendingRestaurant();
 
             setTimeout(() => {
@@ -960,7 +1095,7 @@ function createRestaurantFinal() {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('خطا در ایجاد رستوران');
+        alert('خطا در ایجاد رستوران: ' + error.message);
         showStep(2);
     });
 }
@@ -974,10 +1109,14 @@ function processCompanyMenuCreation() {
     formData.append('restaurant_name', restaurantData.step1.restaurant_name);
     formData.append('english_name', restaurantData.step2.english_name);
     formData.append('menu_creation_type', 'company');
+    formData.append('is_seo_enabled', restaurantData.isSeoEnabled ? '1' : '0');
 
     restaurantData.uploadedImages.forEach((file, index) => {
         formData.append(`menu_images`, file);
     });
+
+    console.log('ارسال داده‌ها برای پرداخت - سئو فعال:', restaurantData.isSeoEnabled);
+    console.log('قیمت نهایی:', BASE_PRICE + (restaurantData.isSeoEnabled ? SEO_EXTRA_PRICE : 0));
 
     fetch("{% url 'panel:create_restaurant_modal' %}", {
         method: 'POST',
@@ -986,8 +1125,14 @@ function processCompanyMenuCreation() {
         },
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('خطا در پاسخ سرور: ' + response.status);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('پاسخ پرداخت:', data);
         const progressBar = document.getElementById('progressBarAnimated');
         if (progressBar) progressBar.style.width = '100%';
 
@@ -998,7 +1143,6 @@ function processCompanyMenuCreation() {
             if (processingTitle) processingTitle.textContent = 'در حال انتقال به درگاه پرداخت...';
             if (processingMessage) processingMessage.textContent = 'لطفاً چند لحظه صبر کنید';
 
-            // پاک کردن رستوران در حال انتظار
             clearPendingRestaurant();
 
             setTimeout(() => {
@@ -1006,9 +1150,7 @@ function processCompanyMenuCreation() {
             }, 1500);
         } else {
             if (data.message.includes('نام انگلیسی قبلاً انتخاب شده')) {
-                // پاک کردن رستوران در حال انتظار
                 clearPendingRestaurant();
-
                 showStep(2);
                 alert('خطا: ' + data.message + '\nلطفاً نام انگلیسی دیگری انتخاب کنید.');
             } else {
@@ -1019,7 +1161,7 @@ function processCompanyMenuCreation() {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('خطا در پردازش درخواست');
+        alert('خطا در پردازش درخواست: ' + error.message);
         showStep(4);
     });
 }
@@ -1067,7 +1209,6 @@ function setupAutoFocus() {
         fullNameInput.addEventListener('input', function() {
             clearTimeout(fullNameTimeout);
 
-            // اگر کاربر space زد و بعد از 2 ثانیه چیزی تایپ نکرد، به فیلد بعدی برو
             if (this.value.includes(' ') && this.value.trim() !== '') {
                 fullNameTimeout = setTimeout(() => {
                     restaurantNameInput.focus();

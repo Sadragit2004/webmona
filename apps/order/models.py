@@ -3,6 +3,7 @@ from apps.menu.models.menufreemodels.models import Restaurant
 import utils
 from django.utils import timezone
 
+
 class Ordermenu(models.Model):
     STATUS_UNPAID = 1
     STATUS_PAID = 2
@@ -23,16 +24,29 @@ class Ordermenu(models.Model):
     image = models.ImageField(upload_to=imageFile.upload_to, verbose_name='عکس', blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
 
-    # ✅ اضافه کردن فیلد وضعیت
+    # ✅ وضعیت سفارش
     status = models.PositiveSmallIntegerField(
         choices=STATUS_CHOICES,
         default=STATUS_UNPAID,
         verbose_name='وضعیت سفارش'
     )
 
+    # ✅ گزینه سئو (اگر کاربر بخواهد منو سئو شود)
+    is_seo_enabled = models.BooleanField(default=False, verbose_name='سئوی منو فعال شود؟')
+
+    # ✅ مبلغ ثابت‌ها
+    BASE_PRICE = 99000 * 10  # مبلغ پایه
+    SEO_EXTRA_PRICE = 39000 * 10  # مبلغ اضافه برای سئو
+
     def get_fixed_price(self):
-        """تابع برای بازگرداندن مبلغ ثابت 99,000 تومان"""
-        return 99000*10
+        """
+        تابع برای بازگرداندن مبلغ نهایی
+        اگر سئو فعال باشد، مبلغ سئو هم اضافه می‌شود.
+        """
+        total = self.BASE_PRICE
+        if self.is_seo_enabled:
+            total += self.SEO_EXTRA_PRICE
+        return total
 
     @classmethod
     def get_status_choices(cls):
