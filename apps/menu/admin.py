@@ -66,18 +66,16 @@ class RestaurantAdmin(admin.ModelAdmin, BilingualAdminMixin):
     list_editable = ['isActive', 'displayOrder']
     prepopulated_fields = {"slug": ("title",)}
 
-
-
     fieldsets = (
         (_('Basic Information'), {
             'fields': (
-                'owner', 'get_title_display', 'title', 'title_en', 'slug','text',
-                  'description', 'description_en',
+                'owner', 'get_title_display', 'title', 'title_en', 'slug', 'text',
+                'description', 'description_en',
                 'isActive', 'displayOrder'
             )
         }),
         (_('Contact Information'), {
-            'fields': ('phone',   'address', 'address_en')
+            'fields': ('phone', 'address', 'address_en')
         }),
         (_('Images'), {
             'fields': ('logo', 'get_logo_preview', 'coverImage', 'get_cover_preview')
@@ -114,14 +112,12 @@ class MenuCategoryAdmin(admin.ModelAdmin):
     list_select_related = ['restaurant', 'category']
 
     def get_category_title(self, obj):
-        """نمایش عنوان دسته‌بندی دو زبانه"""
         if obj.customTitle or obj.customTitle_en:
             title_fa = obj.customTitle or '-'
             title_en = obj.customTitle_en or '-'
         else:
             title_fa = obj.category.title if obj.category else '-'
             title_en = obj.category.title_en if obj.category else '-'
-
         return format_html(
             '<div style="direction: rtl; text-align: right;">'
             '<strong>فارسی:</strong> {}<br>'
@@ -160,30 +156,36 @@ class MenuCategoryAdmin(admin.ModelAdmin):
     )
 
 
+# ----------------------------
+# FOOD ADMIN (ویرایش‌شده برای ManyToMany)
+# ----------------------------
 @admin.register(Food)
 class FoodAdmin(admin.ModelAdmin, BilingualAdminMixin):
     list_display = [
-        'get_title_display', 'restaurant', 'menuCategory', 'get_price_display',
-        'preparationTime', 'isActive', 'displayOrder', 'image_preview'
+        'get_title_display', 'get_restaurants_list', 'menuCategory',
+        'get_price_display', 'preparationTime', 'isActive', 'displayOrder', 'image_preview'
     ]
-    list_filter = ['isActive', 'restaurant', 'menuCategory', 'createdAt']
+    list_filter = ['isActive', 'restaurants', 'menuCategory', 'createdAt']
     search_fields = [
         'title', 'title_en', 'description', 'description_en',
-        'restaurant__title', 'restaurant__title_en'
+        'restaurants__title', 'restaurants__title_en'
     ]
     readonly_fields = [
         'createdAt', 'updatedAt', 'image_preview', 'sound_preview',
-        'get_title_display',   'get_price_info'
+        'get_title_display', 'get_price_info'
     ]
     list_editable = ['preparationTime', 'isActive', 'displayOrder']
     prepopulated_fields = {"slug": ("title",)}
-    list_select_related = ['restaurant', 'menuCategory__category']
+    list_select_related = ['menuCategory__category']
+
+    # 🧩 نمایش لیست رستوران‌ها به صورت کاما جدا
+    def get_restaurants_list(self, obj):
+        return ", ".join([r.title for r in obj.restaurants.all()])
+    get_restaurants_list.short_description = _('Restaurants')
 
     def get_price_display(self, obj):
-        """نمایش قیمت به صورت دو زبانه"""
         price_toman = f"{obj.price:,} تومان" if obj.price else _("Not set")
         price_usd = obj.formatted_price_usd or _("Not set")
-
         return format_html(
             '<div style="direction: rtl; text-align: right;">'
             '<strong>تومان:</strong> {}<br>'
@@ -193,22 +195,7 @@ class FoodAdmin(admin.ModelAdmin, BilingualAdminMixin):
         )
     get_price_display.short_description = _('Price')
 
-    def get_description_display(self, obj):
-        """نمایش توضیحات دو زبانه"""
-        desc_fa = obj.description or '-'
-        desc_en = obj.description_en or '-'
-        return format_html(
-            '<div style="direction: rtl; text-align: right; max-width: 300px; overflow: hidden;">'
-            '<strong>فارسی:</strong> {}<br>'
-            '<strong>English:</strong> {}'
-            '</div>',
-            desc_fa[:100] + "..." if len(desc_fa) > 100 else desc_fa,
-            desc_en[:100] + "..." if len(desc_en) > 100 else desc_en
-        )
-    get_description_display.short_description = _('Description')
-
     def get_price_info(self, obj):
-        """نمایش اطلاعات کامل قیمت"""
         exchange_rate = obj.current_exchange_rate
         return format_html(
             '<div style="direction: rtl; text-align: right; background: #f8f9fa; padding: 10px; border-radius: 5px;">'
@@ -246,8 +233,8 @@ class FoodAdmin(admin.ModelAdmin, BilingualAdminMixin):
         (_('Basic Information'), {
             'fields': (
                 'get_title_display', 'title', 'title_en', 'slug',
-                  'description', 'description_en',
-                'restaurant', 'menuCategory'
+                'description', 'description_en',
+                'restaurants', 'menuCategory'
             )
         }),
         (_('Pricing'), {
@@ -264,30 +251,6 @@ class FoodAdmin(admin.ModelAdmin, BilingualAdminMixin):
             'classes': ('collapse',)
         }),
     )
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "menuCategory":
-            if 'restaurant' in request.GET:
-                kwargs["queryset"] = MenuCategory.objects.filter(restaurant_id=request.GET['restaurant'])
-            elif hasattr(request, '_obj') and request._obj and request._obj.restaurant:
-                kwargs["queryset"] = MenuCategory.objects.filter(restaurant=request._obj.restaurant)
-            else:
-                kwargs["queryset"] = MenuCategory.objects.none()
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-    def get_changeform_initial_data(self, request):
-        initial = super().get_changeform_initial_data(request)
-        if 'restaurant' in request.GET:
-            initial['restaurant'] = request.GET['restaurant']
-        return initial
-
-    def change_view(self, request, object_id, form_url='', extra_context=None):
-        try:
-            obj = self.model.objects.get(pk=object_id)
-            request._obj = obj
-        except self.model.DoesNotExist:
-            pass
-        return super().change_view(request, object_id, form_url, extra_context)
 
 
 @admin.register(ExchangeRate)

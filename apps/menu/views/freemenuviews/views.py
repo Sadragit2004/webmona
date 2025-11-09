@@ -1,13 +1,12 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.utils.translation import gettext as _
-from django.conf import settings
-from django.db.models import Q
-from django.shortcuts import redirect
 from django.urls import reverse
-from ...models.menufreemodels.models import Restaurant, MenuCategory, Food, Category, ExchangeRate
+from django.db.models import Q
+from ...models.menufreemodels.models import Restaurant, MenuCategory, Food, Category, ExchangeRate, get_current_exchange_rate
 
-# در views.py - تابع digital_menu
+
+# صفحه اصلی منوی دیجیتال
 def digital_menu(request, restaurant_slug):
     """صفحه اصلی منوی دیجیتال"""
     restaurant = get_object_or_404(Restaurant, slug=restaurant_slug, isActive=True)
@@ -17,20 +16,19 @@ def digital_menu(request, restaurant_slug):
     if lang not in ['fa', 'en']:
         lang = 'fa'
 
-    # دریافت دسته‌بندی‌های فعال رستوران
+    # دریافت دسته‌بندی‌های فعال مربوط به رستوران
     menu_categories = MenuCategory.objects.filter(
         restaurant=restaurant,
         isActive=True
     ).select_related('category').prefetch_related('foods')
 
-    # دریافت همه غذاهای فعال رستوران
+    # دریافت همه غذاهایی که این رستوران در لیست‌شان دارد
     foods = Food.objects.filter(
-        restaurant=restaurant,
+        restaurants=restaurant,
         isActive=True
-    ).select_related('menuCategory__category')
+    ).select_related('menuCategory__category').distinct()
 
     # دریافت نرخ ارز فعلی
-    from ...models.menufreemodels.models import get_current_exchange_rate
     exchange_rate = get_current_exchange_rate()
 
     context = {
@@ -48,19 +46,21 @@ def digital_menu(request, restaurant_slug):
     else:
         return render(request, 'menu_app/free/restaurant.html', context)
 
+
+
 def get_foods_by_category(request, restaurant_slug, category_id):
     """دریافت غذاها بر اساس دسته‌بندی (API)"""
     restaurant = get_object_or_404(Restaurant, slug=restaurant_slug, isActive=True)
     lang = request.GET.get('lang', 'fa')
 
     if category_id == 'all':
-        foods = Food.objects.filter(restaurant=restaurant, isActive=True)
+        foods = Food.objects.filter(restaurants=restaurant, isActive=True)
     else:
         menu_category = get_object_or_404(MenuCategory, id=category_id, restaurant=restaurant, isActive=True)
-        foods = Food.objects.filter(menuCategory=menu_category, isActive=True)
+        foods = Food.objects.filter(menuCategory=menu_category, restaurants=restaurant, isActive=True)
 
     foods_data = []
-    for food in foods:
+    for food in foods.distinct():
         foods_data.append({
             'id': food.id,
             'title': food.title_en if lang == 'en' and food.title_en else food.title,
@@ -74,6 +74,8 @@ def get_foods_by_category(request, restaurant_slug, category_id):
         })
 
     return JsonResponse({'foods': foods_data})
+
+
 
 def search_foods(request, restaurant_slug):
     """جستجوی غذاها (API)"""
@@ -81,21 +83,20 @@ def search_foods(request, restaurant_slug):
     query = request.GET.get('q', '').strip()
     lang = request.GET.get('lang', 'fa')
 
+    base_qs = Food.objects.filter(restaurants=restaurant, isActive=True)
+
     if query:
-        foods = Food.objects.filter(
-            restaurant=restaurant,
-            isActive=True
-        ).filter(
+        foods = base_qs.filter(
             Q(title__icontains=query) |
             Q(title_en__icontains=query) |
             Q(description__icontains=query) |
             Q(description_en__icontains=query)
         )
     else:
-        foods = Food.objects.filter(restaurant=restaurant, isActive=True)
+        foods = base_qs
 
     foods_data = []
-    for food in foods:
+    for food in foods.distinct():
         foods_data.append({
             'id': food.id,
             'title': food.title_en if lang == 'en' and food.title_en else food.title,
@@ -109,6 +110,8 @@ def search_foods(request, restaurant_slug):
         })
 
     return JsonResponse({'foods': foods_data})
+
+
 
 def change_language(request, restaurant_slug):
     """تغییر زبان"""
@@ -119,6 +122,3 @@ def change_language(request, restaurant_slug):
     # استفاده از reverse و اضافه کردن query parameter
     url = reverse('menu:digital_menu', kwargs={'restaurant_slug': restaurant_slug})
     return redirect(f"{url}?lang={lang}")
-
-
-

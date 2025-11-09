@@ -202,8 +202,16 @@ class MenuCategory(models.Model):
 # ----------------------------
 # Food
 # ----------------------------
+# ----------------------------
+# Food
+# ----------------------------
 class Food(BaseModel):
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='foods', null=True, blank=True)
+    restaurants = models.ManyToManyField(
+        'Restaurant',
+        related_name='foods',
+        blank=True,
+        verbose_name='رستوران‌ها'
+    )
     menuCategory = models.ForeignKey(MenuCategory, on_delete=models.CASCADE, related_name='foods', null=True, blank=True)
     description = models.TextField(null=True, blank=True, verbose_name="توضیح فارسی")
     description_en = models.TextField(null=True, blank=True, verbose_name="توضیح انگلیسی")
@@ -212,9 +220,17 @@ class Food(BaseModel):
     price = models.PositiveIntegerField(null=True, blank=True, verbose_name="قیمت (تومان)")
     price_usd_cents = models.PositiveIntegerField(null=True, blank=True, verbose_name="قیمت (سنت)")
     preparationTime = models.IntegerField(help_text="زمان آماده‌سازی (دقیقه)", null=True, blank=True)
+    created_by = models.CharField(
+        max_length=20,
+        choices=[('company', 'شرکت'), ('restaurant', 'رستوران')],
+        default='restaurant',
+        verbose_name="ایجاد شده توسط"
+    )
 
     class Meta:
         ordering = ['displayOrder']
+
+
 
     def save(self, *args, **kwargs):
         if self.price is not None and self.price_usd_cents is None:
@@ -224,12 +240,28 @@ class Food(BaseModel):
             base_slug = slugify(self.title_en or self.title)
             slug = base_slug
             counter = 1
-            while Food.objects.filter(slug=slug, restaurant=self.restaurant).exclude(id=self.id).exists():
+            # ❌ اصلاح شده: حذف شرط restaurant چون فیلد جداگانه نیست
+            while Food.objects.filter(slug=slug).exclude(id=self.id).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
 
         super().save(*args, **kwargs)
+
+
+    def is_selected_by_restaurant(self, restaurant):
+        """بررسی می‌کند که آیا این غذا توسط رستوران انتخاب شده است"""
+        return self.restaurants.filter(id=restaurant.id).exists()
+
+    def toggle_for_restaurant(self, restaurant):
+        """تغییر وضعیت انتخاب غذا برای رستوران"""
+        if self.restaurants.filter(id=restaurant.id).exists():
+            self.restaurants.remove(restaurant)
+            return False
+        else:
+            self.restaurants.add(restaurant)
+            return True
+        
 
     def update_usd_price(self, exchange_rate=None):
         if self.price is not None:
@@ -271,7 +303,7 @@ class Food(BaseModel):
                     return f"${usd_amount:.2f}"
             return "$0.00"
         else:
-            from django.contrib.humanize.templatetags.humanize import intcomma
+            from django.contrib.humanize.templatags.humanize import intcomma
             return f"{intcomma(self.price or 0)} تومان"
 
     def __str__(self):

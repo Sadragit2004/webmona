@@ -21,7 +21,7 @@ urlpatterns = [
     path('<str:slug>/foods/category/<str:category_id>/', viewsfree.get_foods_by_category, name='get_foods_by_category'),
     path('<str:slug>/foods/update-order/', viewsfree.update_food_order, name='update_food_order'),
     path('<slug:slug>/categories/tree/', viewsfree.get_category_tree, name='category-tree'),
-    path('<slug:slug>/categories/quick-add/', viewsfree.quick_add_menu_category, name='quick-add-category'),
+    path('<slug:slug>/categories/quick-add-multiple/', viewsfree.quick_add_menu_category, name='quick_add_menu_categories'),
     path('my-menus/', viewsfree.user_menus_view, name='user_menus'),
     path('generate-qr/<slug:restaurant_slug>/', viewsfree.generate_qr_code, name='generate_qr'),
     path('check-pending-restaurant/', viewsfree.check_pending_restaurant, name='check_pending_restaurant'),
@@ -30,5 +30,7 @@ urlpatterns = [
     path('orders/<int:order_id>/update-status/', viewsfree.update_order_status, name='update_order_status'),
     path('orders/<int:order_id>/payment/', viewsfree.process_payment, name='process_payment'),
     path('orders/<int:order_id>/cancel/', viewsfree.cancel_order, name='cancel_order'),
+    path('<slug:slug>/foods/<int:food_id>/toggle-selection/', viewsfree.toggle_food_selection, name='toggle_food_selection'),
+    path('<slug:slug>/foods/<int:food_id>/assign-category/', viewsfree.assign_food_to_category, name='assign_food_to_category'),
 
 ]

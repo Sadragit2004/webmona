@@ -1,4 +1,3 @@
-# views.py
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponseRedirect
 from django.views.decorators.http import require_http_methods
@@ -7,6 +6,13 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 import json
 from apps.menu.models.menufreemodels.models import Restaurant, Category, MenuCategory, Food
+from apps.order.models import Ordermenu, MenuImage
+from django.utils import timezone
+from django.db.models import Count, Sum
+from datetime import datetime, timedelta
+import qrcode
+import base64
+from io import BytesIO
 
 # دکوراتور برای بررسی مالکیت رستوران
 def restaurant_owner_required(view_func):
@@ -23,15 +29,6 @@ def restaurant_owner_required(view_func):
         request.restaurant = restaurant
         return view_func(request, slug, *args, **kwargs)
     return wrapper
-
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-from django.db.models import Count, Sum, Q
-from datetime import datetime, timedelta
-from apps.menu.models.menufreemodels.models import Restaurant
-from apps.order.models import Ordermenu, MenuImage
 
 @login_required
 def panel(request):
@@ -56,7 +53,7 @@ def panel(request):
     # آمار کلی
     today = timezone.now().date()
 
-    # آمار سفارشات امروز - استفاده از created_at
+    # آمار سفارشات امروز
     today_orders_count = user_orders.filter(
         created_at__date=today
     ).count()
@@ -70,7 +67,7 @@ def panel(request):
     # محاسبه درآمد
     today_revenue = paid_orders.filter(
         created_at__date=today
-    ).count() * 99000  # هر سفارش 99,000 تومان
+    ).count() * 99000
 
     monthly_revenue = paid_orders.filter(
         created_at__date__gte=month_start
@@ -79,22 +76,16 @@ def panel(request):
     context = {
         'restaurants': user_restaurants,
         'has_restaurant': user_restaurants.exists(),
-
-        # سفارشات
         'user_orders': user_orders,
         'paid_orders': paid_orders,
         'confirmed_orders': confirmed_orders,
         'delivered_orders': delivered_orders,
         'unpaid_orders': unpaid_orders,
-
-        # آمار
         'today_orders': today_orders_count,
         'monthly_orders': monthly_orders_count,
         'today_revenue': today_revenue,
         'monthly_revenue': monthly_revenue,
         'purchased_menus': paid_orders.count(),
-
-        # آمار نمونه (می‌تونی با داده‌های واقعی جایگزین کنی)
         'today_views': 150,
         'average_rating': 4.5,
     }
@@ -167,9 +158,6 @@ def process_payment(request, order_id):
 
     if request.method == 'POST':
         try:
-            # در اینجا منطق پرداخت رو پیاده‌سازی کن
-            # برای نمونه، وضعیت رو به پرداخت شده تغییر می‌دیم
-
             order.status = Ordermenu.STATUS_PAID
             order.isfinaly = True
             order.isActive = True
@@ -190,7 +178,7 @@ def process_payment(request, order_id):
     # نمایش صفحه پرداخت
     context = {
         'order': order,
-        'amount': order.get_fixed_price(),  # 99,000 تومان
+        'amount': order.get_fixed_price(),
     }
 
     return render(request, 'panel_app/free/payment_page.html', context)
@@ -209,7 +197,6 @@ def cancel_order(request, order_id):
             })
 
         try:
-            # حذف سفارش
             order.delete()
 
             return JsonResponse({
@@ -254,7 +241,6 @@ def order_list(request):
     }
 
     return render(request, 'panel_app/free/order_list.html', context)
-
 
 @login_required
 def create_restaurant(request):
@@ -312,15 +298,13 @@ def create_restaurant(request):
 
     return render(request, 'panel_app/free/create_restaurant.html')
 
-
-
 @login_required
 @restaurant_owner_required
 def restaurant_admin(request, slug):
     """پنل مدیریت منوی رستوران"""
     restaurant = request.restaurant
 
-    # دریافت دسته‌بندی‌های رستوران (همه، نه فقط فعال)
+    # دریافت دسته‌بندی‌های رستوران
     menu_categories = MenuCategory.objects.filter(
         restaurant=restaurant
     ).select_related('category').order_by('displayOrder')
@@ -330,26 +314,40 @@ def restaurant_admin(request, slug):
         id__in=menu_categories.values_list('category_id', flat=True)
     )
 
-    # دریافت غذاهای رستوران
-    foods = Food.objects.filter(
-        restaurant=restaurant
+    # دریافت غذاهای رستوران (غذاهای انتخاب شده)
+    selected_foods = Food.objects.filter(
+        restaurants=restaurant
     ).select_related('menuCategory__category').order_by('displayOrder')
+
+    # دریافت تمام غذاهای شرکت (برای نمایش همه غذاها)
+    all_company_foods = Food.objects.filter(
+       
+        isActive=True
+    ).select_related('menuCategory__category').order_by('displayOrder')
+
+    # لیست ID غذاهای انتخاب شده
+    selected_food_ids = list(selected_foods.values_list('id', flat=True))
 
     context = {
         'restaurant': restaurant,
         'menu_categories': menu_categories,
         'all_categories': all_categories,
-        'foods': foods,
+        'foods': selected_foods,  # غذاهای انتخاب شده
+        'all_foods': all_company_foods,  # تمام غذاهای شرکت
+        'selected_food_ids': selected_food_ids,  # لیست ID غذاهای انتخاب شده
         'categories': Category.objects.filter(isActive=True)
     }
     return render(request, 'panel_app/free/restaurant_admin.html', context)
+
+
+
 
 @login_required
 @restaurant_owner_required
 @csrf_exempt
 @require_http_methods(["POST"])
 def add_food(request, slug):
-    """افزودن غذای جدید"""
+    """افزودن غذای جدید - اصلاح شده برای Many-to-Many"""
     restaurant = request.restaurant
 
     try:
@@ -358,7 +356,6 @@ def add_food(request, slug):
 
         # ایجاد غذای جدید
         food = Food(
-            restaurant=restaurant,
             title=data.get('title'),
             description=data.get('description', ''),
             price=data.get('price', 0),
@@ -380,7 +377,11 @@ def add_food(request, slug):
         if 'sound' in files:
             food.sound = files['sound']
 
+        # ابتدا غذا را ذخیره کنید
         food.save()
+
+        # سپس رستوران را به رابطه Many-to-Many اضافه کنید
+        food.restaurants.add(restaurant)
 
         return JsonResponse({
             'success': True,
@@ -399,9 +400,9 @@ def add_food(request, slug):
 @csrf_exempt
 @require_http_methods(["POST"])
 def update_food(request, slug, food_id):
-    """ویرایش غذا"""
+    """ویرایش غذا - اصلاح شده برای Many-to-Many"""
     restaurant = request.restaurant
-    food = get_object_or_404(Food, id=food_id, restaurant=restaurant)
+    food = get_object_or_404(Food, id=food_id, restaurants=restaurant)
 
     try:
         data = request.POST
@@ -448,15 +449,21 @@ def update_food(request, slug, food_id):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def delete_food(request, slug, food_id):
-    """حذف غذا"""
+    """حذف غذا - اصلاح شده برای Many-to-Many"""
     restaurant = request.restaurant
-    food = get_object_or_404(Food, id=food_id, restaurant=restaurant)
+    food = get_object_or_404(Food, id=food_id, restaurants=restaurant)
 
     try:
-        food.delete()
+        # حذف رابطه با رستوران (نه خود غذا)
+        food.restaurants.remove(restaurant)
+
+        # اگر غذا دیگر به هیچ رستورانی مرتبط نیست، آن را حذف کن
+        if not food.restaurants.exists():
+            food.delete()
+
         return JsonResponse({
             'success': True,
-            'message': 'غذا با موفقیت حذف شد'
+            'message': 'غذا با موفقیت از رستوران حذف شد'
         })
     except Exception as e:
         return JsonResponse({
@@ -471,7 +478,7 @@ def delete_food(request, slug, food_id):
 def toggle_food_status(request, slug, food_id):
     """تغییر وضعیت فعال/غیرفعال غذا"""
     restaurant = request.restaurant
-    food = get_object_or_404(Food, id=food_id, restaurant=restaurant)
+    food = get_object_or_404(Food, id=food_id, restaurants=restaurant)
 
     try:
         food.isActive = not food.isActive
@@ -589,7 +596,6 @@ def delete_menu_category(request, slug, menu_category_id):
                 'message': 'امکان حذف دسته‌بندی وجود ندارد. ابتدا غذاهای این دسته‌بندی را حذف یا انتقال دهید.'
             })
 
-        # حذف دسته‌بندی منو
         menu_category.delete()
 
         return JsonResponse({
@@ -657,13 +663,14 @@ def update_restaurant_settings(request, slug):
             'message': f'خطا در به‌روزرسانی تنظیمات: {str(e)}'
         })
 
+
 @login_required
 @restaurant_owner_required
 def get_foods_by_category(request, slug, category_id=None):
     """دریافت غذاها بر اساس دسته‌بندی"""
     restaurant = request.restaurant
 
-    foods = Food.objects.filter(restaurant=restaurant)
+    foods = Food.objects.filter(restaurants=restaurant)
 
     if category_id and category_id != 'all':
         foods = foods.filter(menuCategory__category__id=category_id)
@@ -700,7 +707,7 @@ def update_food_order(request, slug):
         order_data = data.get('order', [])
 
         for item in order_data:
-            food = get_object_or_404(Food, id=item['id'], restaurant=restaurant)
+            food = get_object_or_404(Food, id=item['id'], restaurants=restaurant)
             food.displayOrder = item['order']
             food.save()
 
@@ -721,11 +728,9 @@ def restaurant_context(request):
     context = {}
 
     if request.user.is_authenticated:
-        # دریافت رستوران‌های کاربر
         user_restaurants = Restaurant.objects.filter(owner=request.user, isActive=True)
         context['user_restaurants'] = user_restaurants
 
-        # اگر در session رستوران جاری ذخیره شده
         current_restaurant_slug = request.session.get('current_restaurant_slug')
         if current_restaurant_slug:
             try:
@@ -742,16 +747,12 @@ def restaurant_context(request):
 
     return context
 
-
-
-# views.py - فقط توسعه ویو create_restaurant_modal
 @login_required
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_restaurant_modal(request):
-    """مدیریت افتتاح رستوران از طریق مودال - نسخه اصلاح شده"""
+    """مدیریت افتتاح رستوران از طریق مودال"""
     try:
-        # بررسی نوع درخواست (JSON یا FormData)
         if request.content_type == 'application/json':
             data = json.loads(request.body)
             files = None
@@ -762,20 +763,17 @@ def create_restaurant_modal(request):
         step = data.get('step')
         menu_creation_type = data.get('menu_creation_type')
 
-        # مرحله 1: دریافت نام و نام خانوادگی و نام رستوران
         if step == 1:
             name = data.get('name', '').strip()
             family = data.get('family', '').strip()
             restaurant_name = data.get('restaurant_name', '').strip()
 
-            # اعتبارسنجی
             if not name or not family or not restaurant_name:
                 return JsonResponse({
                     'success': False,
                     'message': 'لطفاً تمام فیلدها را پر کنید'
                 })
 
-            # ذخیره در session
             request.session['restaurant_data'] = {
                 'step1': {
                     'name': name,
@@ -791,7 +789,6 @@ def create_restaurant_modal(request):
                 'next_step': 2
             })
 
-        # مرحله 2: دریافت نام انگلیسی
         elif step == 2:
             english_name = data.get('english_name', '').strip().lower()
 
@@ -801,14 +798,12 @@ def create_restaurant_modal(request):
                     'message': 'لطفاً نام انگلیسی را وارد کنید'
                 })
 
-            # بررسی تکراری نبودن
             if Restaurant.objects.filter(english_name=english_name).exists():
                 return JsonResponse({
                     'success': False,
                     'message': 'این نام انگلیسی قبلاً انتخاب شده است'
                 })
 
-            # ذخیره در session
             restaurant_data = request.session.get('restaurant_data', {})
             restaurant_data['step2'] = {'english_name': english_name}
             request.session['restaurant_data'] = restaurant_data
@@ -820,35 +815,29 @@ def create_restaurant_modal(request):
                 'next_step': 3
             })
 
-        # مرحله 3: ایجاد رستوران (ساخت توسط خود کاربر)
         elif step == 3:
-            # دریافت مستقیم داده‌ها
             name = data.get('name', '').strip()
             family = data.get('family', '').strip()
             restaurant_name = data.get('restaurant_name', '').strip()
             english_name = data.get('english_name', '').strip().lower()
             is_seo_enabled = data.get('is_seo_enabled', False)
 
-            # اعتبارسنجی نهایی
             if not name or not family or not restaurant_name or not english_name:
                 return JsonResponse({
                     'success': False,
                     'message': 'اطلاعات ناقص است. لطفاً از ابتدا شروع کنید'
                 })
 
-            # بررسی نهایی تکراری نبودن نام انگلیسی
             if Restaurant.objects.filter(english_name=english_name).exists():
                 return JsonResponse({
                     'success': False,
                     'message': 'این نام انگلیسی قبلاً انتخاب شده است'
                 })
 
-            # به‌روزرسانی نام و نام خانوادگی کاربر
             request.user.name = name
             request.user.family = family
             request.user.save()
 
-            # ایجاد رستوران
             restaurant = Restaurant(
                 owner=request.user,
                 title=restaurant_name,
@@ -857,7 +846,6 @@ def create_restaurant_modal(request):
             )
             restaurant.save()
 
-            # پاک کردن session
             if 'restaurant_data' in request.session:
                 del request.session['restaurant_data']
 
@@ -867,35 +855,27 @@ def create_restaurant_modal(request):
                 'redirect_url': f'/panel/{restaurant.slug}/admin/'
             })
 
-        # مرحله جدید: ایجاد با شرکت (آپلود عکس‌ها)
         elif step == 'create_with_company':
-            # دریافت داده‌ها
             name = data.get('name', '').strip()
             family = data.get('family', '').strip()
             restaurant_name = data.get('restaurant_name', '').strip()
             english_name = data.get('english_name', '').strip().lower()
-
-            # دریافت وضعیت سئو و تبدیل به boolean
             is_seo_enabled_str = data.get('is_seo_enabled', '0')
             is_seo_enabled = is_seo_enabled_str == '1'
 
-            # اعتبارسنجی
             if not name or not family or not restaurant_name or not english_name:
                 return JsonResponse({
                     'success': False,
                     'message': 'اطلاعات ناقص است'
                 })
 
-            # بررسی تکراری نبودن نام انگلیسی
             if Restaurant.objects.filter(english_name=english_name).exists():
                 return JsonResponse({
                     'success': False,
                     'message': 'این نام انگلیسی قبلاً انتخاب شده است'
                 })
 
-            # اگر فقط ذخیره عکس‌ها باشد (بدون پرداخت)
             if menu_creation_type == 'company_save_only':
-                # ذخیره اطلاعات در session برای استفاده بعدی
                 request.session['pending_restaurant'] = {
                     'name': name,
                     'family': family,
@@ -905,14 +885,12 @@ def create_restaurant_modal(request):
                     'menu_images_count': 0
                 }
 
-                # ذخیره عکس‌ها در session به صورت موقت
                 menu_images = files.getlist('menu_images') if files else []
                 saved_images_count = 0
 
-                # ذخیره اطلاعات عکس‌ها در session (فقط نام و سایز)
                 image_info_list = []
                 for image in menu_images:
-                    if saved_images_count < 10:  # حداکثر 10 عکس
+                    if saved_images_count < 10:
                         image_info_list.append({
                             'name': image.name,
                             'size': image.size,
@@ -924,7 +902,6 @@ def create_restaurant_modal(request):
                 request.session['pending_restaurant']['menu_images_count'] = saved_images_count
                 request.session.modified = True
 
-                # به‌روزرسانی نام کاربر
                 request.user.name = name
                 request.user.family = family
                 request.user.save()
@@ -934,10 +911,7 @@ def create_restaurant_modal(request):
                     'message': f'عکس‌ها با موفقیت ذخیره شد ({saved_images_count} عکس)',
                     'saved_images': saved_images_count
                 })
-
-            # اگر پرداخت باشد
             else:
-                # ایجاد رستوران
                 restaurant = Restaurant(
                     owner=request.user,
                     title=restaurant_name,
@@ -946,8 +920,6 @@ def create_restaurant_modal(request):
                 )
                 restaurant.save()
 
-                # ایجاد سفارش برای پرداخت
-                from apps.order.models import Ordermenu, MenuImage
                 order = Ordermenu.objects.create(
                     restaurant=restaurant,
                     isfinaly=False,
@@ -956,19 +928,17 @@ def create_restaurant_modal(request):
                     is_seo_enabled=is_seo_enabled
                 )
 
-                # ذخیره عکس‌ها
                 menu_images = files.getlist('menu_images') if files else []
                 saved_images_count = 0
 
                 for image in menu_images:
-                    if saved_images_count < 10:  # حداکثر 10 عکس
+                    if saved_images_count < 10:
                         MenuImage.objects.create(
                             order=order,
                             image=image
                         )
                         saved_images_count += 1
 
-                # پاک کردن session
                 if 'pending_restaurant' in request.session:
                     del request.session['pending_restaurant']
 
@@ -985,7 +955,6 @@ def create_restaurant_modal(request):
             'message': f'خطا در پردازش: {str(e)}'
         })
 
-
 @login_required
 def check_english_name(request):
     """بررسی تکراری نبودن نام انگلیسی"""
@@ -994,7 +963,6 @@ def check_english_name(request):
     if not english_name:
         return JsonResponse({'available': False, 'message': 'نام انگلیسی نمی‌تواند خالی باشد'})
 
-    # بررسی وجود نام انگلیسی
     exists = Restaurant.objects.filter(english_name=english_name).exists()
 
     if exists:
@@ -1009,15 +977,11 @@ def check_english_name(request):
             'menu_url': f'/menu/{english_name}'
         })
 
-
-
-# views.py - اضافه کردن ویو جدید
 @login_required
 @restaurant_owner_required
 def get_category_tree(request, slug):
     """دریافت درخت دسته‌بندی‌ها به صورت سلسله‌مراتبی"""
     try:
-        # دریافت فقط دسته‌بندی‌های مادر (parent=None)
         parent_categories = Category.objects.filter(
             parent=None,
             isActive=True
@@ -1033,7 +997,6 @@ def get_category_tree(request, slug):
                 'subcategories': []
             }
 
-            # اضافه کردن زیردسته‌ها
             for child in parent.active_subcategories:
                 child_data = {
                     'id': child.id,
@@ -1056,71 +1019,74 @@ def get_category_tree(request, slug):
             'message': f'خطا در دریافت دسته‌بندی‌ها: {str(e)}'
         })
 
-
-
-# views.py - ویو برای افزودن سریع دسته‌بندی
 @login_required
 @restaurant_owner_required
 @csrf_exempt
 @require_http_methods(["POST"])
 def quick_add_menu_category(request, slug):
-    """افزودن سریع دسته‌بندی به منوی رستوران"""
+    """افزودن سریع چندین دسته‌بندی به منوی رستوران"""
     restaurant = request.restaurant
 
     try:
         data = json.loads(request.body)
-        category_id = data.get('category_id')
+        category_ids = data.get('category_ids', [])
 
-        if not category_id:
+        if not category_ids:
             return JsonResponse({
                 'success': False,
-                'message': 'لطفاً یک دسته‌بندی انتخاب کنید'
+                'message': 'لطفاً حداقل یک دسته‌بندی انتخاب کنید'
             })
 
-        # بررسی وجود دسته‌بندی
-        category = get_object_or_404(Category, id=category_id, isActive=True)
-
-        # بررسی تکراری نبودن
-        if MenuCategory.objects.filter(restaurant=restaurant, category=category).exists():
+        categories = Category.objects.filter(id__in=category_ids, isActive=True)
+        if len(categories) != len(category_ids):
             return JsonResponse({
                 'success': False,
-                'message': 'این دسته‌بندی قبلاً به منو اضافه شده است'
+                'message': 'برخی از دسته‌بندی‌ها یافت نشدند'
             })
 
-        # ایجاد دسته‌بندی منو
-        menu_category = MenuCategory(
-            restaurant=restaurant,
-            category=category,
-            isActive=True
-        )
-        menu_category.save()
+        added_categories = []
+        skipped_categories = []
 
-        return JsonResponse({
-            'success': True,
-            'message': 'دسته‌بندی با موفقیت به منو اضافه شد',
-            'menu_category': {
+        for category in categories:
+            if MenuCategory.objects.filter(restaurant=restaurant, category=category).exists():
+                skipped_categories.append(category.title)
+                continue
+
+            menu_category = MenuCategory(
+                restaurant=restaurant,
+                category=category,
+                isActive=True
+            )
+            menu_category.save()
+            added_categories.append({
                 'id': menu_category.id,
                 'title': category.title,
                 'image_url': menu_category.displayImage.url if menu_category.displayImage else '',
                 'has_custom_image': bool(menu_category.customImage)
-            }
+            })
+
+        message = ""
+        if added_categories:
+            message += f"{len(added_categories)} دسته‌بندی با موفقیت به منو اضافه شد"
+        if skipped_categories:
+            message += f" - {len(skipped_categories)} دسته‌بندی قبلاً اضافه شده بودند"
+
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'added_categories': added_categories,
+            'skipped_categories': skipped_categories
         })
 
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': f'خطا در افزودن دسته‌بندی: {str(e)}'
+            'message': f'خطا در افزودن دسته‌بندی‌ها: {str(e)}'
         })
-
-
-
 
 @login_required
 def user_menus_view(request):
-    # رستوران‌هایی که مالک آن‌ها کاربر فعلی است
     user_restaurants = request.user.restaurants.all()
-
-    # منوهای مربوط به همان رستوران‌ها
     menu_categories = MenuCategory.objects.filter(
         restaurant__in=user_restaurants
     ).select_related('restaurant', 'category')
@@ -1129,22 +1095,11 @@ def user_menus_view(request):
         'menu_categories': menu_categories,
     })
 
-
-    # views.py
-import qrcode
-import base64
-from io import BytesIO
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-
 @login_required
 def generate_qr_code(request, restaurant_slug):
     restaurant = get_object_or_404(Restaurant, slug=restaurant_slug, owner=request.user)
-
-    # ساخت آدرس کامل منو
     menu_url = request.build_absolute_uri(f'/menu/{restaurant.slug}/')
 
-    # تولید QR Code
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -1154,15 +1109,11 @@ def generate_qr_code(request, restaurant_slug):
     qr.add_data(menu_url)
     qr.make(fit=True)
 
-    # تبدیل به تصویر
     img = qr.make_image(fill_color="black", back_color="white")
-
-    # ذخیره در بافر
     buffer = BytesIO()
     img.save(buffer, format='PNG')
     buffer.seek(0)
 
-    # تبدیل به base64 برای نمایش در HTML
     img_str = base64.b64encode(buffer.getvalue()).decode()
 
     return JsonResponse({
@@ -1170,8 +1121,6 @@ def generate_qr_code(request, restaurant_slug):
         'qr_code': f'data:image/png;base64,{img_str}',
         'menu_url': menu_url
     })
-
-
 
 @login_required
 def check_pending_restaurant(request):
@@ -1200,3 +1149,70 @@ def clear_pending_restaurant(request):
 
 
 
+# views.py
+@login_required
+@restaurant_owner_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def toggle_food_selection(request, slug, food_id):
+    """تغییر وضعیت انتخاب غذا برای رستوران"""
+    restaurant = request.restaurant
+
+    try:
+        food = get_object_or_404(Food, id=food_id, isActive=True)
+
+        # تغییر وضعیت انتخاب
+        if food.restaurants.filter(id=restaurant.id).exists():
+            food.restaurants.remove(restaurant)
+            selected = False
+            message = "غذا از منو حذف شد"
+        else:
+            food.restaurants.add(restaurant)
+            selected = True
+            message = "غذا به منو اضافه شد"
+
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'selected': selected,
+            'food_id': food_id
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'خطا در تغییر وضعیت: {str(e)}'
+        })
+
+@login_required
+@restaurant_owner_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def assign_food_to_category(request, slug, food_id):
+    """انتساب غذا به دسته‌بندی منوی رستوران"""
+    restaurant = request.restaurant
+
+    try:
+        data = json.loads(request.body)
+        category_id = data.get('category_id')
+
+        food = get_object_or_404(Food, id=food_id, restaurants=restaurant)
+
+        if category_id:
+            menu_category = get_object_or_404(MenuCategory, id=category_id, restaurant=restaurant)
+            food.menuCategory = menu_category
+        else:
+            food.menuCategory = None
+
+        food.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'دسته‌بندی غذا به‌روزرسانی شد'
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'خطا در انتساب دسته‌بندی: {str(e)}'
+        })
