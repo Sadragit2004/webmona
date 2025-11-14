@@ -13,6 +13,9 @@ from datetime import datetime, timedelta
 import qrcode
 import base64
 from io import BytesIO
+from django.urls import reverse
+from django.contrib import messages
+
 
 # دکوراتور برای بررسی مالکیت رستوران
 def restaurant_owner_required(view_func):
@@ -36,7 +39,10 @@ def panel(request):
     user_restaurants = Restaurant.objects.filter(owner=request.user, isActive=True)
 
     # دریافت سفارشات کاربر
-    user_orders = Ordermenu.objects.filter(restaurant__owner=request.user)
+    user_orders = Ordermenu.objects.filter(restaurant__owner=request.user).select_related('restaurant').prefetch_related('images')
+
+    # محاسبه آمار واقعی
+    today = timezone.now().date()
 
     # سفارشات پرداخت شده
     paid_orders = user_orders.filter(status=Ordermenu.STATUS_PAID)
@@ -50,28 +56,23 @@ def panel(request):
     # سفارشات پرداخت نشده
     unpaid_orders = user_orders.filter(status=Ordermenu.STATUS_UNPAID)
 
-    # آمار کلی
-    today = timezone.now().date()
-
     # آمار سفارشات امروز
-    today_orders_count = user_orders.filter(
-        created_at__date=today
-    ).count()
+    today_orders_count = user_orders.filter(created_at__date=today).count()
 
     # آمار سفارشات این ماه
     month_start = today.replace(day=1)
-    monthly_orders_count = user_orders.filter(
-        created_at__date__gte=month_start
-    ).count()
+    monthly_orders_count = user_orders.filter(created_at__date__gte=month_start).count()
 
-    # محاسبه درآمد
-    today_revenue = paid_orders.filter(
-        created_at__date=today
-    ).count() * 99000
+    # محاسبه درآمد واقعی
+    today_revenue = sum(order.final_price for order in user_orders.filter(
+        created_at__date=today,
+        status__in=[Ordermenu.STATUS_PAID, Ordermenu.STATUS_CONFIRMED, Ordermenu.STATUS_DELIVERED]
+    )) // 10  # تبدیل به تومان
 
-    monthly_revenue = paid_orders.filter(
-        created_at__date__gte=month_start
-    ).count() * 99000
+    monthly_revenue = sum(order.final_price for order in user_orders.filter(
+        created_at__date__gte=month_start,
+        status__in=[Ordermenu.STATUS_PAID, Ordermenu.STATUS_CONFIRMED, Ordermenu.STATUS_DELIVERED]
+    )) // 10  # تبدیل به تومان
 
     context = {
         'restaurants': user_restaurants,
@@ -86,8 +87,6 @@ def panel(request):
         'today_revenue': today_revenue,
         'monthly_revenue': monthly_revenue,
         'purchased_menus': paid_orders.count(),
-        'today_views': 150,
-        'average_rating': 4.5,
     }
 
     return render(request, 'panel_app/free/panel.html', context)
@@ -95,17 +94,27 @@ def panel(request):
 @login_required
 def order_detail(request, order_id):
     """جزئیات سفارش"""
-    order = get_object_or_404(Ordermenu, id=order_id, restaurant__owner=request.user)
+    order = get_object_or_404(
+        Ordermenu,
+        id=order_id,
+        restaurant__owner=request.user
+    )
 
     # دریافت عکس‌های مربوط به سفارش
     menu_images = order.images.all()
 
+    # اطلاعات وضعیت برای نمایش در تمپلیت
+    status_info = order.get_status_info()
+
     context = {
         'order': order,
         'menu_images': menu_images,
+        'status_info': status_info,
     }
 
     return render(request, 'panel_app/free/order_detail.html', context)
+
+
 
 @login_required
 def update_order_status(request, order_id):
@@ -298,12 +307,26 @@ def create_restaurant(request):
 
     return render(request, 'panel_app/free/create_restaurant.html')
 
+from django.utils import timezone
+from datetime import timedelta
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+
 @login_required
 @restaurant_owner_required
 def restaurant_admin(request, slug):
     """پنل مدیریت منوی رستوران"""
     restaurant = request.restaurant
 
+    # بررسی انقضا - اگر منقضی شده، ریدایرکت کن
+    if restaurant.is_expired:
+        messages.error(request, "❌ دسترسی به پنل مدیریت امکان‌پذیر نیست. رستوران شما منقضی شده است.")
+        return redirect('/panel/')
+
+    # بقیه کدها فقط اگر منقضی نشده باشد اجرا می‌شود
     # دریافت دسته‌بندی‌های رستوران
     menu_categories = MenuCategory.objects.filter(
         restaurant=restaurant
@@ -321,21 +344,29 @@ def restaurant_admin(request, slug):
 
     # دریافت تمام غذاهای شرکت (برای نمایش همه غذاها)
     all_company_foods = Food.objects.filter(
-       
         isActive=True
     ).select_related('menuCategory__category').order_by('displayOrder')
 
     # لیست ID غذاهای انتخاب شده
     selected_food_ids = list(selected_foods.values_list('id', flat=True))
 
+    # محاسبه اطلاعات انقضا برای نمایش در UI (فقط اگر منقضی نشده باشد)
+    expiry_info = {
+        'is_expired': restaurant.is_expired,
+        'days_until_expiry': restaurant.days_until_expiry,
+        'expire_date': restaurant.expireDate,
+        'expiry_status': restaurant.expiry_status,
+    }
+
     context = {
         'restaurant': restaurant,
         'menu_categories': menu_categories,
         'all_categories': all_categories,
-        'foods': selected_foods,  # غذاهای انتخاب شده
-        'all_foods': all_company_foods,  # تمام غذاهای شرکت
-        'selected_food_ids': selected_food_ids,  # لیست ID غذاهای انتخاب شده
-        'categories': Category.objects.filter(isActive=True)
+        'foods': selected_foods,
+        'all_foods': all_company_foods,
+        'selected_food_ids': selected_food_ids,
+        'categories': Category.objects.filter(isActive=True),
+        'expiry_info': expiry_info,
     }
     return render(request, 'panel_app/free/restaurant_admin.html', context)
 
@@ -753,9 +784,16 @@ def restaurant_context(request):
 def create_restaurant_modal(request):
     """مدیریت افتتاح رستوران از طریق مودال"""
     try:
+        # تشخیص نوع داده دریافتی
         if request.content_type == 'application/json':
-            data = json.loads(request.body)
-            files = None
+            try:
+                data = json.loads(request.body)
+                files = None
+            except json.JSONDecodeError:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'داده‌های JSON نامعتبر است'
+                })
         else:
             data = request.POST
             files = request.FILES
@@ -763,99 +801,61 @@ def create_restaurant_modal(request):
         step = data.get('step')
         menu_creation_type = data.get('menu_creation_type')
 
-        if step == 1:
-            name = data.get('name', '').strip()
-            family = data.get('family', '').strip()
-            restaurant_name = data.get('restaurant_name', '').strip()
+        print(f"Step: {step}, Menu Creation Type: {menu_creation_type}")  # برای دیباگ
 
-            if not name or not family or not restaurant_name:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'لطفاً تمام فیلدها را پر کنید'
-                })
-
-            request.session['restaurant_data'] = {
-                'step1': {
-                    'name': name,
-                    'family': family,
-                    'restaurant_name': restaurant_name
-                }
-            }
-            request.session.modified = True
-
-            return JsonResponse({
-                'success': True,
-                'message': 'اطلاعات با موفقیت ذخیره شد',
-                'next_step': 2
-            })
-
-        elif step == 2:
-            english_name = data.get('english_name', '').strip().lower()
-
-            if not english_name:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'لطفاً نام انگلیسی را وارد کنید'
-                })
-
-            if Restaurant.objects.filter(english_name=english_name).exists():
-                return JsonResponse({
-                    'success': False,
-                    'message': 'این نام انگلیسی قبلاً انتخاب شده است'
-                })
-
-            restaurant_data = request.session.get('restaurant_data', {})
-            restaurant_data['step2'] = {'english_name': english_name}
-            request.session['restaurant_data'] = restaurant_data
-            request.session.modified = True
-
-            return JsonResponse({
-                'success': True,
-                'message': 'نام انگلیسی تأیید شد',
-                'next_step': 3
-            })
-
-        elif step == 3:
+        if step == 3:  # ساخت رستوران توسط خود کاربر
+            # دریافت داده‌ها
             name = data.get('name', '').strip()
             family = data.get('family', '').strip()
             restaurant_name = data.get('restaurant_name', '').strip()
             english_name = data.get('english_name', '').strip().lower()
             is_seo_enabled = data.get('is_seo_enabled', False)
+            expire_days = data.get('expire_days', 29)  # دریافت تعداد روزهای انقضا
 
+            # اعتبارسنجی داده‌ها
             if not name or not family or not restaurant_name or not english_name:
                 return JsonResponse({
                     'success': False,
-                    'message': 'اطلاعات ناقص است. لطفاً از ابتدا شروع کنید'
+                    'message': 'لطفاً تمام فیلدهای ضروری را پر کنید'
                 })
 
+            # بررسی نام انگلیسی تکراری
             if Restaurant.objects.filter(english_name=english_name).exists():
                 return JsonResponse({
                     'success': False,
                     'message': 'این نام انگلیسی قبلاً انتخاب شده است'
                 })
 
-            request.user.name = name
-            request.user.family = family
-            request.user.save()
+            # محاسبه تاریخ انقضا
+            from datetime import timedelta
+            from django.utils import timezone
 
+            expire_date = timezone.now() + timedelta(days=int(expire_days))
+
+            # ایجاد رستوران
             restaurant = Restaurant(
                 owner=request.user,
                 title=restaurant_name,
                 english_name=english_name,
-                isActive=True
+                isActive=True,
+                isSeo=is_seo_enabled,
+                expireDate=expire_date  # تنظیم تاریخ انقضا
             )
             restaurant.save()
 
-            if 'restaurant_data' in request.session:
-                del request.session['restaurant_data']
+            # به‌روزرسانی اطلاعات کاربر
+            request.user.name = name
+            request.user.family = family
+            request.user.save()
 
             return JsonResponse({
                 'success': True,
-                'message': 'رستوران با موفقیت ایجاد شد',
+                'message': f'رستوران با موفقیت ایجاد شد و برای {expire_days} روز فعال است',
                 'redirect_url': f'/panel/{restaurant.slug}/admin/'
             })
 
         elif step == 'create_with_company':
+            # دریافت مستقیم داده‌ها از درخواست
             name = data.get('name', '').strip()
             family = data.get('family', '').strip()
             restaurant_name = data.get('restaurant_name', '').strip()
@@ -863,12 +863,22 @@ def create_restaurant_modal(request):
             is_seo_enabled_str = data.get('is_seo_enabled', '0')
             is_seo_enabled = is_seo_enabled_str == '1'
 
+            print(f"Data received - Name: {name}, Family: {family}, Restaurant: {restaurant_name}, English: {english_name}, SEO: {is_seo_enabled}")  # دیباگ
+
+            # اعتبارسنجی داده‌ها
             if not name or not family or not restaurant_name or not english_name:
+                missing_fields = []
+                if not name: missing_fields.append('نام')
+                if not family: missing_fields.append('نام خانوادگی')
+                if not restaurant_name: missing_fields.append('نام رستوران')
+                if not english_name: missing_fields.append('نام انگلیسی')
+
                 return JsonResponse({
                     'success': False,
-                    'message': 'اطلاعات ناقص است'
+                    'message': f'لطفاً فیلدهای زیر را پر کنید: {", ".join(missing_fields)}'
                 })
 
+            # بررسی نام انگلیسی تکراری
             if Restaurant.objects.filter(english_name=english_name).exists():
                 return JsonResponse({
                     'success': False,
@@ -876,6 +886,7 @@ def create_restaurant_modal(request):
                 })
 
             if menu_creation_type == 'company_save_only':
+                # ذخیره در session
                 request.session['pending_restaurant'] = {
                     'name': name,
                     'family': family,
@@ -885,10 +896,11 @@ def create_restaurant_modal(request):
                     'menu_images_count': 0
                 }
 
+                # ذخیره اطلاعات عکس‌ها
                 menu_images = files.getlist('menu_images') if files else []
                 saved_images_count = 0
-
                 image_info_list = []
+
                 for image in menu_images:
                     if saved_images_count < 10:
                         image_info_list.append({
@@ -902,6 +914,7 @@ def create_restaurant_modal(request):
                 request.session['pending_restaurant']['menu_images_count'] = saved_images_count
                 request.session.modified = True
 
+                # به‌روزرسانی اطلاعات کاربر
                 request.user.name = name
                 request.user.family = family
                 request.user.save()
@@ -911,15 +924,19 @@ def create_restaurant_modal(request):
                     'message': f'عکس‌ها با موفقیت ذخیره شد ({saved_images_count} عکس)',
                     'saved_images': saved_images_count
                 })
+
             else:
+                # ایجاد رستوران و سفارش
                 restaurant = Restaurant(
                     owner=request.user,
                     title=restaurant_name,
                     english_name=english_name,
-                    isActive=True
+                    isActive=True,
+                    isSeo=is_seo_enabled  # اضافه کردن این خط
                 )
                 restaurant.save()
 
+                # ایجاد سفارش
                 order = Ordermenu.objects.create(
                     restaurant=restaurant,
                     isfinaly=False,
@@ -928,6 +945,7 @@ def create_restaurant_modal(request):
                     is_seo_enabled=is_seo_enabled
                 )
 
+                # آپلود عکس‌ها
                 menu_images = files.getlist('menu_images') if files else []
                 saved_images_count = 0
 
@@ -939,6 +957,7 @@ def create_restaurant_modal(request):
                         )
                         saved_images_count += 1
 
+                # پاک کردن session
                 if 'pending_restaurant' in request.session:
                     del request.session['pending_restaurant']
 
@@ -950,6 +969,7 @@ def create_restaurant_modal(request):
                 })
 
     except Exception as e:
+        print(f"Error in create_restaurant_modal: {str(e)}")  # برای دیباگ
         return JsonResponse({
             'success': False,
             'message': f'خطا در پردازش: {str(e)}'

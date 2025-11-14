@@ -14,6 +14,8 @@ urlpatterns = [
     path('ckeditor',include('ckeditor_uploader.urls')),
     path('blog/',include('apps.blog.urls',namespace='blog')),
     path('order/',include('apps.order.urls',namespace='order')),
-    path('peyment/',include('apps.peyment.urls',namespace='peyment'))
+    path('plan/',include('apps.plan.urls',namespace='plan')),
+    path('peyment/',include('apps.peyment.urls',namespace='peyment')),
+    path('product/',include('apps.product.urls',namespace='product'))
 
 ]+static(sett.MEDIA_URL,document_root = sett.MEDIA_ROOT)

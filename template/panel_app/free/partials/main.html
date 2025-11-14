@@ -1,4 +1,6 @@
 <!-- فایل: panel_dashboard.html -->
+{% load humanize %}
+
 <div class="w-full max-w-7xl mx-auto p-4">
 
     <!-- بنر افتتاح اولین منو - برای کاربران بدون منو -->
@@ -55,7 +57,7 @@
         </div>
     </div>
 
-    <!-- آمار کلی - طراحی ریسپانسیو -->
+    <!-- آمار کلی -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <!-- کارت منوهای ساخته شده -->
         <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg hover-lift transition-all duration-300">
@@ -104,7 +106,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-orange-100 text-sm mb-2">درآمد امروز</p>
-                    <h3 class="text-2xl font-bold">{{ today_revenue|default:0 }}</h3>
+                    <h3 class="text-2xl font-bold">{{ today_revenue|default:0|intcomma }}</h3>
                     <p class="text-orange-100 text-xs mt-2">تومان</p>
                 </div>
                 <div class="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -128,22 +130,27 @@
             {% if user_orders %}
             <div class="space-y-4">
                 {% for order in user_orders %}
+                {% with status_info=order.get_status_info %}
                 <div class="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all duration-300">
                     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                         <!-- اطلاعات سفارش -->
                         <div class="flex-1">
                             <div class="flex items-center flex-wrap gap-2 mb-4">
-                                <!-- وضعیت -->
+                                <!-- وضعیت داینامیک -->
                                 <span class="status-badge px-3 py-1 rounded-lg text-sm font-medium
                                     {% if order.status == 1 %}bg-red-100 text-red-600 border border-red-200{% endif %}
                                     {% if order.status == 2 %}bg-green-100 text-green-600 border border-green-200{% endif %}
                                     {% if order.status == 3 %}bg-purple-100 text-purple-600 border border-purple-200{% endif %}
-                                    {% if order.status == 4 %}bg-blue-100 text-blue-600 border border-blue-200{% endif %}">
+                                    {% if order.status == 4 %}bg-blue-100 text-blue-600 border border-blue-200{% endif %}
+                                    {% if order.status == 5 %}bg-teal-100 text-teal-600 border border-teal-200{% endif %}
+                                    {% if order.status == 6 %}bg-orange-100 text-orange-600 border border-orange-200{% endif %}">
                                     <i class="fas
                                         {% if order.status == 1 %}fa-clock{% endif %}
                                         {% if order.status == 2 %}fa-check-circle{% endif %}
                                         {% if order.status == 3 %}fa-clipboard-check{% endif %}
                                         {% if order.status == 4 %}fa-check-double{% endif %}
+                                        {% if order.status == 5 %}fa-sync-alt{% endif %}
+                                        {% if order.status == 6 %}fa-times-circle{% endif %}
                                         ml-1 text-xs"></i>
                                     {{ order.get_status_display }}
                                 </span>
@@ -159,6 +166,12 @@
                                     <i class="fas fa-store ml-1 text-xs"></i>
                                     {{ order.restaurant.title }}
                                 </span>
+
+                                <!-- قیمت -->
+                                <span class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-lg text-sm font-medium border border-indigo-200">
+                                    <i class="fas fa-tag ml-1 text-xs"></i>
+                                    {{ order.get_price_display }}
+                                </span>
                             </div>
 
                             <!-- اطلاعات رستوران -->
@@ -170,15 +183,36 @@
                                 </p>
                             </div>
 
-                            <!-- اطلاعات زمانی و قیمت -->
+                            <!-- اطلاعات قیمت داینامیک -->
+                            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                    <div class="text-center">
+                                        <p class="text-gray-600">قیمت پایه</p>
+                                        <p class="font-bold text-gray-800">{{ order.get_base_price_display }}</p>
+                                    </div>
+                                    {% if order.is_seo_enabled %}
+                                    <div class="text-center">
+                                        <p class="text-purple-600">هزینه سئو</p>
+                                        <p class="font-bold text-purple-600">{{ order.get_seo_price_display }}</p>
+                                    </div>
+                                    {% endif %}
+                                    <div class="text-center">
+                                        <p class="text-green-600">قیمت نهایی</p>
+                                        <p class="font-bold text-green-600 text-lg">{{ order.get_price_display }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- اطلاعات زمانی -->
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-100 space-y-2 sm:space-y-0">
                                 <div class="flex items-center text-sm text-gray-600">
                                     <i class="fas fa-clock ml-1"></i>
                                     تاریخ ایجاد:
                                     <span class="font-medium mr-1">{{ order.created_at|date:"Y/m/d - H:i" }}</span>
                                 </div>
-                                <div class="text-lg font-bold text-gray-800">
-                                    مبلغ: 99,000 تومان
+                                <div class="text-sm text-gray-600">
+                                    <i class="fas fa-info-circle ml-1"></i>
+                                    سئو: {% if order.is_seo_enabled %}فعال{% else %}غیرفعال{% endif %}
                                 </div>
                             </div>
 
@@ -187,7 +221,7 @@
                             <div class="mt-4 pt-4 border-t border-gray-100">
                                 <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
                                     <i class="fas fa-images ml-2 text-gray-400"></i>
-                                    عکس‌های آپلود شده
+                                    عکس‌های آپلود شده ({{ order.images.count }})
                                 </h4>
                                 <div class="grid grid-cols-3 gap-2">
                                     {% for image in order.images.all %}
@@ -208,14 +242,14 @@
                             {% endif %}
                         </div>
 
-                        <!-- دکمه‌های اقدام -->
+                        <!-- دکمه‌های اقدام داینامیک -->
                         <div class="flex flex-col space-y-3 min-w-[200px]">
                             {% if order.status == 1 %}
                             <!-- وضعیت پرداخت نشده -->
                             <button onclick="processRealPayment({{ order.id }})"
                                     class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
                                 <i class="fas fa-credit-card ml-2"></i>
-                                پرداخت (99,000 تومان)
+                                پرداخت ({{ order.get_price_display }})
                             </button>
                             {% elif order.status == 2 %}
                             <!-- وضعیت پرداخت شده -->
@@ -235,6 +269,19 @@
                                 <i class="fas fa-check-double ml-2"></i>
                                 تحویل شده
                             </span>
+                            {% elif order.status == 5 %}
+                            <!-- وضعیت تمدید شده -->
+                            <span class="w-full bg-teal-500 text-white px-4 py-3 rounded-xl text-sm font-medium text-center flex items-center justify-center">
+                                <i class="fas fa-sync-alt ml-2"></i>
+                                تمدید شده
+                            </span>
+                            {% elif order.status == 6 %}
+                            <!-- وضعیت تمدید نشده -->
+                            <button onclick="processRealPayment({{ order.id }})"
+                                    class="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
+                                <i class="fas fa-credit-card ml-2"></i>
+                                تمدید ({{ order.get_price_display }})
+                            </button>
                             {% endif %}
 
                             <button onclick="viewOrderDetails({{ order.id }})"
@@ -243,7 +290,7 @@
                                 مشاهده جزئیات
                             </button>
 
-                            {% if order.status == 1 %}
+                            {% if order.status == 1 or order.status == 6 %}
                             <button onclick="cancelOrder({{ order.id }})"
                                     class="w-full border border-red-300 hover:bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-center">
                                 <i class="fas fa-times ml-2"></i>
@@ -253,6 +300,7 @@
                         </div>
                     </div>
                 </div>
+                {% endwith %}
                 {% endfor %}
             </div>
             {% else %}
@@ -279,7 +327,7 @@
         <div class="xl:w-2/3 space-y-6">
 
             <!-- آمار سریع -->
-            
+
         </div>
 
         <!-- ستون سمت راست - منوها و نکات -->

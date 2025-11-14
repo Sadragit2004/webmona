@@ -118,6 +118,13 @@ class Category(BaseModel):
 # ----------------------------
 # Restaurant
 # ----------------------------
+from django.utils import timezone
+from datetime import timedelta
+
+# ----------------------------
+# Restaurant
+# ----------------------------
+
 class Restaurant(BaseModel):
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='restaurants', null=True, blank=True)
     english_name = models.CharField(max_length=255, unique=True, null=True, blank=True, help_text="نام انگلیسی برای تولید اسلاگ")
@@ -134,6 +141,9 @@ class Restaurant(BaseModel):
     minimumOrder = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     deliveryFee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     taxRate = models.DecimalField(max_digits=5, decimal_places=2, default=9.0, null=True, blank=True)
+    isSeo = models.BooleanField(default=False,verbose_name='ایا سئو شده',blank=True,null=True)
+
+    expireDate = models.DateTimeField(null=True, blank=True, verbose_name="تاریخ انقضا")
 
     def save(self, *args, **kwargs):
         # ✅ جلوگیری از خطای رشته خالی در TimeField
@@ -161,6 +171,131 @@ class Restaurant(BaseModel):
         if lang == 'en':
             return self.address_en or self.address or ''
         return self.address or self.address_en or ''
+
+    # ----------------------------
+    # متدهای مدیریت تاریخ انقضا
+    # ----------------------------
+
+    @property
+    def is_expired(self):
+        """بررسی می‌کند که آیا رستوران منقضی شده است"""
+        if not self.expireDate:
+            return False
+        return timezone.now() > self.expireDate
+
+    @property
+    def days_until_expiry(self):
+        """تعداد روزهای باقی‌مانده تا انقضا را برمی‌گرداند"""
+        if not self.expireDate:
+            return None
+        now = timezone.now()
+        if now > self.expireDate:
+            return 0
+        return (self.expireDate - now).days
+
+    @property
+    def expiry_status(self):
+        """وضعیت انقضا را به صورت متن برمی‌گرداند"""
+        if not self.expireDate:
+            return "بدون تاریخ انقضا"
+        if self.is_expired:
+            return "منقضی شده"
+        days_left = self.days_until_expiry
+        if days_left <= 7:
+            return f"در آستانه انقضا ({days_left} روز باقی مانده)"
+        return f"فعال ({days_left} روز باقی مانده)"
+
+    def extend_expiry(self, days):
+        """
+        تمدید تاریخ انقضا
+
+        Args:
+            days (int): تعداد روز برای تمدید
+
+        Returns:
+            bool: True در صورت موفقیت، False در صورت خطا
+        """
+        try:
+            days = int(days)
+            if days <= 0:
+                return False, "تعداد روز باید بیشتر از صفر باشد"
+
+            now = timezone.now()
+
+            # اگر تاریخ انقضا وجود ندارد یا گذشته است، از زمان حال شروع کن
+            if not self.expireDate or self.is_expired:
+                new_expire_date = now + timedelta(days=days)
+            else:
+                # اگر هنوز منقضی نشده، از تاریخ انقضای فعلی اضافه کن
+                new_expire_date = self.expireDate + timedelta(days=days)
+
+            self.expireDate = new_expire_date
+            self.save()
+            return True, f"تاریخ انقضا با موفقیت {days} روز تمدید شد"
+
+        except ValueError:
+            return False, "تعداد روز باید یک عدد معتبر باشد"
+        except Exception as e:
+            return False, f"خطا در تمدید: {str(e)}"
+
+    def set_expiry_from_today(self, days):
+        """
+        تنظیم تاریخ انقضا از امروز به تعداد روز مشخص
+
+        Args:
+            days (int): تعداد روز از امروز
+
+        Returns:
+            bool: True در صورت موفقیت، False در صورت خطا
+        """
+        try:
+            days = int(days)
+            if days <= 0:
+                return False, "تعداد روز باید بیشتر از صفر باشد"
+
+            self.expireDate = timezone.now() + timedelta(days=days)
+            self.save()
+            return True, f"تاریخ انقضا با موفقیت برای {days} روز دیگر تنظیم شد"
+
+        except ValueError:
+            return False, "تعداد روز باید یک عدد معتبر باشد"
+        except Exception as e:
+            return False, f"خطا در تنظیم تاریخ انقضا: {str(e)}"
+
+    def get_expiry_display(self, lang='fa'):
+        """نمایش فرمت شده تاریخ انقضا"""
+        if not self.expireDate:
+            return "بدون تاریخ انقضا" if lang == 'fa' else "No expiry date"
+
+        from django.utils.formats import date_format
+        expire_date_local = timezone.localtime(self.expireDate)
+
+        if lang == 'en':
+            return f"Expires on: {date_format(expire_date_local, 'DATETIME_FORMAT')}"
+        else:
+            return f"تاریخ انقضا: {date_format(expire_date_local, 'DATETIME_FORMAT')}"
+
+    @classmethod
+    def get_expired_restaurants(cls):
+        """لیست تمام رستوران‌های منقضی شده را برمی‌گرداند"""
+        return cls.objects.filter(expireDate__lt=timezone.now())
+
+    @classmethod
+    def get_active_restaurants(cls):
+        """لیست تمام رستوران‌های فعال (منقضی نشده) را برمی‌گرداند"""
+        return cls.objects.filter(
+            models.Q(expireDate__isnull=True) |
+            models.Q(expireDate__gte=timezone.now())
+        )
+
+    @classmethod
+    def get_expiring_soon_restaurants(cls, days=7):
+        """لیست رستوران‌هایی که تا چند روز آینده منقضی می‌شوند"""
+        threshold = timezone.now() + timedelta(days=days)
+        return cls.objects.filter(
+            expireDate__gte=timezone.now(),
+            expireDate__lte=threshold
+        )
 
 
 # ----------------------------
@@ -261,7 +396,7 @@ class Food(BaseModel):
         else:
             self.restaurants.add(restaurant)
             return True
-        
+
 
     def update_usd_price(self, exchange_rate=None):
         if self.price is not None:

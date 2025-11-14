@@ -1,294 +1,559 @@
 {% extends "db_template.html" %}
-
-
+{% load humanize %}
 
 {% block content %}
+<div class="w-full max-w-6xl mx-auto p-4 space-y-6">
 
+    <!-- هدر اصلی -->
+    <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg text-white p-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex-1">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-receipt text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold">سفارش #{{ order.id }}</h1>
+                        <p class="text-blue-100 mt-2">جزئیات کامل سفارش ساخت منوی دیجیتال</p>
+                    </div>
+                </div>
 
-<!-- فایل: order_detail.html -->
-<div class="w-full max-w-4xl mx-auto p-4">
-    <!-- هدر -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">جزئیات سفارش #{{ order.id }}</h1>
-                <p class="text-gray-600 mt-2">مشاهده اطلاعات کامل سفارش ساخت منو</p>
+                <!-- اطلاعات سریع -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                        <p class="text-blue-100 text-sm">رستوران</p>
+                        <p class="font-bold text-lg">{{ order.restaurant.title }}</p>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                        <p class="text-blue-100 text-sm">مبلغ نهایی</p>
+                        <p class="font-bold text-lg">{{ order.get_price_display }}</p>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                        <p class="text-blue-100 text-sm">تاریخ ثبت</p>
+                        <p class="font-bold text-lg">{{ order.created_at|date:"Y/m/d" }}</p>
+                    </div>
+                </div>
             </div>
-            <div class="flex flex-wrap gap-2">
-                <span class="status-badge px-4 py-2 rounded-lg text-sm font-medium
-                    {% if order.status == 1 %}bg-red-100 text-red-600 border border-red-200{% endif %}
-                    {% if order.status == 2 %}bg-green-100 text-green-600 border border-green-200{% endif %}
-                    {% if order.status == 3 %}bg-purple-100 text-purple-600 border border-purple-200{% endif %}
-                    {% if order.status == 4 %}bg-blue-100 text-blue-600 border border-blue-200{% endif %}">
-                    <i class="fas
-                        {% if order.status == 1 %}fa-clock{% endif %}
-                        {% if order.status == 2 %}fa-check-circle{% endif %}
-                        {% if order.status == 3 %}fa-clipboard-check{% endif %}
-                        {% if order.status == 4 %}fa-check-double{% endif %}
-                        ml-1"></i>
-                    {{ order.get_status_display }}
-                </span>
 
-                {% if order.status == 2 or order.status == 3 or order.status == 4 %}
+            <!-- وضعیت و دکمه‌های اقدام -->
+            <div class="mt-6 lg:mt-0 lg:mr-6">
+                <div class="flex flex-col space-y-4">
+                    <!-- وضعیت سفارش -->
+                    <div class="bg-white bg-opacity-20 rounded-xl p-4 text-center">
+                        <span class="status-badge px-4 py-2 rounded-lg text-sm font-medium
+                            {% if order.status == 1 %}bg-red-500 text-white{% endif %}
+                            {% if order.status == 2 %}bg-green-500 text-white{% endif %}
+                            {% if order.status == 3 %}bg-purple-500 text-white{% endif %}
+                            {% if order.status == 4 %}bg-blue-500 text-white{% endif %}
+                            {% if order.status == 5 %}bg-teal-500 text-white{% endif %}
+                            {% if order.status == 6 %}bg-orange-500 text-white{% endif %}">
+                            <i class="fas
+                                {% if order.status == 1 %}fa-clock{% endif %}
+                                {% if order.status == 2 %}fa-check-circle{% endif %}
+                                {% if order.status == 3 %}fa-clipboard-check{% endif %}
+                                {% if order.status == 4 %}fa-check-double{% endif %}
+                                {% if order.status == 5 %}fa-sync-alt{% endif %}
+                                {% if order.status == 6 %}fa-times-circle{% endif %}
+                                ml-2"></i>
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
 
-                 <a href="/menu/{{ order.restaurant.english_name }}"
-                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center">
-                    <i class="fas fa-eye ml-2"></i>
-                    مشاهده منو
-                </a>
+                    <!-- دکمه‌های اقدام -->
+                    <div class="flex flex-col space-y-2">
+                        {% if order.status == 1 or order.status == 6 %}
+                        <button onclick="processRealPayment({{ order.id }})"
+                                class="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center">
+                            <i class="fas fa-credit-card ml-2"></i>
+                            {% if order.status == 1 %}پرداخت سفارش{% else %}تمدید سفارش{% endif %}
+                        </button>
+                        {% endif %}
 
-                <a href="{% url 'panel:user_menus' %}"
-                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center">
-                    <i class="fas fa-qrcode ml-2"></i>
-                    دریافت QR Code
-            </a>
-                {% endif %}
+                        {% if status_info.is_paid %}
+                        <a href="/menu/{{ order.restaurant.english_name }}" target="_blank"
+                           class="bg-white text-green-600 hover:bg-green-50 px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center">
+                            <i class="fas fa-eye ml-2"></i>
+                            مشاهده منو
+                        </a>
+
+                        <button onclick="generateQRCode('{{ order.restaurant.slug }}')"
+                                class="bg-white text-purple-600 hover:bg-purple-50 px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center">
+                            <i class="fas fa-qrcode ml-2"></i>
+                            دریافت QR Code
+                        </button>
+                        {% endif %}
+
+                        <a href="{% url 'panel:panel' %}"
+                           class="bg-white bg-opacity-20 text-white hover:bg-opacity-30 px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center">
+                            <i class="fas fa-arrow-right ml-2"></i>
+                            بازگشت به پنل
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- اطلاعات سفارش -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- کارت‌های اطلاعات -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
         <!-- اطلاعات رستوران -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                <i class="fas fa-store text-blue-500 ml-2"></i>
-                اطلاعات رستوران
-            </h2>
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mr-3">
+                    <i class="fas fa-store"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">اطلاعات رستوران</h2>
+            </div>
 
-            <div class="space-y-3">
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-600">نام رستوران:</span>
-                    <span class="font-medium text-gray-800">{{ order.restaurant.title }}</span>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600 flex items-center">
+                        <i class="fas fa-signature ml-2 text-gray-400"></i>
+                        نام رستوران:
+                    </span>
+                    <span class="font-bold text-gray-800">{{ order.restaurant.title }}</span>
                 </div>
 
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-600">نام انگلیسی:</span>
-                    <span class="font-medium text-gray-800">{{ order.restaurant.english_name }}</span>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600 flex items-center">
+                        <i class="fas fa-globe ml-2 text-gray-400"></i>
+                        نام انگلیسی:
+                    </span>
+                    <span class="font-bold text-gray-800">{{ order.restaurant.english_name }}</span>
                 </div>
 
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-600">آدرس منو:</span>
-                    <span class="font-medium text-blue-600">
-                        /menu/{{ order.restaurant.english_name }}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600 flex items-center">
+                        <i class="fas fa-link ml-2 text-gray-400"></i>
+                        آدرس منو:
+                    </span>
+                    <span class="font-bold text-blue-600">/menu/{{ order.restaurant.english_name }}</span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600 flex items-center">
+                        <i class="fas fa-calendar ml-2 text-gray-400"></i>
+                        تاریخ ایجاد:
+                    </span>
+                    <span class="font-bold text-gray-800">{{ order.restaurant.createdAt|date:"Y/m/d" }}</span>
+                </div>
+
+                {% if order.restaurant.expireDate %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600 flex items-center">
+                        <i class="fas fa-clock ml-2 text-gray-400"></i>
+                        تاریخ انقضا:
+                    </span>
+                    <span class="font-bold {% if order.restaurant.is_expired %}text-red-600{% else %}text-green-600{% endif %}">
+                        {{ order.restaurant.expireDate|date:"Y/m/d" }}
+                        {% if order.restaurant.is_expired %}
+                        <span class="text-xs mr-2">(منقضی شده)</span>
+                        {% else %}
+                        <span class="text-xs mr-2">({{ order.restaurant.days_until_expiry }} روز باقی مانده)</span>
+                        {% endif %}
                     </span>
                 </div>
-
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-600">تاریخ ایجاد:</span>
-                    <span class="font-medium text-gray-800">{{ order.restaurant.created_at|date:"Y/m/d" }}</span>
-                </div>
+                {% endif %}
             </div>
         </div>
 
         <!-- اطلاعات پرداخت -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                <i class="fas fa-credit-card text-green-500 ml-2"></i>
-                اطلاعات پرداخت
-            </h2>
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600 mr-3">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">اطلاعات پرداخت</h2>
+            </div>
 
-            <div class="space-y-3">
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-600">مبلغ:</span>
-                    <span class="font-medium text-gray-800">99,000 تومان</span>
+            <div class="space-y-4">
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                    <div class="text-center mb-3">
+                        <p class="text-gray-600 text-sm">مبلغ نهایی</p>
+                        <p class="text-2xl font-bold text-green-600">{{ order.get_price_display }}</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-600">قیمت پایه:</span>
+                            <span class="font-medium">{{ order.get_base_price_display }}</span>
+                        </div>
+
+                        {% if order.is_seo_enabled %}
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-purple-600">هزینه سئو:</span>
+                            <span class="font-medium text-purple-600">+ {{ order.get_seo_price_display }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
 
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-600">وضعیت پرداخت:</span>
-                    <span class="font-medium
-                        {% if order.status == 1 %}text-red-600{% else %}text-green-600{% endif %}">
-                        {% if order.status == 1 %}پرداخت نشده{% else %}پرداخت شده{% endif %}
-                    </span>
-                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="text-gray-600 flex items-center">
+                            <i class="fas fa-info-circle ml-2 text-gray-400"></i>
+                            وضعیت پرداخت:
+                        </span>
+                        <span class="font-bold {% if status_info.is_paid %}text-green-600{% else %}text-red-600{% endif %}">
+                            {% if status_info.is_paid %}پرداخت شده{% else %}پرداخت نشده{% endif %}
+                        </span>
+                    </div>
 
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-600">تاریخ سفارش:</span>
-                    <span class="font-medium text-gray-800">{{ order.created_at|date:"Y/m/d - H:i" }}</span>
-                </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="text-gray-600 flex items-center">
+                            <i class="fas fa-calendar-alt ml-2 text-gray-400"></i>
+                            تاریخ سفارش:
+                        </span>
+                        <span class="font-bold text-gray-800">{{ order.created_at|date:"Y/m/d - H:i" }}</span>
+                    </div>
 
-                {% if order.status != 1 %}
-                <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span class="text-gray-600">تاریخ پرداخت:</span>
-                    <span class="font-medium text-gray-800">{{ order.created_at|date:"Y/m/d - H:i" }}</span>
+                    {% if status_info.is_paid %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="text-gray-600 flex items-center">
+                            <i class="fas fa-check-circle ml-2 text-gray-400"></i>
+                            تاریخ پرداخت:
+                        </span>
+                        <span class="font-bold text-green-600">{{ order.created_at|date:"Y/m/d - H:i" }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="text-gray-600 flex items-center">
+                            <i class="fas fa-search ml-2 text-gray-400"></i>
+                            سئو فعال:
+                        </span>
+                        <span class="font-bold {% if order.is_seo_enabled %}text-green-600{% else %}text-gray-600{% endif %}">
+                            {% if order.is_seo_enabled %}بله{% else %}خیر{% endif %}
+                        </span>
+                    </div>
                 </div>
-                {% endif %}
+            </div>
+        </div>
+
+        <!-- وضعیت پیشرفت -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 mr-3">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">وضعیت پیشرفت</h2>
+            </div>
+
+            <div class="relative">
+                <!-- خط پیشرفت -->
+                <div class="absolute right-6 top-0 bottom-0 w-1 bg-gray-200 transform -translate-x-1/2"></div>
+
+                <div class="space-y-8 relative">
+                    <!-- مرحله 1: ثبت سفارش -->
+                    <div class="flex items-start space-x-4 space-x-reverse">
+                        <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 z-10 shadow-lg">
+                            <i class="fas fa-check text-white text-lg"></i>
+                        </div>
+                        <div class="flex-1 pt-2">
+                            <h3 class="font-bold text-gray-800 text-lg">ثبت سفارش</h3>
+                            <p class="text-gray-600 mt-1">سفارش شما با موفقیت ثبت شد</p>
+                            <p class="text-gray-400 text-sm mt-2">
+                                <i class="fas fa-clock ml-1"></i>
+                                {{ order.created_at|date:"Y/m/d - H:i" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- مرحله 2: پرداخت -->
+                    <div class="flex items-start space-x-4 space-x-reverse">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 z-10 shadow-lg
+                            {% if status_info.is_paid %}bg-green-500{% else %}bg-gray-300{% endif %}">
+                            {% if status_info.is_paid %}
+                            <i class="fas fa-check text-white text-lg"></i>
+                            {% else %}
+                            <i class="fas fa-credit-card text-white text-lg"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 pt-2">
+                            <h3 class="font-bold text-gray-800 text-lg">پرداخت</h3>
+                            <p class="text-gray-600 mt-1">
+                                {% if status_info.is_paid %}
+                                پرداخت با موفقیت انجام شد
+                                {% else %}
+                                در انتظار پرداخت
+                                {% endif %}
+                            </p>
+                            {% if status_info.is_paid %}
+                            <p class="text-gray-400 text-sm mt-2">
+                                <i class="fas fa-clock ml-1"></i>
+                                {{ order.created_at|date:"Y/m/d - H:i" }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- مرحله 3: طراحی منو -->
+                    <div class="flex items-start space-x-4 space-x-reverse">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 z-10 shadow-lg
+                            {% if order.status >= 3 %}bg-green-500{% else %}bg-gray-300{% endif %}">
+                            {% if order.status >= 3 %}
+                            <i class="fas fa-check text-white text-lg"></i>
+                            {% else %}
+                            <i class="fas fa-palette text-white text-lg"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 pt-2">
+                            <h3 class="font-bold text-gray-800 text-lg">طراحی منو</h3>
+                            <p class="text-gray-600 mt-1">
+                                {% if order.status >= 3 %}
+                                منوی شما طراحی و تایید شد
+                                {% else %}
+                                تیم طراحی در حال ساخت منوی شماست
+                                {% endif %}
+                            </p>
+                            {% if order.status >= 3 %}
+                            <p class="text-green-600 text-sm mt-2 font-medium">
+                                <i class="fas fa-check-circle ml-1"></i>
+                                تکمیل شده
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- مرحله 4: تحویل -->
+                    <div class="flex items-start space-x-4 space-x-reverse">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 z-10 shadow-lg
+                            {% if order.status >= 4 %}bg-green-500{% else %}bg-gray-300{% endif %}">
+                            {% if order.status >= 4 %}
+                            <i class="fas fa-check text-white text-lg"></i>
+                            {% else %}
+                            <i class="fas fa-truck text-white text-lg"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 pt-2">
+                            <h3 class="font-bold text-gray-800 text-lg">تحویل نهایی</h3>
+                            <p class="text-gray-600 mt-1">
+                                {% if order.status >= 4 %}
+                                منوی شما آماده و تحویل داده شد
+                                {% else %}
+                                در انتظار تحویل نهایی
+                                {% endif %}
+                            </p>
+                            {% if order.status >= 4 %}
+                            <p class="text-green-600 text-sm mt-2 font-medium">
+                                <i class="fas fa-check-circle ml-1"></i>
+                                تحویل شده
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- عکس‌های آپلود شده -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-            <i class="fas fa-images text-purple-500 ml-2"></i>
-            عکس‌های آپلود شده
-            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-sm font-medium mr-3">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mr-3">
+                    <i class="fas fa-images"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">عکس‌های آپلود شده</h2>
+                    <p class="text-gray-600 text-sm mt-1">عکس‌های منوی فعلی شما برای ساخت منوی دیجیتال</p>
+                </div>
+            </div>
+            <span class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-lg text-sm font-bold">
                 {{ menu_images.count }} عکس
             </span>
-        </h2>
+        </div>
 
         {% if menu_images %}
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {% for image in menu_images %}
             <div class="relative group">
-                <img src="{{ image.image.url }}"
-                     alt="عکس منو {{ forloop.counter }}"
-                     class="w-full h-32 object-cover rounded-lg border hover:shadow-md transition-all duration-300 cursor-pointer"
-                     onclick="viewImage('{{ image.image.url }}')">
-                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center">
+                <div class="aspect-w-4 aspect-h-3 bg-gray-100 rounded-xl overflow-hidden border-2 border-gray-200 group-hover:border-indigo-400 transition-all duration-300">
+                    <img src="{{ image.image.url }}"
+                         alt="عکس منو {{ forloop.counter }}"
+                         class="w-full h-48 object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
+                         onclick="viewImage('{{ image.image.url }}')">
+                </div>
+
+                <div class="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
+                    {{ forloop.counter }}
+                </div>
+
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2">
                     <button onclick="viewImage('{{ image.image.url }}')"
-                            class="w-10 h-10 bg-white text-gray-700 rounded-full text-sm flex items-center justify-center hover:bg-gray-100 transition-all opacity-0 group-hover:opacity-100">
+                            class="w-10 h-10 bg-white text-gray-700 rounded-full text-sm flex items-center justify-center hover:bg-gray-100 transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
                         <i class="fas fa-expand"></i>
                     </button>
+                    <button onclick="downloadImage('{{ image.image.url }}', 'menu_image_{{ forloop.counter }}')"
+                            class="w-10 h-10 bg-white text-gray-700 rounded-full text-sm flex items-center justify-center hover:bg-gray-100 transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 delay-100">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+
+                <div class="mt-2 text-center">
+                    <p class="text-gray-500 text-xs truncate">{{ image.created_at|date:"Y/m/d" }}</p>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-8">
-            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mx-auto mb-4">
-                <i class="fas fa-image text-2xl"></i>
+        <div class="text-center py-12">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mx-auto mb-4">
+                <i class="fas fa-image text-3xl"></i>
             </div>
-            <p class="text-gray-500">هیچ عکسی آپلود نشده است</p>
+            <h3 class="text-gray-500 text-lg font-medium mb-2">هیچ عکسی آپلود نشده است</h3>
+            <p class="text-gray-400">عکس‌های منوی فعلی شما در این بخش نمایش داده می‌شوند</p>
         </div>
         {% endif %}
     </div>
 
-    <!-- وضعیت پیشرفت -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-            <i class="fas fa-tasks text-orange-500 ml-2"></i>
-            وضعیت پیشرفت سفارش
-        </h2>
+    <!-- اطلاعات فنی -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- اطلاعات فنی سفارش -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-600 mr-3">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">اطلاعات فنی</h2>
+            </div>
 
-        <div class="relative">
-            <!-- خط پیشرفت -->
-            <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-
-            <div class="space-y-6 relative">
-                <!-- مرحله 1: ثبت سفارش -->
-                <div class="flex items-start space-x-4 space-x-reverse">
-                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 z-10">
-                        <i class="fas fa-check text-white text-sm"></i>
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-800">ثبت سفارش</h3>
-                        <p class="text-gray-600 text-sm mt-1">سفارش شما با موفقیت ثبت شد</p>
-                        <p class="text-gray-400 text-xs mt-1">{{ order.created_at|date:"Y/m/d - H:i" }}</p>
-                    </div>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">شناسه سفارش:</span>
+                    <span class="font-mono font-bold text-gray-800">#{{ order.id }}</span>
                 </div>
 
-                <!-- مرحله 2: پرداخت -->
-                <div class="flex items-start space-x-4 space-x-reverse">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10
-                        {% if order.status >= 2 %}bg-green-500{% else %}bg-gray-300{% endif %}">
-                        {% if order.status >= 2 %}
-                        <i class="fas fa-check text-white text-sm"></i>
-                        {% else %}
-                        <i class="fas fa-clock text-white text-sm"></i>
-                        {% endif %}
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-800">پرداخت</h3>
-                        <p class="text-gray-600 text-sm mt-1">
-                            {% if order.status >= 2 %}
-                            پرداخت با موفقیت انجام شد
-                            {% else %}
-                            در انتظار پرداخت
-                            {% endif %}
-                        </p>
-                        {% if order.status >= 2 %}
-                        <p class="text-gray-400 text-xs mt-1">{{ order.created_at|date:"Y/m/d - H:i" }}</p>
-                        {% endif %}
-                    </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">شناسه رستوران:</span>
+                    <span class="font-mono font-bold text-gray-800">#{{ order.restaurant.id }}</span>
                 </div>
 
-                <!-- مرحله 3: طراحی منو -->
-                <div class="flex items-start space-x-4 space-x-reverse">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10
-                        {% if order.status >= 3 %}bg-green-500{% else %}bg-gray-300{% endif %}">
-                        {% if order.status >= 3 %}
-                        <i class="fas fa-check text-white text-sm"></i>
-                        {% else %}
-                        <i class="fas fa-clock text-white text-sm"></i>
-                        {% endif %}
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-800">طراحی منو</h3>
-                        <p class="text-gray-600 text-sm mt-1">
-                            {% if order.status >= 3 %}
-                            منوی شما طراحی و تایید شد
-                            {% else %}
-                            تیم طراحی در حال ساخت منوی شماست
-                            {% endif %}
-                        </p>
-                    </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">اسلاگ رستوران:</span>
+                    <span class="font-mono font-bold text-blue-600">{{ order.restaurant.slug }}</span>
                 </div>
 
-                <!-- مرحله 4: تحویل -->
-                <div class="flex items-start space-x-4 space-x-reverse">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10
-                        {% if order.status >= 4 %}bg-green-500{% else %}bg-gray-300{% endif %}">
-                        {% if order.status >= 4 %}
-                        <i class="fas fa-check text-white text-sm"></i>
-                        {% else %}
-                        <i class="fas fa-clock text-white text-sm"></i>
-                        {% endif %}
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-800">تحویل نهایی</h3>
-                        <p class="text-gray-600 text-sm mt-1">
-                            {% if order.status >= 4 %}
-                            منوی شما آماده و تحویل داده شد
-                            {% else %}
-                            در انتظار تحویل نهایی
-                            {% endif %}
-                        </p>
-                    </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">تاریخ ایجاد در سیستم:</span>
+                    <span class="font-mono text-sm text-gray-800">{{ order.created_at|date:"Y/m/d - H:i:s" }}</span>
                 </div>
+
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">کد وضعیت:</span>
+                    <span class="font-mono font-bold
+                        {% if order.status == 1 %}text-red-600{% endif %}
+                        {% if order.status == 2 %}text-green-600{% endif %}
+                        {% if order.status == 3 %}text-purple-600{% endif %}
+                        {% if order.status == 4 %}text-blue-600{% endif %}
+                        {% if order.status == 5 %}text-teal-600{% endif %}
+                        {% if order.status == 6 %}text-orange-600{% endif %}">
+                        STATUS_{{ order.status }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- اقدامات سریع -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 mr-3">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">اقدامات سریع</h2>
+            </div>
+
+            <div class="space-y-3">
+                {% if order.status == 1 or order.status == 6 %}
+                <button onclick="processRealPayment({{ order.id }})"
+                        class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center transform hover:scale-105">
+                    <i class="fas fa-credit-card ml-2 text-lg"></i>
+                    {% if order.status == 1 %}پرداخت سفارش ({{ order.get_price_display }}){% else %}تمدید سفارش ({{ order.get_price_display }}){% endif %}
+                </button>
+
+                <button onclick="cancelOrder({{ order.id }})"
+                        class="w-full border border-red-300 hover:bg-red-50 text-red-600 px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center">
+                    <i class="fas fa-times ml-2"></i>
+                    لغو سفارش
+                </button>
+                {% endif %}
+
+                {% if status_info.is_paid %}
+                <a href="/menu/{{ order.restaurant.english_name }}" target="_blank"
+                   class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center transform hover:scale-105">
+                    <i class="fas fa-external-link-alt ml-2"></i>
+                    مشاهده منو در تب جدید
+                </a>
+
+                <button onclick="generateQRCode('{{ order.restaurant.slug }}')"
+                        class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center transform hover:scale-105">
+                    <i class="fas fa-qrcode ml-2 text-lg"></i>
+                    تولید QR Code
+                </button>
+
+                <button onclick="copyMenuLink('{{ order.restaurant.english_name }}')"
+                        class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center transform hover:scale-105">
+                    <i class="fas fa-copy ml-2"></i>
+                    کپی لینک منو
+                </button>
+                {% endif %}
+
+                <a href="{% url 'panel:restaurant_admin' slug=order.restaurant.slug %}"
+                   class="w-full bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center transform hover:scale-105">
+                    <i class="fas fa-cog ml-2"></i>
+                    مدیریت رستوران
+                </a>
+
+                <a href="{% url 'panel:panel' %}"
+                   class="w-full border border-gray-300 hover:bg-gray-50 text-gray-600 px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center">
+                    <i class="fas fa-arrow-right ml-2"></i>
+                    بازگشت به پنل اصلی
+                </a>
             </div>
         </div>
     </div>
 </div>
 
 <!-- مودال نمایش عکس -->
-<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-50">
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-50 transition-all duration-300">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="relative w-full max-w-4xl">
+        <div class="relative w-full max-w-6xl">
             <button onclick="closeImageModal()"
-                    class="absolute -top-12 left-0 text-white text-2xl hover:text-gray-300 transition-colors">
+                    class="absolute -top-16 left-0 text-white text-3xl hover:text-gray-300 transition-colors p-2">
                 <i class="fas fa-times"></i>
             </button>
-            <img id="modalImage" src="" alt="عکس منو" class="w-full h-auto rounded-lg">
+            <img id="modalImage" src="" alt="عکس منو" class="w-full h-auto rounded-2xl shadow-2xl">
         </div>
     </div>
 </div>
 
 <!-- مودال QR Code -->
-<div id="qrCodeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+<div id="qrCodeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-all duration-300">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md">
-            <div class="flex justify-between items-center p-6 border-b">
-                <h3 class="text-lg font-bold">QR Code منو</h3>
-                <button onclick="closeQRCodeModal()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md transform transition-all duration-300 scale-95">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h3 class="text-xl font-bold text-gray-800">QR Code منو</h3>
+                <button onclick="closeQRCodeModal()"
+                        class="text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
             <div class="p-6 text-center">
-                <div id="qrCodeContainer" class="mb-4">
+                <div id="qrCodeContainer" class="mb-6">
                     <!-- QR Code اینجا نمایش داده می‌شود -->
                 </div>
-                <p class="text-gray-600 text-sm mb-4">
+                <p class="text-gray-600 text-sm mb-6 leading-relaxed">
                     اسکن کنید تا مستقیماً به منوی شما هدایت شوید
                 </p>
-                <div class="flex space-x-2 space-x-reverse">
+                <div class="flex space-x-3 space-x-reverse">
                     <button onclick="downloadQRCode()"
-                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
                         <i class="fas fa-download ml-2"></i>
                         دانلود
                     </button>
                     <button onclick="printQRCode()"
-                            class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                            class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
                         <i class="fas fa-print ml-2"></i>
                         چاپ
                     </button>
@@ -299,14 +564,82 @@
 </div>
 
 <script>
+// پرداخت واقعی - انتقال به درگاه پرداخت
+function processRealPayment(orderId) {
+    if (confirm('آیا می‌خواهید به درگاه پرداخت منتقل شوید؟')) {
+        showNotification('در حال انتقال به درگاه پرداخت...', 'info');
+        window.location.href = `/peyment/request/${orderId}/`;
+    }
+}
+
+// لغو سفارش
+function cancelOrder(orderId) {
+    if (confirm('آیا از لغو این سفارش مطمئن هستید؟ این عمل غیرقابل بازگشت است.')) {
+        showNotification('در حال لغو سفارش...', 'info');
+
+        fetch(`/panel/orders/${orderId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('سفارش با موفقیت لغو شد ✅', 'success');
+                setTimeout(() => {
+                    window.location.href = "{% url 'panel:panel' %}";
+                }, 2000);
+            } else {
+                showNotification('خطا در لغو سفارش: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('خطا در ارتباط با سرور ❌', 'error');
+        });
+    }
+}
+
 // مشاهده عکس در مودال
 function viewImage(imageUrl) {
-    document.getElementById('modalImage').src = imageUrl;
-    document.getElementById('imageModal').classList.remove('hidden');
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+
+    modalImage.src = imageUrl;
+    modal.classList.remove('hidden');
+
+    // انیمیشن ظاهر شدن
+    setTimeout(() => {
+        modal.style.opacity = '1';
+    }, 10);
 }
 
 function closeImageModal() {
-    document.getElementById('imageModal').classList.add('hidden');
+    const modal = document.getElementById('imageModal');
+    modal.style.opacity = '0';
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+// دانلود عکس
+function downloadImage(imageUrl, fileName) {
+    const link = document.createElement('a');
+    link.download = fileName + '.jpg';
+    link.href = imageUrl;
+    link.click();
+}
+
+// کپی لینک منو
+function copyMenuLink(englishName) {
+    const link = `${window.location.origin}/menu/${englishName}`;
+    navigator.clipboard.writeText(link).then(() => {
+        showNotification('لینک منو در کلیپ‌بورد کپی شد ✅', 'success');
+    }).catch(() => {
+        showNotification('خطا در کپی لینک ❌', 'error');
+    });
 }
 
 // تولید QR Code
@@ -326,14 +659,19 @@ function generateQRCode(restaurantSlug) {
 
     qrCodeModal.classList.remove('hidden');
 
+    // انیمیشن ظاهر شدن
+    setTimeout(() => {
+        qrCodeModal.querySelector('.scale-95').classList.remove('scale-95');
+    }, 10);
+
     // درخواست به سرور برای تولید QR Code
     fetch(`/panel/generate-qr-code/${restaurantSlug}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 qrCodeContainer.innerHTML = `
-                    <img src="${data.qr_code}" alt="QR Code" class="w-64 h-64 mx-auto border rounded-lg">
-                    <p class="text-sm text-gray-600 mt-2">آدرس: ${data.menu_url}</p>
+                    <img src="${data.qr_code}" alt="QR Code" class="w-64 h-64 mx-auto border-4 border-white rounded-2xl shadow-lg">
+                    <p class="text-sm text-gray-600 mt-4 font-mono bg-gray-100 p-2 rounded-lg">${data.menu_url}</p>
                 `;
             } else {
                 qrCodeContainer.innerHTML = `
@@ -360,23 +698,45 @@ function generateQRCode(restaurantSlug) {
 }
 
 function closeQRCodeModal() {
-    document.getElementById('qrCodeModal').classList.add('hidden');
+    const modal = document.getElementById('qrCodeModal');
+    modal.querySelector('.scale-95').classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
 }
 
 function downloadQRCode() {
-    // منطق دانلود QR Code
     const qrCodeImg = document.querySelector('#qrCodeContainer img');
     if (qrCodeImg) {
         const link = document.createElement('a');
         link.download = 'qrcode-menu.png';
         link.href = qrCodeImg.src;
         link.click();
+        showNotification('QR Code دانلود شد ✅', 'success');
     }
 }
 
 function printQRCode() {
-    // منطق چاپ QR Code
     window.print();
+}
+
+// تابع نمایش نوتیفیکیشن
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-6 py-4 rounded-xl shadow-lg text-white font-bold text-sm ${
+        type === 'success' ? 'bg-green-500' :
+        type === 'error' ? 'bg-red-500' :
+        'bg-blue-500'
+    } animate-bounce`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
 }
 
 // مدیریت رویدادهای مودال
@@ -399,6 +759,24 @@ document.addEventListener('keydown', function(e) {
         closeQRCodeModal();
     }
 });
+
+// انیمیشن‌های ظاهر شدن
+document.addEventListener('DOMContentLoaded', function() {
+    const elements = document.querySelectorAll('.bg-white');
+    elements.forEach((el, index) => {
+        setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.classList.remove('hidden');
+
+            setTimeout(() => {
+                el.style.transition = 'all 0.5s ease';
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, 50);
+        }, index * 100);
+    });
+});
 </script>
 
 <style>
@@ -412,16 +790,74 @@ document.addEventListener('keydown', function(e) {
     transform: scale(1.05);
 }
 
-/* خط پیشرفت */
-.relative .absolute {
-    margin-left: 15px;
+.hover-lift:hover {
+    transform: translateY(-4px);
+    transition: transform 0.3s ease;
 }
 
-@media (max-width: 768px) {
-    .relative .absolute {
-        margin-left: 12px;
+.animate-bounce {
+    animation: bounce 0.5s;
+}
+
+@keyframes bounce {
+    0%, 20%, 53%, 80%, 100% {
+        transform: translate3d(-50%, 0, 0);
+    }
+    40%, 43% {
+        transform: translate3d(-50%, -15px, 0);
+    }
+    70% {
+        transform: translate3d(-50%, -10px, 0);
+    }
+    90% {
+        transform: translate3d(-50%, -5px, 0);
     }
 }
-</style>
 
+/* بهبود نمایش در موبایل */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .grid-cols-5 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* حذف اسکرول هنگام نمایش مودال */
+body:has(#imageModal:not(.hidden)),
+body:has(#qrCodeModal:not(.hidden)) {
+    overflow: hidden;
+}
+
+/* transition delays برای انیمیشن‌های گروهی */
+.delay-100 {
+    transition-delay: 100ms;
+}
+
+.delay-200 {
+    transition-delay: 200ms;
+}
+
+/* بهبود نمایش تصاویر */
+.aspect-w-4 {
+    position: relative;
+}
+
+.aspect-w-4::before {
+    content: "";
+    display: block;
+    padding-top: 75%; /* 4:3 Aspect Ratio */
+}
+
+.aspect-w-4 > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+</style>
 {% endblock content %}

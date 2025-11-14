@@ -70,7 +70,7 @@ class RestaurantAdmin(admin.ModelAdmin, BilingualAdminMixin):
         (_('Basic Information'), {
             'fields': (
                 'owner', 'get_title_display', 'title', 'title_en', 'slug', 'text',
-                'description', 'description_en',
+                'description', 'description_en','isSeo',
                 'isActive', 'displayOrder'
             )
         }),
@@ -84,7 +84,7 @@ class RestaurantAdmin(admin.ModelAdmin, BilingualAdminMixin):
             'fields': ('openingTime', 'closingTime', 'minimumOrder', 'deliveryFee', 'taxRate')
         }),
         (_('Timestamps'), {
-            'fields': ('createdAt', 'updatedAt'),
+            'fields': ('expireDate','createdAt', 'updatedAt'),
             'classes': ('collapse',)
         }),
     )

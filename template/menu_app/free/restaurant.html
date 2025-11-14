@@ -3,11 +3,15 @@
 {% load humanize %}
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
+     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+   {% if restaurant.isSeo %}
+
+
+        <title>منوی دیجیتال {{ restaurant.title }} | سفارش آنلاین غذا</title>
+
     <!-- متا تگ‌های اصلی SEO -->
-    <title>منوی دیجیتال {{ restaurant.title }} | سفارش آنلاین غذا</title>
     <meta name="description" content="منوی دیجیتال رستوران {{ restaurant.title }} - {{ restaurant.text|striptags|truncatechars:150|default:'سفارش آنلاین غذا با بهترین کیفیت و سریع‌ترین زمان آماده‌سازی' }}">
 
     <!-- متا تگ‌های Open Graph برای شبکه‌های اجتماعی -->
@@ -42,6 +46,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+
+   {% endif %}
+
     <!-- Favicon -->
     {% if restaurant.logo %}
     <link rel="icon" href="{{ restaurant.logo.url }}" type="image/x-icon">
@@ -54,65 +61,71 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Schema.org Structured Data -->
-   <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FoodEstablishment",
-  "@id": "{{ request.build_absolute_uri }}#restaurant",
-  "name": "{{ restaurant.title }}",
-  "description": "{{ restaurant.description|striptags|truncatechars:200|default:restaurant.text|striptags|truncatechars:200 }}",
-  "url": "{{ request.build_absolute_uri }}",
-  "telephone": "{{ restaurant.phone|default:'' }}",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "{{ restaurant.address|default:'' }}"
-  },
-  "openingHours": [
-    {% if restaurant.openingTime and restaurant.closingTime %}
-    "{{ restaurant.openingTime|time:'H:i' }}-{{ restaurant.closingTime|time:'H:i' }}"
-    {% else %}
-    "Mo-Su"
-    {% endif %}
-  ],
-  "servesCuisine": [
-    {% for menu_category in menu_categories %}
-    "{{ menu_category.category.title }}"{% if not forloop.last %},{% endif %}
-    {% endfor %}
-  ],
-  "menu": "{{ request.build_absolute_uri }}",
-  "hasMenu": {
-    "@type": "Menu",
-    "name": "منوی دیجیتال {{ restaurant.title }}",
-    "url": "{{ request.build_absolute_uri }}",
-    "hasMenuSection": [
-      {% for menu_category in menu_categories %}
-      {
-        "@type": "MenuSection",
-        "name": "{{ menu_category.customTitle|default:menu_category.category.title }}",
-        "hasMenuItem": [
-          {% for food in foods %}
-          {% if food.menuCategory.id == menu_category.id %}
-          {
-            "@type": "MenuItem",
-            "name": "{{ food.title }}",
-            "description": "{{ food.description|default:'' }}",
-            "image": "{% if food.image %}{{ food.image.url }}{% endif %}",
-            "offers": {
-              "@type": "Offer",
-              "price": "{{ food.price }}",
-              "priceCurrency": "IRR"
-            }{% if food.preparationTime %},
-            "prepTime": "PT{{ food.preparationTime }}M"{% endif %}
-          }{% if not forloop.last %},{% endif %}
-          {% endif %}
-          {% endfor %}
-        ]
-      }{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    ]
-  }
-}
+
+    {% if restaurant.isSeo %}
+
+      <script type="application/ld+json">
+        {
+        "@context": "https://schema.org",
+        "@type": "FoodEstablishment",
+        "@id": "{{ request.build_absolute_uri }}#restaurant",
+        "name": "{{ restaurant.title }}",
+        "description": "{{ restaurant.description|striptags|truncatechars:200|default:restaurant.text|striptags|truncatechars:200 }}",
+        "url": "{{ request.build_absolute_uri }}",
+        "telephone": "{{ restaurant.phone|default:'' }}",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "{{ restaurant.address|default:'' }}"
+        },
+        "openingHours": [
+            {% if restaurant.openingTime and restaurant.closingTime %}
+            "{{ restaurant.openingTime|time:'H:i' }}-{{ restaurant.closingTime|time:'H:i' }}"
+            {% else %}
+            "Mo-Su"
+            {% endif %}
+        ],
+        "servesCuisine": [
+            {% for menu_category in menu_categories %}
+            "{{ menu_category.category.title }}"{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        "menu": "{{ request.build_absolute_uri }}",
+        "hasMenu": {
+            "@type": "Menu",
+            "name": "منوی دیجیتال {{ restaurant.title }}",
+            "url": "{{ request.build_absolute_uri }}",
+            "hasMenuSection": [
+            {% for menu_category in menu_categories %}
+            {
+                "@type": "MenuSection",
+                "name": "{{ menu_category.customTitle|default:menu_category.category.title }}",
+                "hasMenuItem": [
+                {% for food in foods %}
+                {% if food.menuCategory.id == menu_category.id %}
+                {
+                    "@type": "MenuItem",
+                    "name": "{{ food.title }}",
+                    "description": "{{ food.description|default:'' }}",
+                    "image": "{% if food.image %}{{ food.image.url }}{% endif %}",
+                    "offers": {
+                    "@type": "Offer",
+                    "price": "{{ food.price }}",
+                    "priceCurrency": "IRR"
+                    }{% if food.preparationTime %},
+                    "prepTime": "PT{{ food.preparationTime }}M"{% endif %}
+                }{% if not forloop.last %},{% endif %}
+                {% endif %}
+                {% endfor %}
+                ]
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+            ]
+        }
+        }
 </script>
+
+    {% endif %}
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
 
@@ -1629,7 +1642,9 @@
     </div>
 
     <!-- بخش توضیحات رستوران - قابل باز و بسته شدن -->
-    <div class="restaurant-description-section" style="
+    {% if restaurant.isSeo %}
+
+      <div class="restaurant-description-section" style="
         max-width: 800px;
         margin: 40px auto;
         padding: 0 20px;
@@ -1699,6 +1714,8 @@
             </div>
         </div>
     </div>
+
+    {% endif %}
 
     <script>
         const restaurantSlug = "{{ restaurant.slug }}";

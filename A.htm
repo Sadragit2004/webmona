@@ -1,900 +1,1006 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فودیرو | سفارش آنلاین غذا</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         :root {
-            --primary: #FF6B6B;
-            --secondary: #4ECDC4;
-            --accent: #FFD166;
-            --dark: #2A2D34;
-            --light: #F7F9FC;
-            --text: #333;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --primary: #3a86ff;
+            --primary-dark: #2667cc;
+            --secondary: #8338ec;
+            --success: #06d6a0;
+            --danger: #ef476f;
+            --warning: #ffd166;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 12px;
         }
 
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
-            color: var(--text);
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.6;
             overflow-x: hidden;
+            padding-bottom: 80px; /* Space for fixed mobile button */
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
         }
 
-        /* صفحه اصلی */
-        .main-page {
-            min-height: 100vh;
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: var(--shadow);
             position: relative;
-            overflow: hidden;
+            z-index: 100;
         }
 
-        /* ناوبری مخصوص */
-        .food-nav {
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 2rem 0;
-            position: relative;
-            z-index: 10;
         }
 
         .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--primary);
-            text-decoration: none;
+            gap: 10px;
         }
 
         .logo i {
-            margin-left: 10px;
-            font-size: 2.5rem;
-        }
-
-        .nav-controls {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-        }
-
-        .location-selector {
-            display: flex;
-            align-items: center;
-            background: white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 50px;
-            box-shadow: var(--shadow);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .location-selector:hover {
-            transform: translateY(-3px);
-        }
-
-        .location-selector i {
-            color: var(--primary);
-            margin-left: 8px;
+            font-size: 2rem;
         }
 
         .user-actions {
             display: flex;
-            gap: 1rem;
+            gap: 20px;
         }
 
-        .action-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            cursor: pointer;
-            position: relative;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-5px);
-            background: var(--primary);
+        .user-actions a {
             color: white;
-        }
-
-        .cart-badge {
-            position: absolute;
-            top: -5px;
-            left: -5px;
-            background: var(--secondary);
-            color: white;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        /* بخش هیرو */
-        .hero-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-            padding: 3rem 0;
-            position: relative;
-        }
-
-        .hero-content {
-            animation: fadeInUp 1s ease-out;
-        }
-
-        .hero-title {
-            font-size: 3.5rem;
-            line-height: 1.2;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .hero-subtitle {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 2.5rem;
-            line-height: 1.8;
-        }
-
-        .search-box {
-            display: flex;
-            background: white;
-            border-radius: 50px;
-            padding: 0.5rem;
-            box-shadow: var(--shadow);
-            margin-bottom: 2rem;
-            overflow: hidden;
-        }
-
-        .search-input {
-            flex: 1;
-            border: none;
-            padding: 1rem 1.5rem;
-            font-size: 1rem;
-            outline: none;
-            background: transparent;
-        }
-
-        .search-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 600;
-        }
-
-        .search-btn:hover {
-            background: var(--secondary);
-        }
-
-        .hero-stats {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--primary);
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: #777;
-        }
-
-        .hero-visual {
-            position: relative;
-            animation: fadeInRight 1s ease-out;
-        }
-
-        .floating-food {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2rem;
-            color: white;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .floating-food:nth-child(1) {
-            top: 10%;
-            left: 10%;
-            background: var(--primary);
-            animation-delay: 0s;
-        }
-
-        .floating-food:nth-child(2) {
-            top: 60%;
-            left: 5%;
-            background: var(--secondary);
-            animation-delay: 2s;
-        }
-
-        .floating-food:nth-child(3) {
-            top: 30%;
-            right: 10%;
-            background: var(--accent);
-            animation-delay: 4s;
-            color: var(--dark);
-        }
-
-        .food-showcase {
-            background: white;
-            border-radius: 30px;
-            padding: 2rem;
-            box-shadow: var(--shadow);
-            transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
-            transition: var(--transition);
-            overflow: hidden;
-        }
-
-        .food-showcase:hover {
-            transform: perspective(1000px) rotateY(0) rotateX(0);
-        }
-
-        .food-image {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            border-radius: 20px;
-            transition: var(--transition);
-        }
-
-        .food-showcase:hover .food-image {
-            transform: scale(1.05);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(10deg); }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInRight {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        /* بخش رستوران‌ها */
-        .restaurants-section {
-            padding: 5rem 0;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 3rem;
-        }
-
-        .section-title {
-            font-size: 2.5rem;
-            color: var(--dark);
-            position: relative;
-        }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            right: 0;
-            width: 80px;
-            height: 4px;
-            background: var(--primary);
-            border-radius: 2px;
-        }
-
-        .view-all {
-            display: flex;
-            align-items: center;
-            color: var(--primary);
             text-decoration: none;
-            font-weight: 600;
-            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+            transition: opacity 0.3s;
         }
 
-        .view-all:hover {
-            transform: translateX(-5px);
+        .user-actions a:hover {
+            opacity: 0.8;
         }
 
-        .restaurants-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        /* Main Content */
+        .main-wrapper {
+            display: flex;
             gap: 2rem;
-        }
-
-        .restaurant-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
+            margin: 2rem 0;
             position: relative;
-        }
-
-        .restaurant-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .restaurant-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: var(--accent);
-            color: var(--dark);
-            padding: 0.3rem 0.8rem;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            z-index: 2;
-        }
-
-        .restaurant-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-
-        .restaurant-info {
-            padding: 1.5rem;
-        }
-
-        .restaurant-name {
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-            color: var(--dark);
-        }
-
-        .restaurant-category {
-            color: #777;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .restaurant-category i {
-            margin-left: 5px;
-            color: var(--primary);
-        }
-
-        .restaurant-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .rating {
-            display: flex;
-            align-items: center;
-            background: var(--light);
-            padding: 0.3rem 0.8rem;
-            border-radius: 50px;
-        }
-
-        .rating i {
-            color: var(--accent);
-            margin-left: 5px;
-        }
-
-        .delivery-time {
-            color: #777;
-            font-size: 0.9rem;
-        }
-
-        /* بخش دسته‌بندی‌ها */
-        .categories-section {
-            padding: 5rem 0;
-        }
-
-        .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .category-card {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem 1.5rem;
-            text-align: center;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            cursor: pointer;
-        }
-
-        .category-card:hover {
-            transform: translateY(-10px);
-            background: var(--primary);
-            color: white;
-        }
-
-        .category-card:hover .category-icon {
-            background: white;
-            color: var(--primary);
-        }
-
-        .category-icon {
-            width: 70px;
-            height: 70px;
-            background: var(--light);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 1rem;
-            font-size: 1.8rem;
-            color: var(--primary);
-            transition: var(--transition);
-        }
-
-        .category-name {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        /* بخش ویژه */
-        .special-offers {
-            padding: 5rem 0;
-            background: linear-gradient(135deg, var(--primary) 0%, #ff8e8e 100%);
-            border-radius: 40px;
-            margin: 0 20px 5rem;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .special-offers::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.1);
-            transform: rotate(30deg);
-        }
-
-        .offers-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        .offers-title {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .offers-subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .offers-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        .offer-card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2rem;
-            text-align: center;
-            transition: var(--transition);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .offer-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .offer-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .offer-title {
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .offer-desc {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        /* ریسپانسیو */
-        @media (max-width: 992px) {
-            .hero-section {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-
-            .hero-title {
-                font-size: 2.8rem;
-            }
-
-            .food-showcase {
-                transform: none;
-                margin-top: 2rem;
-            }
         }
 
         @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2.2rem;
+            .main-wrapper {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Content Column */
+        .content-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Summary Column */
+        .summary-column {
+            width: 400px;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        @media (max-width: 768px) {
+            .summary-column {
+                width: 100%;
+                position: static;
+                order: 3; /* Move summary to bottom on mobile */
+            }
+        }
+
+        /* Plan Section */
+        .plan-section {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .section-content {
+            padding: 1.5rem;
+        }
+
+        /* Single Plan */
+        .plan-card {
+            border: 2px solid var(--primary);
+            border-radius: var(--radius);
+            padding: 2rem;
+            background-color: rgba(58, 134, 255, 0.05);
+            position: relative;
+        }
+
+        .plan-badge {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: var(--success);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .plan-description {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .plan-price {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            margin-bottom: 2rem;
+        }
+
+        .price-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .price-period {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 1rem;
+        }
+
+        .plan-features i {
+            color: var(--success);
+            margin-top: 3px;
+            font-size: 1.1rem;
+        }
+
+        /* Stands Promotion Button */
+        .stands-promotion {
+            background: linear-gradient(135deg, var(--secondary), #a855f7);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 25px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(131, 56, 236, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .stands-promotion:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(131, 56, 236, 0.6);
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 4px 15px rgba(131, 56, 236, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(131, 56, 236, 0.7);
+            }
+            100% {
+                box-shadow: 0 4px 15px rgba(131, 56, 236, 0.4);
+            }
+        }
+
+        /* Summary Section */
+        .summary-section {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .summary-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .selected-plan-summary {
+            background-color: rgba(58, 134, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .selected-plan-name {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .selected-plan-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .summary-label {
+            color: var(--gray);
+        }
+
+        .summary-value {
+            font-weight: 500;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            margin: 1.5rem 0;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .total-price {
+            color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            width: 100%;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(58, 134, 255, 0.1);
+        }
+
+        /* Stands Section */
+        .stands-section {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .stands-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+        }
+
+        .stands-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stands-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .stands-content {
+            padding: 1.5rem;
+        }
+
+        .stands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 480px) {
+            .stands-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+
+        .stand-card {
+            background-color: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .stand-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stand-card.selected {
+            border-color: var(--secondary);
+        }
+
+        .stand-image {
+            width: 100%;
+            height: 140px;
+            overflow: hidden;
+        }
+
+        .stand-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .stand-card:hover .stand-image img {
+            transform: scale(1.05);
+        }
+
+        .stand-info {
+            padding: 1rem;
+        }
+
+        .stand-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            height: 40px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .stand-description {
+            color: var(--gray);
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+            height: 40px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .stand-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stand-price {
+            font-weight: 700;
+            color: var(--secondary);
+            font-size: 1rem;
+        }
+
+        .add-stand {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .add-stand:hover {
+            background-color: #7229d9;
+        }
+
+        .remove-stand {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .remove-stand:hover {
+            background-color: #d93a5f;
+        }
+
+        /* Selected Stands */
+        .selected-stands {
+            margin-top: 1.5rem;
+            background-color: rgba(131, 56, 236, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .selected-stands-title {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .selected-stand-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .selected-stand-item:last-child {
+            border-bottom: none;
+        }
+
+        .selected-stand-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .selected-stand-price {
+            color: var(--secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .plan-card, .stand-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
             }
 
-            .section-title {
+            .section-content, .stands-content {
+                padding: 1rem;
+            }
+
+            .plan-card {
+                padding: 1.5rem;
+            }
+
+            .plan-name {
+                font-size: 1.5rem;
+            }
+
+            .price-amount {
                 font-size: 2rem;
             }
 
-            .food-nav {
-                flex-direction: column;
-                gap: 1.5rem;
+            .user-actions {
+                display: none;
             }
 
-            .nav-controls {
-                width: 100%;
+            /* Mobile Payment Bar */
+            .mobile-payment-bar {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 15px;
+                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+                display: flex;
                 justify-content: space-between;
+                align-items: center;
+                z-index: 100;
+            }
+
+            .mobile-total {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .mobile-total-label {
+                font-size: 0.9rem;
+                color: var(--gray);
+            }
+
+            .mobile-total-price {
+                font-size: 1.3rem;
+                font-weight: 700;
+                color: var(--primary);
+            }
+
+            .mobile-pay-btn {
+                background: var(--primary);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 20px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-payment-bar {
+                display: none !important;
             }
         }
     </style>
-</head>
-<body>
-    <div class="main-page">
-        <div class="container">
-            <!-- ناوبری -->
-            <nav class="food-nav">
-                <a href="#" class="logo">
-                    <i class="fas fa-utensils"></i>
-                    فودیرو
-                </a>
-                <div class="nav-controls">
-                    <div class="location-selector">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>تهران، سعادت آباد</span>
-                    </div>
-                    <div class="user-actions">
-                        <div class="action-btn">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="action-btn">
-                            <i class="fas fa-shopping-cart"></i>
-                            <div class="cart-badge">۳</div>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- بخش اصلی -->
-            <section class="hero-section">
-                <div class="hero-content">
-                    <h1 class="hero-title">سفارش آنلاین غذا از بهترین رستوران‌ها</h1>
-                    <p class="hero-subtitle">با فودیرو از بین صدها رستوران و فست فود انتخاب کنید و در کمترین زمان غذا را درب منزل تحویل بگیرید.</p>
-
-                    <div class="search-box">
-                        <input type="text" class="search-input" placeholder="چه غذایی میل دارید؟">
-                        <button class="search-btn">
-                            <i class="fas fa-search"></i>
-                            جستجو
+    <div class="container">
+        <div class="main-wrapper">
+            <!-- Content Column -->
+            <div class="content-column">
+                <!-- Plan Section -->
+                <div class="plan-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-cube"></i>
+                            پلن حرفه‌ای
+                        </h2>
+                        <button class="stands-promotion" id="stands-promotion">
+                            <i class="fas fa-store"></i>
+                            خرید استندهای فروشگاهی
+                            <i class="fas fa-arrow-left"></i>
                         </button>
                     </div>
 
-                    <div class="hero-stats">
-                        <div class="stat">
-                            <span class="stat-number">۵۰۰+</span>
-                            <span class="stat-label">رستوران</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">۱۵۰۰۰+</span>
-                            <span class="stat-label">غذای مختلف</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">۴.۸</span>
-                            <span class="stat-label">امتیاز کاربران</span>
+                    <div class="section-content">
+                        <div class="plan-card">
+                            <div class="plan-badge">پیشنهاد ویژه</div>
+                            <div class="plan-name">پلن حرفه‌ای</div>
+                            <div class="plan-description">
+                                کامل‌ترین پلن خدمات دیجی‌استند با امکانات پیشرفته برای کسب‌وکارهای آنلاین.
+                                این پلن شامل تمامی ویژگی‌های مورد نیاز برای راه‌اندازی و مدیریت یک فروشگاه آنلاین حرفه‌ای می‌باشد.
+                            </div>
+
+                            <div class="plan-price">
+                                <span class="price-amount">۴۹۹,۰۰۰</span>
+                                <span class="price-period">تومان / ماهانه</span>
+                            </div>
+
+                            <ul class="plan-features">
+                                <li><i class="fas fa-check"></i> ۵۰ گیگابایت فضای ذخیره‌سازی ابری</li>
+                                <li><i class="fas fa-check"></i> پشتیبانی از ۱۰۰ محصول و خدمات</li>
+                                <li><i class="fas fa-check"></i> ۱۰ قالب حرفه‌ای و قابل تنظیم</li>
+                                <li><i class="fas fa-check"></i> پشتیبانی تلفنی و ایمیلی ۲۴/۷</li>
+                                <li><i class="fas fa-check"></i> گزارش‌های تحلیلی پیشرفته</li>
+                                <li><i class="fas fa-check"></i> سیستم مدیریت موجودی و انبار</li>
+                                <li><i class="fas fa-check"></i> درگاه پرداخت اختصاصی</li>
+                                <li><i class="fas fa-check"></i> سئو و بهینه‌سازی پیشرفته</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
 
-                <div class="hero-visual">
-                    <div class="floating-food">
-                        <i class="fas fa-pizza-slice"></i>
-                    </div>
-                    <div class="floating-food">
-                        <i class="fas fa-hamburger"></i>
-                    </div>
-                    <div class="floating-food">
-                        <i class="fas fa-ice-cream"></i>
+                <!-- Stands Section -->
+                <div class="stands-section" id="stands-section">
+                    <div class="stands-header">
+                        <div>
+                            <h2 class="stands-title">
+                                <i class="fas fa-store"></i>
+                                استندهای فروشگاهی
+                            </h2>
+                            <p class="stands-subtitle">قالب‌های آماده برای راه‌اندازی سریع فروشگاه آنلاین</p>
+                        </div>
                     </div>
 
-                    <div class="food-showcase">
-                        <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=781&q=80" alt="غذای ویژه" class="food-image">
+                    <div class="stands-content">
+                        <div class="stands-grid">
+                            <!-- Stand 1 -->
+                            <div class="stand-card" data-stand="minimal" data-price="159000">
+                                <div class="stand-image">
+                                    <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="استند مینیمال">
+                                </div>
+                                <div class="stand-info">
+                                    <h3 class="stand-name">استند مینیمال</h3>
+                                    <p class="stand-description">طراحی ساده و شیک با تمرکز بر روی محصولات</p>
+                                    <div class="stand-footer">
+                                        <span class="stand-price">۱۵۹,۰۰۰ تومان</span>
+                                        <button class="add-stand" data-stand="minimal">
+                                            <i class="fas fa-plus"></i>
+                                            افزودن
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stand 2 -->
+                            <div class="stand-card" data-stand="modern" data-price="299000">
+                                <div class="stand-image">
+                                    <img src="https://images.unsplash.com/photo-1556655852-ef3b2c8d703f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="استند مدرن">
+                                </div>
+                                <div class="stand-info">
+                                    <h3 class="stand-name">استند مدرن</h3>
+                                    <p class="stand-description">طراحی امروزی با امکانات پیشرفته و رابط کاربری حرفه‌ای</p>
+                                    <div class="stand-footer">
+                                        <span class="stand-price">۲۹۹,۰۰۰ تومان</span>
+                                        <button class="add-stand" data-stand="modern">
+                                            <i class="fas fa-plus"></i>
+                                            افزودن
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stand 3 -->
+                            <div class="stand-card" data-stand="premium" data-price="499000">
+                                <div class="stand-image">
+                                    <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="استند پریمیوم">
+                                </div>
+                                <div class="stand-info">
+                                    <h3 class="stand-name">استند پریمیوم</h3>
+                                    <p class="stand-description">طراحی لوکس و کاملاً سفارشی با قابلیت‌های منحصر به فرد</p>
+                                    <div class="stand-footer">
+                                        <span class="stand-price">۴۹۹,۰۰۰ تومان</span>
+                                        <button class="add-stand" data-stand="premium">
+                                            <i class="fas fa-plus"></i>
+                                            افزودن
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stand 4 -->
+                            <div class="stand-card" data-stand="elegant" data-price="229000">
+                                <div class="stand-image">
+                                    <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="استند Elegant">
+                                </div>
+                                <div class="stand-info">
+                                    <h3 class="stand-name">استند Elegant</h3>
+                                    <p class="stand-description">طراحی شیک و مدرن با المان‌های ظریف</p>
+                                    <div class="stand-footer">
+                                        <span class="stand-price">۲۲۹,۰۰۰ تومان</span>
+                                        <button class="add-stand" data-stand="elegant">
+                                            <i class="fas fa-plus"></i>
+                                            افزودن
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- Summary Column -->
+            <div class="summary-column">
+                <div class="summary-section">
+                    <h2 class="summary-title">خلاصه سفارش</h2>
+
+                    <div class="selected-plan-summary">
+                        <div class="selected-plan-name">
+                            <i class="fas fa-cube"></i>
+                            پلن حرفه‌ای
+                        </div>
+                        <div class="selected-plan-price">۴۹۹,۰۰۰ تومان / ماهانه</div>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="summary-label">هزینه پلن (ماهانه)</span>
+                        <span class="summary-value" id="plan-cost">۴۹۹,۰۰۰ تومان</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="summary-label">هزینه استند‌ها</span>
+                        <span class="summary-value" id="stands-cost">۰ تومان</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="summary-label">مالیات بر ارزش افزوده (۹٪)</span>
+                        <span class="summary-value" id="tax-cost">۴۴,۹۱۰ تومان</span>
+                    </div>
+
+                    <div class="summary-total">
+                        <span>مبلغ قابل پرداخت</span>
+                        <span class="total-price" id="total-cost">۵۴۳,۹۱۰ تومان</span>
+                    </div>
+
+                    <button class="btn btn-primary" id="continue-payment">
+                        <i class="fas fa-credit-card"></i>
+                        پرداخت و فعال‌سازی
+                    </button>
+
+                    <button class="btn btn-outline" id="save-cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        ذخیره در سبد خرید
+                    </button>
+
+                    <!-- Selected Stands -->
+                    <div class="selected-stands" id="selected-stands-container" style="display: none;">
+                        <div class="selected-stands-title">
+                            <i class="fas fa-store"></i>
+                            استند‌های انتخاب شده
+                        </div>
+                        <div id="selected-stands-list">
+                            <!-- Selected stands will be added here dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <!-- بخش رستوران‌ها -->
-        <section class="restaurants-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">رستوران‌های محبوب</h2>
-                    <a href="#" class="view-all">
-                        مشاهده همه
-                        <i class="fas fa-arrow-left"></i>
-                    </a>
-                </div>
-
-                <div class="restaurants-grid">
-                    <!-- رستوران ۱ -->
-                    <div class="restaurant-card">
-                        <div class="restaurant-badge">تخفیف ۲۰٪</div>
-                        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="رستوران ایتالیایی" class="restaurant-image">
-                        <div class="restaurant-info">
-                            <h3 class="restaurant-name">رستوران ایتالیایی دلمه</h3>
-                            <div class="restaurant-category">
-                                <i class="fas fa-utensils"></i>
-                                ایتالیایی، پیتزا، پاستا
-                            </div>
-                            <div class="restaurant-meta">
-                                <div class="rating">
-                                    <i class="fas fa-star"></i>
-                                    <span>۴.۸</span>
-                                </div>
-                                <div class="delivery-time">۳۰-۴۵ دقیقه</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- رستوران ۲ -->
-                    <div class="restaurant-card">
-                        <div class="restaurant-badge">ارسال رایگان</div>
-                        <img src="https://images.unsplash.com/photo-1552566626-52f8b828add9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="رستوران ایرانی" class="restaurant-image">
-                        <div class="restaurant-info">
-                            <h3 class="restaurant-name">رستوران سنتی شاندیز</h3>
-                            <div class="restaurant-category">
-                                <i class="fas fa-utensils"></i>
-                                ایرانی، کباب، خورش
-                            </div>
-                            <div class="restaurant-meta">
-                                <div class="rating">
-                                    <i class="fas fa-star"></i>
-                                    <span>۴.۹</span>
-                                </div>
-                                <div class="delivery-time">۴۰-۵۵ دقیقه</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- رستوران ۳ -->
-                    <div class="restaurant-card">
-                        <img src="https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1115&q=80" alt="فست فود" class="restaurant-image">
-                        <div class="restaurant-info">
-                            <h3 class="restaurant-name">برگرز فست فود</h3>
-                            <div class="restaurant-category">
-                                <i class="fas fa-utensils"></i>
-                                فست فود، برگر، سیب زمینی
-                            </div>
-                            <div class="restaurant-meta">
-                                <div class="rating">
-                                    <i class="fas fa-star"></i>
-                                    <span>۴.۷</span>
-                                </div>
-                                <div class="delivery-time">۲۰-۳۵ دقیقه</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- بخش دسته‌بندی‌ها -->
-        <section class="categories-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">دسته‌بندی‌ها</h2>
-                    <a href="#" class="view-all">
-                        همه دسته‌ها
-                        <i class="fas fa-arrow-left"></i>
-                    </a>
-                </div>
-
-                <div class="categories-grid">
-                    <!-- دسته ۱ -->
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-pizza-slice"></i>
-                        </div>
-                        <div class="category-name">پیتزا</div>
-                    </div>
-
-                    <!-- دسته ۲ -->
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-hamburger"></i>
-                        </div>
-                        <div class="category-name">برگر</div>
-                    </div>
-
-                    <!-- دسته ۳ -->
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-utensils"></i>
-                        </div>
-                        <div class="category-name">ایرانی</div>
-                    </div>
-
-                    <!-- دسته ۴ -->
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-fish"></i>
-                        </div>
-                        <div class="category-name">دریایی</div>
-                    </div>
-
-                    <!-- دسته ۵ -->
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-ice-cream"></i>
-                        </div>
-                        <div class="category-name">دسر</div>
-                    </div>
-
-                    <!-- دسته ۶ -->
-                    <div class="category-card">
-                        <div class="category-icon">
-                            <i class="fas fa-coffee"></i>
-                        </div>
-                        <div class="category-name">نوشیدنی</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- بخش پیشنهادات ویژه -->
-        <section class="special-offers">
-            <div class="container">
-                <div class="offers-header">
-                    <h2 class="offers-title">پیشنهادات ویژه</h2>
-                    <p class="offers-subtitle">تخفیف‌های استثنایی فقط برای شما</p>
-                </div>
-
-                <div class="offers-grid">
-                    <!-- پیشنهاد ۱ -->
-                    <div class="offer-card">
-                        <div class="offer-icon">
-                            <i class="fas fa-gift"></i>
-                        </div>
-                        <h3 class="offer-title">اولین سفارش</h3>
-                        <p class="offer-desc">۲۰٪ تخفیف برای اولین سفارش شما</p>
-                    </div>
-
-                    <!-- پیشنهاد ۲ -->
-                    <div class="offer-card">
-                        <div class="offer-icon">
-                            <i class="fas fa-shipping-fast"></i>
-                        </div>
-                        <h3 class="offer-title">ارسال رایگان</h3>
-                        <p class="offer-desc">سفارش‌های بالای ۱۰۰ هزار تومان</p>
-                    </div>
-
-                    <!-- پیشنهاد ۳ -->
-                    <div class="offer-card">
-                        <div class="offer-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <h3 class="offer-title">دعوت از دوستان</h3>
-                        <p class="offer-desc">۱۵ هزار تومان اعتبار برای شما و دوستتان</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <!-- Mobile Payment Bar -->
+    <div class="mobile-payment-bar" id="mobile-payment-bar">
+        <div class="mobile-total">
+            <span class="mobile-total-label">مبلغ قابل پرداخت</span>
+            <span class="mobile-total-price" id="mobile-total-cost">۵۴۳,۹۱۰ تومان</span>
+        </div>
+        <button class="mobile-pay-btn" id="mobile-pay-btn">
+            <i class="fas fa-credit-card"></i>
+            پرداخت
+        </button>
     </div>
 
     <script>
-        // انیمیشن‌های تعاملی
-        document.addEventListener('DOMContentLoaded', function() {
-            // انیمیشن کارت‌ها هنگام اسکرول
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
+        // Selected stands array
+        let selectedStands = [];
 
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.animation = 'fadeInUp 0.8s ease-out forwards';
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
+        // Add stand functionality
+        document.querySelectorAll('.add-stand').forEach(button => {
+            button.addEventListener('click', function() {
+                const standCard = this.closest('.stand-card');
+                const standId = standCard.getAttribute('data-stand');
+                const standName = standCard.querySelector('.stand-name').textContent;
+                const standPrice = parseInt(standCard.getAttribute('data-price'));
 
-            // مشاهده تمام کارت‌ها برای انیمیشن
-            const cards = document.querySelectorAll('.restaurant-card, .category-card, .offer-card');
-            cards.forEach(card => {
-                card.style.opacity = '0';
-                observer.observe(card);
-            });
+                // Check if stand is already selected
+                if (selectedStands.find(stand => stand.id === standId)) {
+                    alert('این استند قبلاً انتخاب شده است');
+                    return;
+                }
 
-            // افکت‌های hover برای کارت رستوران‌ها
-            const restaurantCards = document.querySelectorAll('.restaurant-card');
-            restaurantCards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-15px)';
+                // Add to selected stands
+                selectedStands.push({
+                    id: standId,
+                    name: standName,
+                    price: standPrice
                 });
 
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(-10px)';
-                });
+                // Update UI
+                updateSelectedStands();
+                updateSummary();
+
+                // Change button to remove
+                this.innerHTML = '<i class="fas fa-times"></i> حذف';
+                this.classList.remove('add-stand');
+                this.classList.add('remove-stand');
+                standCard.classList.add('selected');
+
+                // Update click event
+                this.onclick = function() {
+                    removeStand(standId);
+                };
             });
         });
+
+        // Remove stand function
+        function removeStand(standId) {
+            selectedStands = selectedStands.filter(stand => stand.id !== standId);
+            updateSelectedStands();
+            updateSummary();
+
+            // Update button
+            const standCard = document.querySelector(`[data-stand="${standId}"]`);
+            const button = standCard.querySelector('.remove-stand');
+            button.innerHTML = '<i class="fas fa-plus"></i> افزودن';
+            button.classList.remove('remove-stand');
+            button.classList.add('add-stand');
+            standCard.classList.remove('selected');
+
+            // Restore click event
+            button.onclick = function() {
+                const standCard = this.closest('.stand-card');
+                const standId = standCard.getAttribute('data-stand');
+                const standName = standCard.querySelector('.stand-name').textContent;
+                const standPrice = parseInt(standCard.getAttribute('data-price'));
+
+                selectedStands.push({
+                    id: standId,
+                    name: standName,
+                    price: standPrice
+                });
+
+                updateSelectedStands();
+                updateSummary();
+
+                this.innerHTML = '<i class="fas fa-times"></i> حذف';
+                this.classList.remove('add-stand');
+                this.classList.add('remove-stand');
+                standCard.classList.add('selected');
+
+                this.onclick = function() {
+                    removeStand(standId);
+                };
+            };
+        }
+
+        // Update selected stands UI
+        function updateSelectedStands() {
+            const container = document.getElementById('selected-stands-container');
+            const list = document.getElementById('selected-stands-list');
+
+            if (selectedStands.length > 0) {
+                container.style.display = 'block';
+                list.innerHTML = '';
+
+                selectedStands.forEach(stand => {
+                    const standItem = document.createElement('div');
+                    standItem.className = 'selected-stand-item';
+                    standItem.innerHTML = `
+                        <span class="selected-stand-name">${stand.name}</span>
+                        <span class="selected-stand-price">${formatNumber(stand.price)} تومان</span>
+                    `;
+                    list.appendChild(standItem);
+                });
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        // Update summary function
+        function updateSummary() {
+            const planCost = 499000;
+            const standsCost = selectedStands.reduce((total, stand) => total + stand.price, 0);
+            const tax = Math.round((planCost + standsCost) * 0.09);
+            const total = planCost + standsCost + tax;
+
+            // Update costs in summary
+            document.getElementById('plan-cost').textContent = `${formatNumber(planCost)} تومان`;
+            document.getElementById('stands-cost').textContent = `${formatNumber(standsCost)} تومان`;
+            document.getElementById('tax-cost').textContent = `${formatNumber(tax)} تومان`;
+            document.getElementById('total-cost').textContent = `${formatNumber(total)} تومان`;
+
+            // Update mobile payment bar
+            document.getElementById('mobile-total-cost').textContent = `${formatNumber(total)} تومان`;
+        }
+
+        // Format number function
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Continue to payment
+        document.getElementById('continue-payment').addEventListener('click', function() {
+            // In a real application, you would redirect to payment page
+            alert('در حال انتقال به صفحه پرداخت...');
+            // window.location.href = '/payment';
+        });
+
+        // Save to cart
+        document.getElementById('save-cart').addEventListener('click', function() {
+            alert('سفارش شما به سبد خرید اضافه شد');
+        });
+
+        // Mobile pay button
+        document.getElementById('mobile-pay-btn').addEventListener('click', function() {
+            alert('در حال انتقال به صفحه پرداخت...');
+        });
+
+        // Stands promotion button
+        document.getElementById('stands-promotion').addEventListener('click', function() {
+            document.getElementById('stands-section').scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+
+        // Initialize summary on page load
+        updateSummary();
     </script>
-</body>
-</html>

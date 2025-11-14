@@ -4,17 +4,28 @@ import utils
 from django.utils import timezone
 
 
+# apps/order/models.py
+from django.db import models
+from apps.menu.models.menufreemodels.models import Restaurant
+import utils
+from django.utils import timezone
+from decimal import Decimal
+
 class Ordermenu(models.Model):
     STATUS_UNPAID = 1
     STATUS_PAID = 2
     STATUS_CONFIRMED = 3
     STATUS_DELIVERED = 4
+    STATUS_RENEWAL = 5
+    NOTRENEWED = 6
 
     STATUS_CHOICES = [
         (STATUS_UNPAID, 'پرداخت نشده'),
         (STATUS_PAID, 'پرداخت شده'),
         (STATUS_CONFIRMED, 'تایید شده'),
         (STATUS_DELIVERED, 'تحویل شده'),
+        (NOTRENEWED, 'تمدید نشده'),
+        (STATUS_RENEWAL, 'تمدید شده'),
     ]
 
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, verbose_name='رستوران')
@@ -34,27 +45,59 @@ class Ordermenu(models.Model):
     # ✅ گزینه سئو (اگر کاربر بخواهد منو سئو شود)
     is_seo_enabled = models.BooleanField(default=False, verbose_name='سئوی منو فعال شود؟')
 
-    # ✅ مبلغ ثابت‌ها
-    BASE_PRICE = 99000 * 10  # مبلغ پایه
-    SEO_EXTRA_PRICE = 39000 * 10  # مبلغ اضافه برای سئو
+    # ✅ فیلدهای قیمت داینامیک
+    base_price = models.PositiveIntegerField(default=990000, verbose_name="قیمت پایه (ریال)")
+    seo_extra_price = models.PositiveIntegerField(default=390000, verbose_name="قیمت اضافه سئو (ریال)")
+    final_price = models.PositiveIntegerField(default=0, verbose_name="قیمت نهایی (ریال)")
+
+    def save(self, *args, **kwargs):
+        # محاسبه قیمت نهایی قبل از ذخیره
+        self.final_price = self.base_price
+        if self.is_seo_enabled:
+            self.final_price += self.seo_extra_price
+
+        super().save(*args, **kwargs)
 
     def get_fixed_price(self):
-        """
-        تابع برای بازگرداندن مبلغ نهایی
-        اگر سئو فعال باشد، مبلغ سئو هم اضافه می‌شود.
-        """
-        total = self.BASE_PRICE
-        if self.is_seo_enabled:
-            total += self.SEO_EXTRA_PRICE
-        return total
+        """تابع برای بازگرداندن مبلغ نهایی"""
+        return self.final_price
+
+    def get_price_display(self):
+        """نمایش قیمت به صورت فرمت شده"""
+        return f"{self.final_price // 10:,} تومان"
+
+    def get_base_price_display(self):
+        """نمایش قیمت پایه به صورت فرمت شده"""
+        return f"{self.base_price // 10:,} تومان"
+
+    def get_seo_price_display(self):
+        """نمایش قیمت سئو به صورت فرمت شده"""
+        return f"{self.seo_extra_price // 10:,} تومان"
 
     @classmethod
     def get_status_choices(cls):
         """تابع برای دسترسی به choicesهای وضعیت"""
         return cls.STATUS_CHOICES
 
+    def get_status_info(self):
+        """اطلاعات کامل وضعیت سفارش"""
+        status_info = {
+            'code': self.status,
+            'display': self.get_status_display(),
+            'is_paid': self.status in [self.STATUS_PAID, self.STATUS_CONFIRMED, self.STATUS_DELIVERED, self.STATUS_RENEWAL],
+            'is_completed': self.status in [self.STATUS_DELIVERED, self.STATUS_RENEWAL],
+            'is_pending': self.status in [self.STATUS_UNPAID, self.NOTRENEWED],
+            'is_confirmed': self.status == self.STATUS_CONFIRMED,
+            'is_delivered': self.status == self.STATUS_DELIVERED,
+        }
+        return status_info
+
     def __str__(self):
-        return f"سفارش {self.id} از {self.restaurant}"
+        return f"سفارش {self.id} از {self.restaurant} - {self.get_status_display()}"
+
+    class Meta:
+        verbose_name = 'سفارش منو'
+        verbose_name_plural = 'سفارشات منو'
 
 
 class MenuImage(models.Model):
@@ -68,3 +111,6 @@ class MenuImage(models.Model):
     class Meta:
         verbose_name = 'عکس منو'
         verbose_name_plural = 'عکس‌های منو'
+
+
+

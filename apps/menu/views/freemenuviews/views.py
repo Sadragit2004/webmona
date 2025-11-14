@@ -1,34 +1,42 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404,redirect
+from django.http import HttpResponse
+from ...models.menufreemodels.models import Restaurant, MenuCategory, Food, get_current_exchange_rate
 from django.http import JsonResponse
-from django.utils.translation import gettext as _
 from django.urls import reverse
-from django.db.models import Q
-from ...models.menufreemodels.models import Restaurant, MenuCategory, Food, Category, ExchangeRate, get_current_exchange_rate
-
 
 # صفحه اصلی منوی دیجیتال
 def digital_menu(request, restaurant_slug):
     """صفحه اصلی منوی دیجیتال"""
     restaurant = get_object_or_404(Restaurant, slug=restaurant_slug, isActive=True)
 
-    # تشخیص زبان از URL یا تنظیمات
-    lang = request.GET.get('lang', 'fa')
-    if lang not in ['fa', 'en']:
-        lang = 'fa'
+    # بررسی انقضای رستوران - فقط is_expired
+    if restaurant.is_expired:
+        lang = request.GET.get('lang', 'fa')
+        context = {
+            'restaurant': restaurant,
+            'current_language': lang,
+            'lang': lang,
+            'expired': True  # فقط این فلگ رو می‌فرستیم
+        }
 
-    # دریافت دسته‌بندی‌های فعال مربوط به رستوران
+        if lang == 'en':
+            return render(request, 'menu_app/free/restaurant_expired_en.html', context)
+        else:
+            return render(request, 'menu_app/free/restaurant_expired.html', context)
+
+    # اگر منقضی نشده، دیتا رو آماده کن
+    lang = request.GET.get('lang', 'fa')
+
     menu_categories = MenuCategory.objects.filter(
         restaurant=restaurant,
         isActive=True
     ).select_related('category').prefetch_related('foods')
 
-    # دریافت همه غذاهایی که این رستوران در لیست‌شان دارد
     foods = Food.objects.filter(
         restaurants=restaurant,
         isActive=True
     ).select_related('menuCategory__category').distinct()
 
-    # دریافت نرخ ارز فعلی
     exchange_rate = get_current_exchange_rate()
 
     context = {
@@ -37,16 +45,14 @@ def digital_menu(request, restaurant_slug):
         'foods': foods,
         'current_language': lang,
         'exchange_rate': exchange_rate,
-        'lang': lang
+        'lang': lang,
+        'expired': False  # فلگ منقضی نشده
     }
 
-    # استفاده از تمپلیت انگلیسی برای زبان انگلیسی
     if lang == 'en':
         return render(request, 'menu_app/free/restaurant_en.html', context)
     else:
         return render(request, 'menu_app/free/restaurant.html', context)
-
-
 
 def get_foods_by_category(request, restaurant_slug, category_id):
     """دریافت غذاها بر اساس دسته‌بندی (API)"""

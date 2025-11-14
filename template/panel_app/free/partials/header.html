@@ -357,6 +357,7 @@
 
 <script>
 // متغیرهای سراسری
+// متغیرهای سراسری
 let currentStep = 1;
 let restaurantData = {
     step1: {},
@@ -364,17 +365,13 @@ let restaurantData = {
     menuCreationType: null,
     uploadedImages: [],
     imagesSaved: false,
-    isSeoEnabled: true  // فعال بودن پیش‌فرض
+    isSeoEnabled: true
 };
 const MAX_IMAGES = 10;
 
-// قیمت‌ها - هماهنگ با مدل Django
-const BASE_PRICE = 99000 * 10;  // 990,000 تومان
-const SEO_EXTRA_PRICE = 39000 * 10;  // 390,000 تومان
-
-let fullNameTimeout;
-let autoFocusTimeout;
-let checkTimeout;
+// قیمت‌ها
+const BASE_PRICE = 99000 * 10;
+const SEO_EXTRA_PRICE = 39000 * 10;
 
 // مدیریت مودال
 function openCreateRestaurantModal() {
@@ -383,12 +380,8 @@ function openCreateRestaurantModal() {
     resetForm();
     updateProgress();
 
-    setTimeout(() => {
-        const fullNameInput = document.getElementById('fullNameInput');
-        if (fullNameInput) {
-            fullNameInput.focus();
-        }
-    }, 300);
+    // بازیابی داده‌های ذخیره شده
+    loadSavedData();
 }
 
 function closeCreateRestaurantModal() {
@@ -477,7 +470,6 @@ function resetForm() {
     if (uploadButton) uploadButton.disabled = true;
     if (saveImagesButton) saveImagesButton.disabled = true;
 
-    // فعال بودن پیش‌فرض سئو
     restaurantData.isSeoEnabled = true;
     updateSeoCheckbox();
     updateTotalPrice();
@@ -488,7 +480,7 @@ function resetForm() {
         menuCreationType: null,
         uploadedImages: [],
         imagesSaved: false,
-        isSeoEnabled: true  // فعال بودن پیش‌فرض
+        isSeoEnabled: true
     };
 
     const preview = document.getElementById('imagePreview');
@@ -522,6 +514,9 @@ function resetForm() {
     }
 
     updateProgress();
+
+    // پاک کردن داده‌های ذخیره شده
+    localStorage.removeItem('restaurantData');
 }
 
 // مدیریت گزینه سئو
@@ -529,9 +524,7 @@ function toggleSeoOption() {
     restaurantData.isSeoEnabled = !restaurantData.isSeoEnabled;
     updateSeoCheckbox();
     updateTotalPrice();
-
-    console.log('سئو فعال شد:', restaurantData.isSeoEnabled);
-    console.log('قیمت نهایی:', BASE_PRICE + (restaurantData.isSeoEnabled ? SEO_EXTRA_PRICE : 0));
+    saveDataToLocalStorage();
 }
 
 function updateSeoCheckbox() {
@@ -598,6 +591,8 @@ function proceedToStep2() {
     const fullName = fullNameInput.value.trim();
     const restaurantName = restaurantNameInput.value.trim();
 
+    console.log('Step 2 Data:', { fullName, restaurantName });
+
     if (!fullName || !restaurantName) {
         alert('لطفاً تمام فیلدها را پر کنید');
         return;
@@ -620,6 +615,7 @@ function proceedToStep2() {
         restaurant_name: restaurantName
     };
 
+    saveDataToLocalStorage();
     showStep(2);
 }
 
@@ -640,7 +636,8 @@ function checkEnglishName() {
 
     const englishName = englishNameInput.value.trim().toLowerCase();
     menuUrl.textContent = `/menu/${englishName}`;
-    clearTimeout(checkTimeout);
+
+    console.log('Checking English Name:', englishName);
 
     if (!englishName) {
         feedback.innerHTML = '<span class="text-red-500 flex items-center"><i class="fas fa-times-circle ml-1"></i> نام انگلیسی نمی‌تواند خالی باشد</span>';
@@ -658,7 +655,7 @@ function checkEnglishName() {
     feedback.innerHTML = '<span class="text-blue-500 flex items-center"><i class="fas fa-spinner fa-spin ml-1"></i> در حال بررسی...</span>';
     button.disabled = true;
 
-    checkTimeout = setTimeout(() => {
+    setTimeout(() => {
         fetch(`{% url 'panel:check_english_name' %}?english_name=${encodeURIComponent(englishName)}`)
             .then(response => response.json())
             .then(data => {
@@ -666,6 +663,7 @@ function checkEnglishName() {
                     feedback.innerHTML = '<span class="text-green-500 flex items-center"><i class="fas fa-check-circle ml-1"></i> ' + data.message + '</span>';
                     button.disabled = false;
                     restaurantData.step2 = { english_name: englishName };
+                    saveDataToLocalStorage();
                 } else {
                     feedback.innerHTML = '<span class="text-red-500 flex items-center"><i class="fas fa-times-circle ml-1"></i> ' + data.message + '</span>';
                     button.disabled = true;
@@ -958,10 +956,10 @@ function saveImages() {
 
     const formData = new FormData();
     formData.append('step', 'create_with_company');
-    formData.append('name', restaurantData.step1.name);
-    formData.append('family', restaurantData.step1.family);
-    formData.append('restaurant_name', restaurantData.step1.restaurant_name);
-    formData.append('english_name', restaurantData.step2.english_name);
+    formData.append('name', restaurantData.step1.name || '');
+    formData.append('family', restaurantData.step1.family || '');
+    formData.append('restaurant_name', restaurantData.step1.restaurant_name || '');
+    formData.append('english_name', restaurantData.step2.english_name || '');
     formData.append('menu_creation_type', 'company_save_only');
     formData.append('is_seo_enabled', restaurantData.isSeoEnabled ? '1' : '0');
 
@@ -969,7 +967,15 @@ function saveImages() {
         formData.append(`menu_images`, file);
     });
 
-    console.log('ارسال داده‌ها برای ذخیره عکس - سئو فعال:', restaurantData.isSeoEnabled);
+    console.log('ارسال داده‌ها برای ذخیره عکس:', {
+        name: restaurantData.step1.name,
+        family: restaurantData.step1.family,
+        restaurant_name: restaurantData.step1.restaurant_name,
+        english_name: restaurantData.step2.english_name,
+        is_seo_enabled: restaurantData.isSeoEnabled,
+        image_count: restaurantData.uploadedImages.length,
+        expire_days: 29
+    });
 
     fetch("{% url 'panel:create_restaurant_modal' %}", {
         method: 'POST',
@@ -980,7 +986,7 @@ function saveImages() {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('خطا در پاسخ سرور: ' + response.status);
+            throw new Error(`خطا در پاسخ سرور: ${response.status}`);
         }
         return response.json();
     })
@@ -1042,6 +1048,7 @@ function proceedToPayment() {
 }
 
 // ایجاد رستوران نهایی (ساخت توسط خود کاربر)
+// ایجاد رستوران نهایی (ساخت توسط خود کاربر)
 function createRestaurantFinal() {
     showStep(5);
     const processingTitle = document.getElementById('processingTitle');
@@ -1066,7 +1073,8 @@ function createRestaurantFinal() {
             family: restaurantData.step1.family,
             restaurant_name: restaurantData.step1.restaurant_name,
             english_name: restaurantData.step2.english_name,
-            is_seo_enabled: restaurantData.isSeoEnabled
+            is_seo_enabled: restaurantData.isSeoEnabled,
+            expire_days: 29 // اضافه کردن این پارامتر برای 29 روز انقضا
         })
     })
     .then(response => {
@@ -1084,6 +1092,7 @@ function createRestaurantFinal() {
             if (processingMessage) processingMessage.textContent = 'در حال انتقال به پنل مدیریت...';
 
             clearPendingRestaurant();
+            localStorage.removeItem('restaurantData');
 
             setTimeout(() => {
                 window.location.href = data.redirect_url;
@@ -1104,10 +1113,10 @@ function createRestaurantFinal() {
 function processCompanyMenuCreation() {
     const formData = new FormData();
     formData.append('step', 'create_with_company');
-    formData.append('name', restaurantData.step1.name);
-    formData.append('family', restaurantData.step1.family);
-    formData.append('restaurant_name', restaurantData.step1.restaurant_name);
-    formData.append('english_name', restaurantData.step2.english_name);
+    formData.append('name', restaurantData.step1.name || '');
+    formData.append('family', restaurantData.step1.family || '');
+    formData.append('restaurant_name', restaurantData.step1.restaurant_name || '');
+    formData.append('english_name', restaurantData.step2.english_name || '');
     formData.append('menu_creation_type', 'company');
     formData.append('is_seo_enabled', restaurantData.isSeoEnabled ? '1' : '0');
 
@@ -1115,8 +1124,14 @@ function processCompanyMenuCreation() {
         formData.append(`menu_images`, file);
     });
 
-    console.log('ارسال داده‌ها برای پرداخت - سئو فعال:', restaurantData.isSeoEnabled);
-    console.log('قیمت نهایی:', BASE_PRICE + (restaurantData.isSeoEnabled ? SEO_EXTRA_PRICE : 0));
+    console.log('ارسال داده‌ها برای پرداخت:', {
+        name: restaurantData.step1.name,
+        family: restaurantData.step1.family,
+        restaurant_name: restaurantData.step1.restaurant_name,
+        english_name: restaurantData.step2.english_name,
+        is_seo_enabled: restaurantData.isSeoEnabled,
+        image_count: restaurantData.uploadedImages.length
+    });
 
     fetch("{% url 'panel:create_restaurant_modal' %}", {
         method: 'POST',
@@ -1144,6 +1159,7 @@ function processCompanyMenuCreation() {
             if (processingMessage) processingMessage.textContent = 'لطفاً چند لحظه صبر کنید';
 
             clearPendingRestaurant();
+            localStorage.removeItem('restaurantData');
 
             setTimeout(() => {
                 window.location.href = data.redirect_url;
@@ -1166,7 +1182,60 @@ function processCompanyMenuCreation() {
     });
 }
 
-// بررسی وضعیت رستوران در حال انتظار
+// مدیریت داده‌های محلی
+function saveDataToLocalStorage() {
+    const dataToSave = {
+        step1: restaurantData.step1,
+        step2: restaurantData.step2,
+        isSeoEnabled: restaurantData.isSeoEnabled
+    };
+    localStorage.setItem('restaurantData', JSON.stringify(dataToSave));
+}
+
+function loadSavedData() {
+    const savedData = localStorage.getItem('restaurantData');
+    if (savedData) {
+        try {
+            const parsedData = JSON.parse(savedData);
+            restaurantData.step1 = parsedData.step1 || {};
+            restaurantData.step2 = parsedData.step2 || {};
+            restaurantData.isSeoEnabled = parsedData.isSeoEnabled !== undefined ? parsedData.isSeoEnabled : true;
+
+            // پر کردن فیلدها
+            if (restaurantData.step1.name && restaurantData.step1.family) {
+                const fullNameInput = document.getElementById('fullNameInput');
+                if (fullNameInput) {
+                    fullNameInput.value = `${restaurantData.step1.name} ${restaurantData.step1.family}`;
+                }
+            }
+            if (restaurantData.step1.restaurant_name) {
+                const restaurantNameInput = document.getElementById('restaurantNameInput');
+                if (restaurantNameInput) {
+                    restaurantNameInput.value = restaurantData.step1.restaurant_name;
+                }
+            }
+            if (restaurantData.step2.english_name) {
+                const englishNameInput = document.getElementById('englishNameInput');
+                if (englishNameInput) {
+                    englishNameInput.value = restaurantData.step2.english_name;
+                    // فعال کردن دکمه مرحله 2 اگر نام انگلیسی معتبر است
+                    const step2Button = document.getElementById('step2Button');
+                    if (step2Button && restaurantData.step2.english_name) {
+                        step2Button.disabled = false;
+                    }
+                }
+            }
+
+            updateSeoCheckbox();
+            updateTotalPrice();
+        } catch (e) {
+            console.error('Error loading saved data:', e);
+        }
+    }
+}
+
+
+
 function checkPendingRestaurant() {
     fetch("{% url 'panel:check_pending_restaurant' %}")
         .then(response => response.json())
@@ -1180,7 +1249,7 @@ function checkPendingRestaurant() {
         });
 }
 
-// پاک کردن رستوران در حال انتظار
+
 function clearPendingRestaurant() {
     fetch("{% url 'panel:clear_pending_restaurant' %}", {
         method: 'POST',
@@ -1200,30 +1269,6 @@ function clearPendingRestaurant() {
     });
 }
 
-// مدیریت فوکوس اتوماتیک بین فیلدها
-function setupAutoFocus() {
-    const fullNameInput = document.getElementById('fullNameInput');
-    const restaurantNameInput = document.getElementById('restaurantNameInput');
-
-    if (fullNameInput && restaurantNameInput) {
-        fullNameInput.addEventListener('input', function() {
-            clearTimeout(fullNameTimeout);
-
-            if (this.value.includes(' ') && this.value.trim() !== '') {
-                fullNameTimeout = setTimeout(() => {
-                    restaurantNameInput.focus();
-                }, 1000);
-            }
-        });
-
-        fullNameInput.addEventListener('keydown', function(e) {
-            if (e.key === ' ') {
-                clearTimeout(fullNameTimeout);
-            }
-        });
-    }
-}
-
 // مدیریت رویدادهای مودال
 const modal = document.getElementById('createRestaurantModal');
 if (modal) {
@@ -1240,9 +1285,10 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// بررسی وضعیت رستوران در حال انتظار هنگام بارگذاری صفحه
+
 document.addEventListener('DOMContentLoaded', function() {
     checkPendingRestaurant();
-    setupAutoFocus();
 });
+
+
 </script>

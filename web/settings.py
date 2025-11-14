@@ -46,9 +46,13 @@ INSTALLED_APPS = [
      'ckeditor',
     'ckeditor_uploader',
     'apps.blog.apps.BlogConfig',
+    'apps.plan.apps.PlanConfig',
+    'apps.product.apps.ProductConfig',
     'apps.order.apps.OrderConfig',
     'apps.peyment.apps.PeymentConfig',
-    'apps.main.apps.MainConfig'
+    'apps.main.apps.MainConfig',
+    'django_celery_results',
+    'django_celery_beat',
 ]
 
 
@@ -187,3 +191,12 @@ CACHES = {
         'LOCATION': 'token-cache',
     }
 }
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Tehran'
+
+
